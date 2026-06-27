@@ -1,0 +1,40 @@
+import React from 'react'
+import { Link } from 'react-router-dom'
+import { getSection } from '@/registry'
+
+export default function NetworkingIndex() {
+  const section = getSection('networking')!
+  return (
+    <div className="max-w-4xl mx-auto space-y-6">
+      <div>
+        <h1 className="text-2xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
+          {section.icon} {section.title}
+        </h1>
+        <p className="text-slate-500 dark:text-slate-400 mt-1">{section.description}</p>
+      </div>
+
+      <div className="bg-cyan-50 dark:bg-cyan-950/30 border border-cyan-200 dark:border-cyan-800 rounded-xl p-4 text-sm text-cyan-800 dark:text-cyan-300">
+        🌐 These simulations show protocol-level packet exchanges step by step — the exact sequence of messages that your browser, server, and OS exchange for every connection.
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        {section.subcategories.map(sub => (
+          <Link key={sub.id} to={sub.path}
+            className="group block rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 hover:border-cyan-400 dark:hover:border-cyan-600 hover:shadow-md transition-all">
+            <h3 className="font-semibold text-slate-800 dark:text-slate-200 group-hover:text-cyan-600 dark:group-hover:text-cyan-400 transition-colors mb-1">
+              {sub.title}
+            </h3>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mb-3">{sub.description}</p>
+            <div className="flex gap-1 flex-wrap">
+              {sub.tags?.map(t => (
+                <span key={t} className="text-xs px-2 py-0.5 rounded-full bg-cyan-50 dark:bg-cyan-950 text-cyan-700 dark:text-cyan-400 border border-cyan-200 dark:border-cyan-800">
+                  {t}
+                </span>
+              ))}
+            </div>
+          </Link>
+        ))}
+      </div>
+    </div>
+  )
+}
