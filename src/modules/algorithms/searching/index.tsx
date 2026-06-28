@@ -128,6 +128,11 @@ export default function BinarySearchVisualizer() {
         <ComplexityBadge time="O(log n)" space="O(1)" />
       </div>
 
+      <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-xl p-4 text-sm text-amber-800 dark:text-amber-300 space-y-2">
+        <p>Binary search isn't just for finding values in sorted arrays — the underlying pattern is <strong>"eliminate half the search space at each step"</strong>, and it appears in many disguised forms. Git's <code className="font-mono bg-amber-100 dark:bg-amber-900 px-1 rounded">git bisect</code> finds which commit introduced a bug by testing the midpoint commit. Database B-tree indexes use binary search to find rows in O(log n) from billions of records. LeetCode problems like "minimum speed to deliver packages in D days" are binary search on the answer space — the function is monotonic, so binary search applies.</p>
+        <p><strong>The key invariant:</strong> always maintain <code className="font-mono bg-amber-100 dark:bg-amber-900 px-1 rounded">[left, right]</code> as the range that still might contain the answer. When <code className="font-mono bg-amber-100 dark:bg-amber-900 px-1 rounded">left &gt; right</code>, the range is empty — target doesn't exist. Never skip elements: moving <code className="font-mono bg-amber-100 dark:bg-amber-900 px-1 rounded">left = mid + 1</code> is a guarantee that "mid is definitely not the answer and everything before mid is too small". Get this wrong by one and you get infinite loops or missed answers.</p>
+      </div>
+
       <label className="flex items-center gap-2 text-sm">
         <span className="text-slate-500">Search for:</span>
         <input type="number" value={target} onChange={e => { setTarget(+e.target.value); ctrl.reset() }}

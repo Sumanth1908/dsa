@@ -352,6 +352,29 @@ const COMPLEXITY: Record<SortAlgo, { time: string; space: string }> = {
   heap:   { time: 'O(n log n)', space: 'O(1)' },
 }
 
+const ALGO_DESCRIPTIONS: Record<SortAlgo, { when: string; why: string; tradeoff: string }> = {
+  bubble: {
+    when: 'Almost never in production. Good for teaching comparison sorts.',
+    why: 'Each pass "bubbles" the largest unsorted element to its final position by comparing adjacent pairs. After k passes, the last k elements are sorted.',
+    tradeoff: 'O(n²) even for nearly-sorted data (unless you add an "early exit" flag). No real advantage over Insertion Sort, which has the same complexity but fewer writes.',
+  },
+  merge: {
+    when: 'When you need a stable sort, or when sorting linked lists, or when data doesn\'t fit in memory (external sort).',
+    why: 'Divide the array in half recursively until each piece has 1 element (trivially sorted), then merge adjacent sorted pieces. The merge step picks the smaller of the two front elements repeatedly.',
+    tradeoff: 'Always O(n log n) — no worst case. The downside is O(n) extra space for the temporary merge buffer. Python\'s built-in sort (Timsort) is merge sort + insertion sort hybrid. Java uses it for object arrays.',
+  },
+  quick: {
+    when: 'Default general-purpose sort. Fastest in practice for in-memory sorting when data isn\'t adversarially ordered.',
+    why: 'Pick a pivot, partition the array so all elements ≤ pivot are left, all ≥ pivot are right, then recurse on both halves. The pivot ends up in its final sorted position after each partition.',
+    tradeoff: 'O(n²) worst case if pivot is always the min or max (e.g., sorted input with last-element pivot). Fix: randomise the pivot. Average case O(n log n), O(log n) stack space (in-place). Cache-friendly — excellent real-world constants.',
+  },
+  heap: {
+    when: 'When guaranteed O(n log n) in-place sort is required — especially embedded systems or when memory is constrained.',
+    why: 'Phase 1: build a max-heap from the array in O(n). Phase 2: repeatedly extract the max (swap root with last element, shrink heap, heapify down) to place elements in sorted order.',
+    tradeoff: 'Guaranteed O(n log n) worst case with O(1) space (no recursion stack). In practice slower than quicksort due to poor cache behaviour — heap operations jump around memory non-sequentially.',
+  },
+}
+
 const INITIAL = [64, 34, 25, 12, 22, 11, 90]
 
 interface SortingVisualizerProps { algo?: SortAlgo }
@@ -387,6 +410,23 @@ export default function SortingVisualizer({ algo: propAlgo }: SortingVisualizerP
           </h1>
         </div>
         <ComplexityBadge time={COMPLEXITY[algo].time} space={COMPLEXITY[algo].space} />
+      </div>
+
+      <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-xl p-4 text-sm text-amber-800 dark:text-amber-300 space-y-2">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div>
+            <div className="font-semibold text-xs uppercase tracking-wide mb-1">Use when</div>
+            <p>{ALGO_DESCRIPTIONS[algo].when}</p>
+          </div>
+          <div>
+            <div className="font-semibold text-xs uppercase tracking-wide mb-1">How it works</div>
+            <p>{ALGO_DESCRIPTIONS[algo].why}</p>
+          </div>
+          <div>
+            <div className="font-semibold text-xs uppercase tracking-wide mb-1">Trade-off</div>
+            <p>{ALGO_DESCRIPTIONS[algo].tradeoff}</p>
+          </div>
+        </div>
       </div>
 
       {!propAlgo && (

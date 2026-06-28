@@ -1,6 +1,7 @@
 import React from 'react'
 import { useSteps } from '@/hooks/useSteps'
 import StepControls from '@/components/shared/StepControls'
+import CodeBlock from '@/components/shared/CodeBlock'
 
 interface Packet { from: 'client' | 'server'; label: string; flags: string; color: string; detail: string }
 interface Step { phase: 'handshake' | 'data' | 'teardown'; packets: Packet[]; clientState: string; serverState: string; message: string; activePacket: number | null }
@@ -83,6 +84,12 @@ export default function TCPVisualizer() {
         <p className="text-slate-500 dark:text-slate-400 mt-1">
           3-way handshake, data transfer with ACKs, and 4-way FIN teardown
         </p>
+      </div>
+
+      <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-xl p-4 text-sm text-amber-800 dark:text-amber-300 space-y-2">
+        <p>TCP is a <strong>reliable, ordered, connection-oriented</strong> protocol. Before any data is exchanged, both sides must agree they're ready — that's the 3-way handshake. During the handshake, each side picks a random <strong>Initial Sequence Number (ISN)</strong> and communicates it to the other. All subsequent packets include sequence numbers so the receiver can detect gaps, duplicates, and reorder out-of-order packets.</p>
+        <p><strong>Why reliability is hard:</strong> The internet is unreliable by design. IP packets can be dropped by overloaded routers, arrive out of order via different paths, or be duplicated. TCP hides all of this. Every byte sent gets an ACK; if no ACK arrives within a timeout, TCP retransmits. A sliding window lets the sender transmit multiple packets before waiting for ACKs, keeping the pipe full (flow control). Congestion control (slow start, AIMD) detects network overload and backs off.</p>
+        <p><strong>This is why</strong> HTTP, SSH, database connections, and most application protocols run over TCP — data integrity is non-negotiable. Only use UDP when you can tolerate or self-handle lost packets (gaming, video streaming, DNS lookups).</p>
       </div>
 
       {/* Phase indicator */}
@@ -183,6 +190,123 @@ export default function TCPVisualizer() {
       </div>
 
       <StepControls ctrl={ctrl} />
+
+      <CodeBlock examples={[
+        {
+          lang: 'javascript' as const, label: 'JavaScript (net module)',
+          code: `const net = require('net')
+
+// ─── TCP CLIENT ────────────────────────────────────────────────
+const client = net.createConnection({ port: 8080, host: 'localhost' }, () => {
+    // Callback fires after 3-way handshake completes
+    console.log('TCP ESTABLISHED — sending data')
+    client.write('Hello from client\n')
+})
+
+client.on('data', data => {
+    console.log('Received:', data.toString())
+    client.end()  // sends FIN — initiates 4-way teardown
+})
+
+client.on('end', () => console.log('Connection closed (FIN received from server)'))
+client.on('error', err => console.error('TCP error:', err.message))
+
+// ─── TCP SERVER ────────────────────────────────────────────────
+const server = net.createServer(socket => {
+    console.log(\`Client connected: \${socket.remoteAddress}:\${socket.remotePort}\`)
+
+    socket.on('data', data => {
+        console.log('Received:', data.toString())
+        socket.write('ACK: ' + data)  // echo back
+    })
+
+    socket.on('end', () => console.log('Client disconnected (FIN received)'))
+})
+
+server.listen(8080, () => console.log('TCP server listening on :8080'))`,
+        },
+        {
+          lang: 'python' as const, label: 'Python (socket)',
+          code: `import socket
+import threading
+
+# ─── TCP CLIENT ────────────────────────────────────────────────
+def tcp_client():
+    # AF_INET = IPv4, SOCK_STREAM = TCP (reliable, ordered)
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        s.connect(('localhost', 8080))    # triggers 3-way handshake
+        print(f'Connected to {s.getpeername()}')
+
+        s.sendall(b'Hello from Python client')
+        data = s.recv(1024)
+        print(f'Received: {data.decode()}')
+    # 'with' block exit closes socket → sends FIN
+
+# ─── TCP SERVER ────────────────────────────────────────────────
+def tcp_server():
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as server:
+        server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        server.bind(('0.0.0.0', 8080))
+        server.listen(5)                  # backlog: max queued connections
+        print('TCP server listening on :8080')
+
+        while True:
+            conn, addr = server.accept()  # blocks until client connects
+            thread = threading.Thread(target=handle_client, args=(conn,))
+            thread.start()
+
+def handle_client(conn):
+    with conn:
+        while data := conn.recv(1024):    # recv returns b'' on FIN
+            conn.sendall(b'ACK: ' + data)`,
+        },
+        {
+          lang: 'java' as const, label: 'Java (ServerSocket)',
+          code: `import java.net.*;
+import java.io.*;
+
+// ─── TCP SERVER ────────────────────────────────────────────────
+public class TCPServer {
+    public static void main(String[] args) throws IOException {
+        // ServerSocket listens for incoming connections
+        try (ServerSocket server = new ServerSocket(8080)) {
+            System.out.println("TCP server listening on :8080");
+
+            while (true) {
+                Socket client = server.accept();   // blocks; returns after handshake
+                new Thread(() -> handleClient(client)).start();
+            }
+        }
+    }
+
+    static void handleClient(Socket socket) {
+        try (socket;
+             BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+             PrintWriter out = new PrintWriter(socket.getOutputStream(), true)) {
+
+            System.out.println("Client connected: " + socket.getInetAddress());
+            String line;
+            while ((line = in.readLine()) != null) {   // null = FIN received
+                out.println("ACK: " + line);
+            }
+        } catch (IOException e) { e.printStackTrace(); }
+    }
+}
+
+// ─── TCP CLIENT ────────────────────────────────────────────────
+public class TCPClient {
+    public static void main(String[] args) throws IOException {
+        try (Socket socket = new Socket("localhost", 8080);   // triggers handshake
+             PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
+             BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()))) {
+
+            out.println("Hello from Java client");
+            System.out.println("Server replied: " + in.readLine());
+        }   // socket.close() → FIN
+    }
+}`,
+        },
+      ]} />
     </div>
   )
 }

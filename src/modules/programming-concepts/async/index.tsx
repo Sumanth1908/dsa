@@ -141,6 +141,12 @@ export default function EventLoopVisualizer() {
         </p>
       </div>
 
+      <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-xl p-4 text-sm text-amber-800 dark:text-amber-300 space-y-2">
+        <p>JavaScript is <strong>single-threaded</strong> — there is exactly one call stack, and only one function runs at a time. But a browser or Node.js can handle thousands of concurrent I/O operations. How? Not with threads — with the <strong>event loop</strong>. When you call <code className="font-mono bg-amber-100 dark:bg-amber-900 px-1 rounded">setTimeout</code> or <code className="font-mono bg-amber-100 dark:bg-amber-900 px-1 rounded">fetch()</code>, the work is handed off to a background Web API (a browser thread, or libuv in Node). The JS thread stays free to do other work. When the timer fires or the fetch resolves, a callback is placed in a queue and picked up by the event loop when the call stack is empty.</p>
+        <p><strong>This is why blocking the event loop is so dangerous.</strong> If you run a CPU-heavy computation synchronously (e.g., sorting a million items), the call stack stays occupied — no other callbacks can run, no requests can be served, the browser UI freezes. The fix: offload to a Web Worker (browser) or worker thread (Node.js), or break the work into chunks with <code className="font-mono bg-amber-100 dark:bg-amber-900 px-1 rounded">setImmediate</code>.</p>
+        <p><strong>async/await is syntax sugar over Promises.</strong> Writing <code className="font-mono bg-amber-100 dark:bg-amber-900 px-1 rounded">const data = await fetch(url)</code> is equivalent to <code className="font-mono bg-amber-100 dark:bg-amber-900 px-1 rounded">fetch(url).then(data =&gt; ...)</code>. Under the hood, the <code className="font-mono bg-amber-100 dark:bg-amber-900 px-1 rounded">await</code> suspends the async function and places a continuation in the microtask queue — which is why Promise callbacks always run before <code className="font-mono bg-amber-100 dark:bg-amber-900 px-1 rounded">setTimeout</code> callbacks, even if the timeout is 0ms.</p>
+      </div>
+
       <div className="viz-container p-6">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {/* Call Stack */}

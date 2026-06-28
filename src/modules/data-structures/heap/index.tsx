@@ -180,6 +180,23 @@ export default function HeapVisualizer() {
         <ComplexityBadge time="O(log n) insert/extract" space="O(n)" />
       </div>
 
+      <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-xl p-4 text-sm text-amber-800 dark:text-amber-300 space-y-2">
+        <p>The <strong>heap property</strong>: in a min-heap, every parent is smaller than or equal to both its children — everywhere in the tree, not just one level. This guarantees the root is always the global minimum. A max-heap is the mirror: every parent is larger than both children, root is the global maximum.</p>
+        <p>Heaps are stored as plain <strong>arrays</strong> — no pointers. For node at index <code className="font-mono bg-amber-100 dark:bg-amber-900 px-1 rounded">i</code>: left child = <code className="font-mono bg-amber-100 dark:bg-amber-900 px-1 rounded">2i+1</code>, right child = <code className="font-mono bg-amber-100 dark:bg-amber-900 px-1 rounded">2i+2</code>, parent = <code className="font-mono bg-amber-100 dark:bg-amber-900 px-1 rounded">⌊(i-1)/2⌋</code>. The tree visualizer is just a different way to draw the same flat array — the array IS the heap.</p>
+        <p>Insert adds to the end then <strong>bubbles up</strong> (swapping with parent while heap property violated). Extract removes the root, moves the last element there, then <strong>sinks down</strong> (swapping with the smaller child while violated). Both are O(log n) because the tree's height is ⌊log₂ n⌋.</p>
+      </div>
+
+      <div className="bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800 rounded-xl p-4 text-sm">
+        <strong className="text-emerald-700 dark:text-emerald-300 block mb-2">When to use a heap</strong>
+        <ul className="space-y-1 text-emerald-800 dark:text-emerald-400">
+          <li>• <strong>Top-K problems</strong> — keep a min-heap of size K while scanning; root is always the Kth largest seen so far</li>
+          <li>• <strong>Dijkstra's shortest path</strong> — always process the unvisited node with smallest known distance; heap gives O(log V) per extraction</li>
+          <li>• <strong>Merge K sorted lists</strong> — push one element from each list into a min-heap; always extract the global minimum</li>
+          <li>• <strong>Task scheduling</strong> — priority queues where highest-priority task is always next (OS schedulers, event loops)</li>
+          <li>• <strong>Median of a data stream</strong> — one max-heap for the lower half, one min-heap for the upper half; median is always at one of the roots</li>
+        </ul>
+      </div>
+
       <div className="flex gap-2 flex-wrap">
         <button onClick={() => setIsMin(!isMin)}
           className="px-4 py-2 rounded-lg text-sm font-medium border border-violet-400 text-violet-600 dark:text-violet-400 hover:bg-violet-50 dark:hover:bg-violet-950">

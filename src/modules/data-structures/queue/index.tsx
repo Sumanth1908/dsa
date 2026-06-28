@@ -115,6 +115,22 @@ export default function QueueVisualizer() {
         <ComplexityBadge time="O(1) enqueue/dequeue" space="O(n)" />
       </div>
 
+      <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-xl p-4 text-sm text-amber-800 dark:text-amber-300 space-y-2">
+        <p>Queues enforce <strong>fairness</strong>: the first to arrive is the first to be served. This is exactly what you want for <strong>BFS graph traversal</strong> — process nodes layer by layer in the order they were discovered. It's also how OS task schedulers work (round-robin CPU slices), how printer queues work, and how distributed message brokers like Kafka and SQS work — events processed strictly in arrival order.</p>
+        <p><strong>Implementation detail worth knowing:</strong> JavaScript's <code className="font-mono bg-amber-100 dark:bg-amber-900 px-1 rounded">array.shift()</code> is O(n) — it must slide every element left after removing the first. Python's <code className="font-mono bg-amber-100 dark:bg-amber-900 px-1 rounded">collections.deque.popleft()</code> is O(1) because deque uses a doubly-linked list internally. Java's <code className="font-mono bg-amber-100 dark:bg-amber-900 px-1 rounded">ArrayDeque.poll()</code> is also O(1) with circular buffer indexing.</p>
+      </div>
+
+      <div className="bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800 rounded-xl p-4 text-sm">
+        <strong className="text-emerald-700 dark:text-emerald-300 block mb-2">Recognise a queue problem</strong>
+        <ul className="space-y-1 text-emerald-800 dark:text-emerald-400">
+          <li>• <strong>BFS</strong> — level-order traversal of a graph or tree; "shortest path in an unweighted graph"</li>
+          <li>• <strong>Sliding window</strong> — monotonic deque for max/min in a window (see Patterns)</li>
+          <li>• <strong>Rate limiting</strong> — fixed-size queue of timestamps, reject if queue full</li>
+          <li>• <strong>Multi-source BFS</strong> — start BFS from multiple nodes simultaneously (e.g., "rotting oranges", "walls and gates")</li>
+          <li>• <strong>Anything with "process in order"</strong> — task queues, event streams, print jobs</li>
+        </ul>
+      </div>
+
       <div className="flex gap-2 flex-wrap">
         {(['enqueue', 'dequeue'] as const).map(o => (
           <button key={o} onClick={() => { setOp(o); ctrl.reset() }}

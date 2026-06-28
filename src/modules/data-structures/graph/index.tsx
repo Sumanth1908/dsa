@@ -214,6 +214,16 @@ export default function GraphVisualizer() {
         <ComplexityBadge time="O(V + E)" space="O(V)" />
       </div>
 
+      <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-xl p-4 text-sm text-amber-800 dark:text-amber-300 space-y-2">
+        <p>Graphs are the most general data structure — a tree is just a connected, acyclic, undirected graph. Real-world graphs are everywhere: <strong>social networks</strong> (nodes = people, edges = friendships), <strong>maps</strong> (nodes = intersections, edges = roads with weights), <strong>dependency graphs</strong> (npm packages, Makefile targets), <strong>web pages</strong> (nodes = URLs, edges = hyperlinks — Google's PageRank runs on this).</p>
+        <p><strong>Two representations:</strong></p>
+        <ul className="space-y-1 ml-2">
+          <li>• <strong>Adjacency list</strong> — each node stores a list of its neighbors. O(V+E) space. Fast to iterate neighbors. Used for most real graphs (which are sparse).</li>
+          <li>• <strong>Adjacency matrix</strong> — V×V boolean grid. O(V²) space. O(1) edge lookup ("is there an edge between A and B?"). Good for dense graphs or when you need fast edge checks.</li>
+        </ul>
+        <p><strong>Directed vs undirected:</strong> Twitter follows are directed (A→B doesn't imply B→A). Facebook friendships are undirected (mutual). <strong>Weighted vs unweighted:</strong> road distances are weighted, social connections are typically unweighted. BFS finds shortest path in hops (unweighted); Dijkstra's algorithm finds shortest path by total weight.</p>
+      </div>
+
       <div className="flex gap-2">
         {(['bfs', 'dfs'] as const).map(m => (
           <button key={m} onClick={() => { setMode(m); ctrl.reset() }}

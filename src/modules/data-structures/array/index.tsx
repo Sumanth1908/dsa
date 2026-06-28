@@ -188,6 +188,21 @@ export default function ArrayVisualizer() {
         <ComplexityBadge time="O(n) search, O(1) access" space="O(n)" />
       </div>
 
+      <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-xl p-4 text-sm text-amber-800 dark:text-amber-300 space-y-2">
+        <p>Arrays store elements in <strong>contiguous memory</strong> — every slot is the same fixed size, so reading index <code className="font-mono bg-amber-100 dark:bg-amber-900 px-1 rounded">i</code> takes exactly one operation: compute <code className="font-mono bg-amber-100 dark:bg-amber-900 px-1 rounded">base_address + i × element_size</code>. No traversal, no searching — just arithmetic. This is why random access is always O(1) regardless of array size.</p>
+        <p>Insertion and deletion in the <em>middle</em> are O(n): every element after the target position must physically shift to close or open a gap. Appending to the end is O(1) amortised — dynamic arrays (Python list, JavaScript Array, Java ArrayList) double their capacity when full, so the costly resize is rare and the average cost stays constant.</p>
+      </div>
+
+      <div className="bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800 rounded-xl p-4 text-sm">
+        <strong className="text-emerald-700 dark:text-emerald-300 block mb-2">When to choose an array</strong>
+        <ul className="space-y-1 text-emerald-800 dark:text-emerald-400">
+          <li>• You need O(1) random access — reading or writing any element by index instantly</li>
+          <li>• The size is roughly known upfront, or growth happens mostly at the tail (appending)</li>
+          <li>• Cache performance matters — contiguous memory maps perfectly to CPU cache lines, making sequential scans very fast compared to pointer-chasing data structures</li>
+          <li>• <strong>Prefer a Linked List instead</strong> when: insertions and deletions at the head or middle dominate, and you rarely look up by index</li>
+        </ul>
+      </div>
+
       {/* Operation selector */}
       <div className="flex gap-2">
         {(['search', 'insert', 'delete'] as Operation[]).map(o => (

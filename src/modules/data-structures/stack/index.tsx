@@ -143,6 +143,22 @@ export default function StackVisualizer() {
         <ComplexityBadge time="O(1) push/pop/peek" space="O(n)" />
       </div>
 
+      <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-xl p-4 text-sm text-amber-800 dark:text-amber-300 space-y-2">
+        <p>Stacks are everywhere in software — even when you don't realise it. Your browser's Back button is a stack of URLs: each page you visit is pushed, Back pops it. Your IDE's Undo is a stack of edits. When your program calls a function, the CPU pushes a <strong>stack frame</strong> (local variables + return address) — that's the call stack you see in debuggers and crash traces.</p>
+        <p>All operations are O(1) because you <em>only ever touch the top</em>. There's no searching, no shifting, no traversal — just push to top or pop from top. This constraint is exactly what makes stacks so predictable and fast.</p>
+      </div>
+
+      <div className="bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800 rounded-xl p-4 text-sm">
+        <strong className="text-emerald-700 dark:text-emerald-300 block mb-2">Recognise a stack problem</strong>
+        <ul className="space-y-1 text-emerald-800 dark:text-emerald-400">
+          <li>• <strong>Bracket matching</strong> — push open brackets, pop to verify against each close bracket</li>
+          <li>• <strong>DFS traversal</strong> — either via recursion (the call stack is the stack) or an explicit stack iteration</li>
+          <li>• <strong>Undo/Redo</strong> — two stacks: undo stack and redo stack; push to one, pop from the other</li>
+          <li>• <strong>Monotonic stack pattern</strong> — maintain elements in increasing or decreasing order while scanning left to right (Next Greater Element, Largest Rectangle in Histogram)</li>
+          <li>• <strong>Expression evaluation</strong> — operators and operands, respecting precedence</li>
+        </ul>
+      </div>
+
       {/* Op selector */}
       <div className="flex gap-2 flex-wrap">
         {(['push', 'pop', 'peek'] as const).map(o => (

@@ -2,12 +2,7 @@ import React from 'react'
 import { registry } from '@/registry'
 import ModuleCard from '@/components/shared/ModuleCard'
 
-const STATS = [
-  { label: 'Data Structures', value: '7' },
-  { label: 'Algorithms', value: '5' },
-  { label: 'Problem Patterns', value: '6' },
-  { label: 'System Design', value: '4' },
-]
+const totalTopics = registry.reduce((sum, s) => sum + s.subcategories.length, 0)
 
 export default function HomePage() {
   return (
@@ -15,25 +10,35 @@ export default function HomePage() {
       {/* Hero */}
       <div className="text-center space-y-4 py-8">
         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-violet-100 dark:bg-violet-950 text-violet-600 dark:text-violet-400 text-sm font-medium border border-violet-200 dark:border-violet-800">
-          <span>⚡</span> Interactive Learning Reference
+          <svg viewBox="0 0 20 20" className="w-4 h-4" fill="none">
+            <rect width="20" height="20" rx="5" fill="#7c3aed"/>
+            <polyline points="6.5,5.5 3.5,10 6.5,14.5" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+            <polyline points="13.5,5.5 16.5,10 13.5,14.5" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+            <line x1="12" y1="5" x2="8" y2="15" stroke="white" strokeWidth="1.5" strokeLinecap="round"/>
+          </svg>
+          DevRef — Your Interactive Engineering Reference
         </div>
         <h1 className="text-4xl md:text-5xl font-bold text-slate-900 dark:text-white leading-tight">
-          DSA & System Design
+          Algorithms, Systems & Code
           <br />
-          <span className="text-violet-600 dark:text-violet-400">Visualized</span>
+          <span className="text-violet-600 dark:text-violet-400">Step by Step</span>
         </h1>
         <p className="text-lg text-slate-500 dark:text-slate-400 max-w-2xl mx-auto">
-          Step-by-step interactive simulations for data structures, algorithms, problem patterns,
-          system design, and networking — with code in JS, Python & Java.
+          Interactive visualizers for DSA, system design, AI/ML, Python, JavaScript, Kubernetes, and networking —
+          with real code examples in JS, Python & Java.
         </p>
       </div>
 
-      {/* Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        {STATS.map(s => (
-          <div key={s.label} className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-4 text-center">
-            <div className="text-3xl font-bold text-slate-900 dark:text-white">{s.value}</div>
-            <div className="text-xs text-slate-500 dark:text-slate-400 mt-1">{s.label}</div>
+      {/* Stats — derived dynamically from registry */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+        <div className="bg-violet-600 dark:bg-violet-700 rounded-xl p-4 text-center text-white">
+          <div className="text-3xl font-bold">{totalTopics}</div>
+          <div className="text-xs text-violet-200 mt-1">Total Topics</div>
+        </div>
+        {registry.map(s => (
+          <div key={s.id} className={`${s.bgColor} rounded-xl border ${s.borderColor} p-4 text-center`}>
+            <div className={`text-2xl font-bold ${s.color}`}>{s.subcategories.length}</div>
+            <div className="text-xs text-slate-500 dark:text-slate-400 mt-1 leading-tight">{s.title}</div>
           </div>
         ))}
       </div>

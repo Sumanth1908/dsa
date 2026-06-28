@@ -244,6 +244,21 @@ export default function TreeVisualizer() {
         <ComplexityBadge time="O(log n) avg, O(n) worst" space="O(n)" />
       </div>
 
+      <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-xl p-4 text-sm text-amber-800 dark:text-amber-300 space-y-2">
+        <p>A BST enforces one simple invariant at every node: left subtree has only smaller values, right subtree has only larger values. This lets you search by <strong>eliminating half the tree at each step</strong> — O(log n) on average. It's binary search, but on a dynamic structure that supports O(log n) insert and delete without reshuffling everything.</p>
+        <p><strong>Inorder traversal</strong> (left → root → right) visits BST nodes in ascending sorted order. This is a key property: a BST is essentially a sorted container.</p>
+        <p><strong>The danger of imbalance:</strong> if you insert already-sorted values (1, 2, 3, 4, 5…), the tree degrades into a linked list — every node only has a right child, and search becomes O(n). Real databases and language standard libraries use <strong>self-balancing trees</strong> (AVL or Red-Black) that automatically rotate to maintain O(log n) height. Java's <code className="font-mono bg-amber-100 dark:bg-amber-900 px-1 rounded">TreeMap</code>, C++'s <code className="font-mono bg-amber-100 dark:bg-amber-900 px-1 rounded">std::map</code>, and database B-tree indexes all do this.</p>
+      </div>
+
+      <div className="bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800 rounded-xl p-4 text-sm">
+        <strong className="text-emerald-700 dark:text-emerald-300 block mb-2">BST vs HashMap — when to choose each</strong>
+        <ul className="space-y-1 text-emerald-800 dark:text-emerald-400">
+          <li>• <strong>HashMap</strong> — O(1) average lookup, but keys are unordered; no range queries, no floor/ceiling, no in-order iteration</li>
+          <li>• <strong>BST / TreeMap</strong> — O(log n) lookup, but supports range queries ("all values between 10 and 50"), floor/ceiling operations, and sorted iteration — essential for problems like "count elements in range", "find closest value", or "maintain sorted order with insertions"</li>
+          <li>• If you need both speed and ordering: use Java's <code className="font-mono text-xs bg-emerald-100 dark:bg-emerald-900 px-1 rounded">TreeMap</code> or Python's <code className="font-mono text-xs bg-emerald-100 dark:bg-emerald-900 px-1 rounded">sortedcontainers.SortedDict</code></li>
+        </ul>
+      </div>
+
       <div className="flex gap-2 flex-wrap">
         {(['inorder', 'preorder', 'postorder', 'insert'] as const).map(t => (
           <button key={t} onClick={() => { setTraversal(t); ctrl.reset() }}

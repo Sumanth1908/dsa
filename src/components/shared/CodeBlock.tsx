@@ -24,7 +24,7 @@ function highlight(code: string, lang: string): React.ReactNode[] {
       <span className="table-cell pr-4 text-slate-600 dark:text-slate-600 select-none text-right w-8 text-xs">
         {i + 1}
       </span>
-      <span className="table-cell">
+      <span className="table-cell whitespace-pre">
         <SyntaxLine line={line} lang={lang} />
       </span>
     </div>
@@ -131,7 +131,7 @@ export default function CodeBlock({ examples }: CodeBlockProps) {
 
       {/* Code */}
       <div className="overflow-auto max-h-80 p-4">
-        <div className="table text-xs font-mono leading-6 text-slate-300">
+        <div className="table min-w-max text-xs font-mono leading-6 text-slate-300">
           {highlight(current.code, current.lang)}
         </div>
       </div>

@@ -177,6 +177,12 @@ export default function LinkedListVisualizer() {
         <ComplexityBadge time="O(n) search, O(1) head insert" space="O(n)" />
       </div>
 
+      <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-xl p-4 text-sm text-amber-800 dark:text-amber-300 space-y-2">
+        <p>Arrays are fast at random access but slow at insertion — inserting at index 0 shifts every element, costing O(n). Linked lists flip this trade-off: inserting at the <strong>head</strong> is O(1) because you just point the new node at the old head and update the head pointer. No shifting, no copying. Similarly, deleting a node is O(1) if you have a reference to the node's predecessor — just re-wire two pointers.</p>
+        <p>The trade-off: there's no index. To find the 5th node you must start at head and follow <code className="font-mono bg-amber-100 dark:bg-amber-900 px-1 rounded">next</code> pointers five times. Each node also carries extra memory overhead for the pointer itself.</p>
+        <p><strong>Doubly-linked list</strong> adds a <code className="font-mono bg-amber-100 dark:bg-amber-900 px-1 rounded">prev</code> pointer to each node, enabling O(1) deletion given only a node reference (no predecessor traversal needed). Java's <code className="font-mono bg-amber-100 dark:bg-amber-900 px-1 rounded">LinkedHashMap</code> and the classic <strong>LRU Cache</strong> implementation use a doubly-linked list + hashmap: the hashmap gives O(1) lookup, the linked list gives O(1) move-to-front on access and O(1) remove-least-recently-used from the tail.</p>
+      </div>
+
       <div className="flex gap-2 flex-wrap">
         {(['traverse', 'insert', 'delete'] as const).map(o => (
           <button key={o} onClick={() => { setOp(o); ctrl.reset() }}
