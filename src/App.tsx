@@ -184,7 +184,7 @@ const router = createBrowserRouter([
       { path: 'networking/websocket', element: S(WebSocketViz) },
     ],
   },
-])
+], { basename: import.meta.env.BASE_URL })
 
 export default function App() {
   return (
