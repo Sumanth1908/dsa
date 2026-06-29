@@ -49,6 +49,10 @@ const KubernetesViz = lazy(() => import('@/modules/containers/kubernetes'))
 const JavaScriptIndex = lazy(() => import('@/modules/javascript'))
 const EventLoopViz = lazy(() => import('@/modules/programming-concepts/async'))
 
+// ── Java ──────────────────────────────────────────────────────────────
+const JavaIndex = lazy(() => import('@/modules/java'))
+const JavaStreamsViz = lazy(() => import('@/modules/programming-concepts/java-streams'))
+
 // ── Python ────────────────────────────────────────────────────────────────
 const PythonIndex = lazy(() => import('@/modules/python'))
 const PyGeneratorsViz = lazy(() => import('@/modules/programming-concepts/python-generators'))
@@ -147,6 +151,10 @@ const router = createBrowserRouter([
       // JavaScript
       { path: 'javascript', element: S(JavaScriptIndex) },
       { path: 'javascript/event-loop', element: S(EventLoopViz) },
+
+      // Java
+      { path: 'java', element: S(JavaIndex) },
+      { path: 'java/streams', element: S(JavaStreamsViz) },
 
       // Python
       { path: 'python', element: S(PythonIndex) },

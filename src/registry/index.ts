@@ -150,6 +150,28 @@ export const registry: ModuleSection[] = [
     ],
   },
 
+  // ── Java ─────────────────────────────────────────────────────────────────
+  {
+    id: 'java',
+    title: 'Java',
+    path: '/java',
+    icon: '☕',
+    color: 'text-orange-600 dark:text-orange-400',
+    bgColor: 'bg-orange-50 dark:bg-orange-950/30',
+    borderColor: 'border-orange-200 dark:border-orange-800',
+    description: 'Java internals and APIs — streams, concurrency, and the JVM runtime',
+    subcategories: [
+      {
+        id: 'java-streams',
+        title: 'Streams & Reactive',
+        path: '/java/streams',
+        description: 'Lazy stream pipelines, infinite streams, and reactive backpressure for continuous data',
+        difficulty: 'intermediate',
+        tags: ['Stream API', 'filter/map/collect', 'reactive', 'backpressure', 'Flux'],
+      },
+    ],
+  },
+
   // ── Coding Essentials ─────────────────────────────────────────────────────
   {
     id: 'coding-essentials',
