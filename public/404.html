@@ -7,11 +7,9 @@
       // GitHub Pages SPA redirect.
       // Saves the full path to sessionStorage, then redirects to the app root.
       // The main index.html restores the path before React Router initialises.
-      var base = '/dsa';
       var path = window.location.pathname;
-      var rest = path.startsWith(base) ? path.slice(base.length) : path;
-      sessionStorage.setItem('spa-redirect', rest + window.location.search + window.location.hash);
-      window.location.replace(base + '/');
+      sessionStorage.setItem('spa-redirect', path + window.location.search + window.location.hash);
+      window.location.replace('/');
     </script>
   </head>
   <body></body>
