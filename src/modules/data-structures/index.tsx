@@ -8,7 +8,9 @@ const META: Record<string, { time: string; space: string; icon: string }> = {
   'linked-list': { time: 'O(n) search', space: 'O(n)', icon: '⬡' },
   stack: { time: 'O(1) push/pop', space: 'O(n)', icon: '⬆' },
   queue: { time: 'O(1) enq/deq', space: 'O(n)', icon: '➡' },
-  tree: { time: 'O(log n) avg', space: 'O(n)', icon: '🌲' },
+  tree: { time: 'O(n) traversal', space: 'O(n)', icon: '🌲' },
+  bst: { time: 'O(log n) avg', space: 'O(n)', icon: '🔍' },
+  trie: { time: 'O(m) search', space: 'O(N·m)', icon: '🔤' },
   graph: { time: 'O(V+E)', space: 'O(V+E)', icon: '⬡' },
   heap: { time: 'O(log n)', space: 'O(n)', icon: '△' },
 }

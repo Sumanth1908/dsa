@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import { Link } from 'react-router-dom'
 import { useSteps } from '@/hooks/useSteps'
 import StepControls from '@/components/shared/StepControls'
 import ComplexityBadge from '@/components/shared/ComplexityBadge'
@@ -143,9 +144,15 @@ export default function StackVisualizer() {
         <ComplexityBadge time="O(1) push/pop/peek" space="O(n)" />
       </div>
 
-      <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-xl p-4 text-sm text-amber-800 dark:text-amber-300 space-y-2">
-        <p>Stacks are everywhere in software — even when you don't realise it. Your browser's Back button is a stack of URLs: each page you visit is pushed, Back pops it. Your IDE's Undo is a stack of edits. When your program calls a function, the CPU pushes a <strong>stack frame</strong> (local variables + return address) — that's the call stack you see in debuggers and crash traces.</p>
-        <p>All operations are O(1) because you <em>only ever touch the top</em>. There's no searching, no shifting, no traversal — just push to top or pop from top. This constraint is exactly what makes stacks so predictable and fast.</p>
+      <div className="bg-sky-50 dark:bg-sky-950/30 border border-sky-200 dark:border-sky-800 rounded-xl p-4 text-sm text-sky-800 dark:text-sky-300 space-y-2">
+        <p className="font-semibold text-sky-700 dark:text-sky-200">What is a Stack?</p>
+        <p>A stack is a collection where you can only add or remove from one end — the <strong>top</strong>. Think of a stack of plates: you put new plates on top and take from the top; you never reach into the middle.</p>
+        <ul className="space-y-1 pl-1">
+          <li>• <strong>LIFO</strong> — Last In, First Out: the most recently added element is always the first to leave</li>
+          <li>• <strong>Three operations</strong> — Push (add to top), Pop (remove from top), Peek (read top without removing); all O(1) because you <em>only ever touch the top</em> — no searching, no shifting, no traversal</li>
+          <li>• <strong>The call stack</strong> — every function call pushes a <strong>stack frame</strong> (local variables + return address); that's the stack you see in debuggers and crash traces</li>
+          <li>• <strong>Browser history</strong> — each page you visit is pushed; the Back button pops it. Your IDE's Undo is also a stack of edits</li>
+        </ul>
       </div>
 
       <div className="bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800 rounded-xl p-4 text-sm">
@@ -156,6 +163,15 @@ export default function StackVisualizer() {
           <li>• <strong>Undo/Redo</strong> — two stacks: undo stack and redo stack; push to one, pop from the other</li>
           <li>• <strong>Monotonic stack pattern</strong> — maintain elements in increasing or decreasing order while scanning left to right (Next Greater Element, Largest Rectangle in Histogram)</li>
           <li>• <strong>Expression evaluation</strong> — operators and operands, respecting precedence</li>
+        </ul>
+      </div>
+
+      <div className="bg-indigo-50 dark:bg-indigo-950/30 border border-indigo-200 dark:border-indigo-800 rounded-xl p-4 text-sm">
+        <strong className="text-indigo-700 dark:text-indigo-300 block mb-2">Famous techniques using a stack</strong>
+        <ul className="space-y-1.5 text-indigo-800 dark:text-indigo-400">
+          <li>• <Link to="/patterns/dfs" className="font-medium underline decoration-dotted underline-offset-2 hover:text-indigo-600 dark:hover:text-indigo-200">DFS traversal</Link> — recursion implicitly uses the call stack; iterative DFS uses an explicit stack to avoid stack overflow on deep graphs</li>
+          <li>• <Link to="/patterns/monotonic-stack" className="font-medium underline decoration-dotted underline-offset-2 hover:text-indigo-600 dark:hover:text-indigo-200">Monotonic stack</Link> — maintain elements in sorted order while scanning; next greater element, largest rectangle in histogram, trapping rain water</li>
+          <li>• <strong>Bracket matching</strong> — push open brackets, pop and verify on each closing bracket; valid parentheses is the canonical example</li>
         </ul>
       </div>
 

@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import { Link } from 'react-router-dom'
 import { useSteps } from '@/hooks/useSteps'
 import StepControls from '@/components/shared/StepControls'
 import ComplexityBadge from '@/components/shared/ComplexityBadge'
@@ -177,10 +178,25 @@ export default function LinkedListVisualizer() {
         <ComplexityBadge time="O(n) search, O(1) head insert" space="O(n)" />
       </div>
 
-      <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-xl p-4 text-sm text-amber-800 dark:text-amber-300 space-y-2">
-        <p>Arrays are fast at random access but slow at insertion — inserting at index 0 shifts every element, costing O(n). Linked lists flip this trade-off: inserting at the <strong>head</strong> is O(1) because you just point the new node at the old head and update the head pointer. No shifting, no copying. Similarly, deleting a node is O(1) if you have a reference to the node's predecessor — just re-wire two pointers.</p>
-        <p>The trade-off: there's no index. To find the 5th node you must start at head and follow <code className="font-mono bg-amber-100 dark:bg-amber-900 px-1 rounded">next</code> pointers five times. Each node also carries extra memory overhead for the pointer itself.</p>
-        <p><strong>Doubly-linked list</strong> adds a <code className="font-mono bg-amber-100 dark:bg-amber-900 px-1 rounded">prev</code> pointer to each node, enabling O(1) deletion given only a node reference (no predecessor traversal needed). Java's <code className="font-mono bg-amber-100 dark:bg-amber-900 px-1 rounded">LinkedHashMap</code> and the classic <strong>LRU Cache</strong> implementation use a doubly-linked list + hashmap: the hashmap gives O(1) lookup, the linked list gives O(1) move-to-front on access and O(1) remove-least-recently-used from the tail.</p>
+      <div className="bg-sky-50 dark:bg-sky-950/30 border border-sky-200 dark:border-sky-800 rounded-xl p-4 text-sm text-sky-800 dark:text-sky-300 space-y-2">
+        <p className="font-semibold text-sky-700 dark:text-sky-200">What is a Linked List?</p>
+        <p>A linked list is a chain of <strong>nodes</strong> where each node holds a value and a pointer to the next node. Unlike an array, nodes don't need to be adjacent in memory — the pointer is what connects them. Think of a scavenger hunt: each clue tells you where to find the next one.</p>
+        <ul className="space-y-1 pl-1">
+          <li>• <strong>No index</strong> — to reach node N you must follow pointers from the head one by one; no arithmetic shortcut</li>
+          <li>• <strong>O(1) head insert</strong> — just point the new node at the old head and update the head pointer; no shifting, no copying — just re-wire two pointers</li>
+          <li>• <strong>Extra memory per node</strong> — each node carries a pointer in addition to its value, unlike an array which stores only values contiguously</li>
+          <li>• <strong>Doubly-linked variant</strong> — adds a <code className="font-mono bg-sky-100 dark:bg-sky-900 px-1 rounded">prev</code> pointer to each node, enabling O(1) deletion without traversing to find the predecessor</li>
+          <li>• <strong>LRU Cache classic</strong> — doubly-linked list + hashmap: the map gives O(1) lookup, the list gives O(1) move-to-front and evict-from-tail</li>
+        </ul>
+      </div>
+
+      <div className="bg-indigo-50 dark:bg-indigo-950/30 border border-indigo-200 dark:border-indigo-800 rounded-xl p-4 text-sm">
+        <strong className="text-indigo-700 dark:text-indigo-300 block mb-2">Famous techniques on linked lists</strong>
+        <ul className="space-y-1.5 text-indigo-800 dark:text-indigo-400">
+          <li>• <Link to="/patterns/fast-slow" className="font-medium underline decoration-dotted underline-offset-2 hover:text-indigo-600 dark:hover:text-indigo-200">Fast &amp; slow pointer</Link> — two pointers at different speeds; cycle detection, find middle node, find cycle entry point</li>
+          <li>• <strong>Reverse a linked list</strong> — iteratively rewire <code className="font-mono bg-indigo-100 dark:bg-indigo-900 px-1 rounded">prev → cur → next</code>; fundamental building block for many list problems</li>
+          <li>• <strong>LRU Cache</strong> — doubly-linked list + hashmap: O(1) lookup via map, O(1) move-to-front and evict-from-tail via list; a top interview problem</li>
+        </ul>
       </div>
 
       <div className="flex gap-2 flex-wrap">

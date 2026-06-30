@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import { Link } from 'react-router-dom'
 import { useSteps } from '@/hooks/useSteps'
 import StepControls from '@/components/shared/StepControls'
 import ComplexityBadge from '@/components/shared/ComplexityBadge'
@@ -180,10 +181,17 @@ export default function HeapVisualizer() {
         <ComplexityBadge time="O(log n) insert/extract" space="O(n)" />
       </div>
 
-      <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-xl p-4 text-sm text-amber-800 dark:text-amber-300 space-y-2">
-        <p>The <strong>heap property</strong>: in a min-heap, every parent is smaller than or equal to both its children — everywhere in the tree, not just one level. This guarantees the root is always the global minimum. A max-heap is the mirror: every parent is larger than both children, root is the global maximum.</p>
-        <p>Heaps are stored as plain <strong>arrays</strong> — no pointers. For node at index <code className="font-mono bg-amber-100 dark:bg-amber-900 px-1 rounded">i</code>: left child = <code className="font-mono bg-amber-100 dark:bg-amber-900 px-1 rounded">2i+1</code>, right child = <code className="font-mono bg-amber-100 dark:bg-amber-900 px-1 rounded">2i+2</code>, parent = <code className="font-mono bg-amber-100 dark:bg-amber-900 px-1 rounded">⌊(i-1)/2⌋</code>. The tree visualizer is just a different way to draw the same flat array — the array IS the heap.</p>
-        <p>Insert adds to the end then <strong>bubbles up</strong> (swapping with parent while heap property violated). Extract removes the root, moves the last element there, then <strong>sinks down</strong> (swapping with the smaller child while violated). Both are O(log n) because the tree's height is ⌊log₂ n⌋.</p>
+      <div className="bg-sky-50 dark:bg-sky-950/30 border border-sky-200 dark:border-sky-800 rounded-xl p-4 text-sm text-sky-800 dark:text-sky-300 space-y-2">
+        <p className="font-semibold text-sky-700 dark:text-sky-200">What is a Heap?</p>
+        <p>A heap is a <strong>complete binary tree</strong> with one rule: every parent is "better" than both its children — smaller in a min-heap, larger in a max-heap. The result: the globally best element is always at the root, accessible in O(1).</p>
+        <ul className="space-y-1 pl-1">
+          <li>• <strong>Heap property</strong> — parent ≤ children everywhere (min-heap); this applies at every level, not just the root</li>
+          <li>• <strong>Complete tree</strong> — filled level by level, left to right; this guarantees height stays ⌊log₂ n⌋ always</li>
+          <li>• <strong>Array storage</strong> — no pointers needed; for node at index <code className="font-mono bg-sky-100 dark:bg-sky-900 px-1 rounded">i</code>: left child = <code className="font-mono bg-sky-100 dark:bg-sky-900 px-1 rounded">2i+1</code>, parent = <code className="font-mono bg-sky-100 dark:bg-sky-900 px-1 rounded">⌊(i-1)/2⌋</code></li>
+          <li>• <strong>Not fully sorted</strong> — a heap only guarantees the root is the best element; sibling order is arbitrary, which is why it's faster to build than a sorted array</li>
+          <li>• <strong>Insert → bubble up</strong> — add to end, swap with parent while heap property is violated; O(log n)</li>
+          <li>• <strong>Extract → sink down</strong> — remove root, move last element to root, swap with the better child until restored; O(log n)</li>
+        </ul>
       </div>
 
       <div className="bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800 rounded-xl p-4 text-sm">
@@ -194,6 +202,15 @@ export default function HeapVisualizer() {
           <li>• <strong>Merge K sorted lists</strong> — push one element from each list into a min-heap; always extract the global minimum</li>
           <li>• <strong>Task scheduling</strong> — priority queues where highest-priority task is always next (OS schedulers, event loops)</li>
           <li>• <strong>Median of a data stream</strong> — one max-heap for the lower half, one min-heap for the upper half; median is always at one of the roots</li>
+        </ul>
+      </div>
+
+      <div className="bg-indigo-50 dark:bg-indigo-950/30 border border-indigo-200 dark:border-indigo-800 rounded-xl p-4 text-sm">
+        <strong className="text-indigo-700 dark:text-indigo-300 block mb-2">Famous techniques using a heap</strong>
+        <ul className="space-y-1.5 text-indigo-800 dark:text-indigo-400">
+          <li>• <Link to="/algorithms/heap-sort" className="font-medium underline decoration-dotted underline-offset-2 hover:text-indigo-600 dark:hover:text-indigo-200">Heap sort</Link> — build a max-heap in O(n), then extract the root n times; O(n log n) in-place sort</li>
+          <li>• <Link to="/patterns/top-k" className="font-medium underline decoration-dotted underline-offset-2 hover:text-indigo-600 dark:hover:text-indigo-200">Top-K elements</Link> — maintain a min-heap of size K while scanning; the root is always the Kth largest seen; O(n log K)</li>
+          <li>• <strong>Dijkstra's shortest path</strong> — always expand the cheapest unvisited node using a <Link to="/data-structures/graph" className="font-medium underline decoration-dotted underline-offset-2 hover:text-indigo-600 dark:hover:text-indigo-200">graph</Link>; the heap gives O(log V) per extraction</li>
         </ul>
       </div>
 

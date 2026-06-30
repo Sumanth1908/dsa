@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import { Link } from 'react-router-dom'
 import { useSteps } from '@/hooks/useSteps'
 import StepControls from '@/components/shared/StepControls'
 import ComplexityBadge from '@/components/shared/ComplexityBadge'
@@ -214,14 +215,25 @@ export default function GraphVisualizer() {
         <ComplexityBadge time="O(V + E)" space="O(V)" />
       </div>
 
-      <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-xl p-4 text-sm text-amber-800 dark:text-amber-300 space-y-2">
-        <p>Graphs are the most general data structure — a tree is just a connected, acyclic, undirected graph. Real-world graphs are everywhere: <strong>social networks</strong> (nodes = people, edges = friendships), <strong>maps</strong> (nodes = intersections, edges = roads with weights), <strong>dependency graphs</strong> (npm packages, Makefile targets), <strong>web pages</strong> (nodes = URLs, edges = hyperlinks — Google's PageRank runs on this).</p>
-        <p><strong>Two representations:</strong></p>
-        <ul className="space-y-1 ml-2">
-          <li>• <strong>Adjacency list</strong> — each node stores a list of its neighbors. O(V+E) space. Fast to iterate neighbors. Used for most real graphs (which are sparse).</li>
-          <li>• <strong>Adjacency matrix</strong> — V×V boolean grid. O(V²) space. O(1) edge lookup ("is there an edge between A and B?"). Good for dense graphs or when you need fast edge checks.</li>
+      <div className="bg-sky-50 dark:bg-sky-950/30 border border-sky-200 dark:border-sky-800 rounded-xl p-4 text-sm text-sky-800 dark:text-sky-300 space-y-2">
+        <p className="font-semibold text-sky-700 dark:text-sky-200">What is a Graph?</p>
+        <p>A graph is a set of <strong>nodes (vertices)</strong> connected by <strong>edges</strong>. Unlike trees, graphs have no root, no parent-child hierarchy, and can have cycles. They're the most general structure in computer science — every tree is a special-case graph.</p>
+        <ul className="space-y-1 pl-1">
+          <li>• <strong>Directed vs undirected</strong> — Twitter follows are directed (A→B doesn't imply B→A); Facebook friendships are undirected (mutual)</li>
+          <li>• <strong>Weighted vs unweighted</strong> — road distances are weighted; social connections are typically unweighted</li>
+          <li>• <strong>DAG (Directed Acyclic Graph)</strong> — directed with no cycles; used for dependency resolution, build systems (Make, Gradle), and topological sort</li>
+          <li>• <strong>Two representations</strong> — adjacency list O(V+E) space, good for sparse graphs; adjacency matrix O(V²) space, O(1) edge lookup for dense graphs</li>
         </ul>
-        <p><strong>Directed vs undirected:</strong> Twitter follows are directed (A→B doesn't imply B→A). Facebook friendships are undirected (mutual). <strong>Weighted vs unweighted:</strong> road distances are weighted, social connections are typically unweighted. BFS finds shortest path in hops (unweighted); Dijkstra's algorithm finds shortest path by total weight.</p>
+        <p>Real-world graphs are everywhere: <strong>social networks</strong> (nodes = people, edges = friendships), <strong>maps</strong> (nodes = intersections, edges = roads), <strong>dependency graphs</strong> (npm packages, Makefile targets), and the web itself (nodes = URLs, edges = hyperlinks — Google's PageRank runs on this).</p>
+      </div>
+
+      <div className="bg-indigo-50 dark:bg-indigo-950/30 border border-indigo-200 dark:border-indigo-800 rounded-xl p-4 text-sm">
+        <strong className="text-indigo-700 dark:text-indigo-300 block mb-2">Famous techniques on graphs</strong>
+        <ul className="space-y-1.5 text-indigo-800 dark:text-indigo-400">
+          <li>• <Link to="/patterns/bfs" className="font-medium underline decoration-dotted underline-offset-2 hover:text-indigo-600 dark:hover:text-indigo-200">BFS</Link> — level-by-level traversal using a queue; guarantees shortest path in unweighted graphs; also used for connected components</li>
+          <li>• <Link to="/patterns/dfs" className="font-medium underline decoration-dotted underline-offset-2 hover:text-indigo-600 dark:hover:text-indigo-200">DFS</Link> — explore as deep as possible before backtracking; cycle detection, topological sort, strongly connected components</li>
+          <li>• <strong>Dijkstra's shortest path</strong> — weighted BFS using a <Link to="/data-structures/heap" className="font-medium underline decoration-dotted underline-offset-2 hover:text-indigo-600 dark:hover:text-indigo-200">min-heap</Link> as a priority queue; O((V+E) log V), works on non-negative weights</li>
+        </ul>
       </div>
 
       <div className="flex gap-2">

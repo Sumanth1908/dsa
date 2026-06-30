@@ -1,4 +1,5 @@
 import React, { useState, useCallback } from 'react'
+import { Link } from 'react-router-dom'
 import { useSteps } from '@/hooks/useSteps'
 import StepControls from '@/components/shared/StepControls'
 import ComplexityBadge from '@/components/shared/ComplexityBadge'
@@ -188,9 +189,16 @@ export default function ArrayVisualizer() {
         <ComplexityBadge time="O(n) search, O(1) access" space="O(n)" />
       </div>
 
-      <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-xl p-4 text-sm text-amber-800 dark:text-amber-300 space-y-2">
-        <p>Arrays store elements in <strong>contiguous memory</strong> — every slot is the same fixed size, so reading index <code className="font-mono bg-amber-100 dark:bg-amber-900 px-1 rounded">i</code> takes exactly one operation: compute <code className="font-mono bg-amber-100 dark:bg-amber-900 px-1 rounded">base_address + i × element_size</code>. No traversal, no searching — just arithmetic. This is why random access is always O(1) regardless of array size.</p>
-        <p>Insertion and deletion in the <em>middle</em> are O(n): every element after the target position must physically shift to close or open a gap. Appending to the end is O(1) amortised — dynamic arrays (Python list, JavaScript Array, Java ArrayList) double their capacity when full, so the costly resize is rare and the average cost stays constant.</p>
+      <div className="bg-sky-50 dark:bg-sky-950/30 border border-sky-200 dark:border-sky-800 rounded-xl p-4 text-sm text-sky-800 dark:text-sky-300 space-y-2">
+        <p className="font-semibold text-sky-700 dark:text-sky-200">What is an Array?</p>
+        <p>An array is a <strong>fixed-size, ordered collection</strong> of elements stored back-to-back in memory. Think of numbered mailboxes in a hallway — each has an address (index 0, 1, 2…) and you can jump to any box directly without checking the others.</p>
+        <ul className="space-y-1 pl-1">
+          <li>• <strong>Indexed</strong> — every element has a position starting at 0</li>
+          <li>• <strong>Contiguous</strong> — elements live side-by-side in memory; sequential reads are fast because the CPU can prefetch adjacent slots</li>
+          <li>• <strong>O(1) random access</strong> — reaching index <code className="font-mono bg-sky-100 dark:bg-sky-900 px-1 rounded">i</code> is arithmetic: <code className="font-mono bg-sky-100 dark:bg-sky-900 px-1 rounded">base + i × size</code>, no traversal needed</li>
+          <li>• <strong>Dynamic in high-level languages</strong> — Python lists, JS arrays, and Java ArrayLists resize automatically by doubling capacity when full, making appends O(1) amortised</li>
+        </ul>
+        <p>Inserting or deleting in the <em>middle</em> costs O(n) — every element after the target must physically shift to close or open the gap. This is why arrays shine for read-heavy workloads and tail appends, but linked lists win for frequent head or middle insertions.</p>
       </div>
 
       <div className="bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800 rounded-xl p-4 text-sm">
@@ -200,6 +208,16 @@ export default function ArrayVisualizer() {
           <li>• The size is roughly known upfront, or growth happens mostly at the tail (appending)</li>
           <li>• Cache performance matters — contiguous memory maps perfectly to CPU cache lines, making sequential scans very fast compared to pointer-chasing data structures</li>
           <li>• <strong>Prefer a Linked List instead</strong> when: insertions and deletions at the head or middle dominate, and you rarely look up by index</li>
+        </ul>
+      </div>
+
+      <div className="bg-indigo-50 dark:bg-indigo-950/30 border border-indigo-200 dark:border-indigo-800 rounded-xl p-4 text-sm">
+        <strong className="text-indigo-700 dark:text-indigo-300 block mb-2">Famous techniques on arrays</strong>
+        <ul className="space-y-1.5 text-indigo-800 dark:text-indigo-400">
+          <li>• <strong>Linear search</strong> — scan every element; O(n), works on unsorted arrays</li>
+          <li>• <Link to="/algorithms/binary-search" className="font-medium underline decoration-dotted underline-offset-2 hover:text-indigo-600 dark:hover:text-indigo-200">Binary search</Link> — halve the search space each step; O(log n), requires sorted input</li>
+          <li>• <Link to="/patterns/two-pointer" className="font-medium underline decoration-dotted underline-offset-2 hover:text-indigo-600 dark:hover:text-indigo-200">Two pointer</Link> — one index from each end converging; pair-sum, palindrome check, container with most water</li>
+          <li>• <Link to="/patterns/sliding-window" className="font-medium underline decoration-dotted underline-offset-2 hover:text-indigo-600 dark:hover:text-indigo-200">Sliding window</Link> — grow/shrink a subarray window; max subarray sum, longest substring without repeats</li>
         </ul>
       </div>
 

@@ -12,6 +12,8 @@ const StackViz = lazy(() => import('@/modules/data-structures/stack'))
 const QueueViz = lazy(() => import('@/modules/data-structures/queue'))
 const LinkedListViz = lazy(() => import('@/modules/data-structures/linked-list'))
 const TreeViz = lazy(() => import('@/modules/data-structures/tree'))
+const BSTViz = lazy(() => import('@/modules/data-structures/bst'))
+const TrieViz = lazy(() => import('@/modules/data-structures/trie'))
 const GraphViz = lazy(() => import('@/modules/data-structures/graph'))
 const HeapViz = lazy(() => import('@/modules/data-structures/heap'))
 
@@ -112,6 +114,8 @@ const router = createBrowserRouter([
       { path: 'data-structures/queue', element: S(QueueViz) },
       { path: 'data-structures/linked-list', element: S(LinkedListViz) },
       { path: 'data-structures/tree', element: S(TreeViz) },
+      { path: 'data-structures/bst', element: S(BSTViz) },
+      { path: 'data-structures/trie', element: S(TrieViz) },
       { path: 'data-structures/graph', element: S(GraphViz) },
       { path: 'data-structures/heap', element: S(HeapViz) },
 

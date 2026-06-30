@@ -1,317 +1,162 @@
-import React, { useState } from 'react'
-import { useSteps } from '@/hooks/useSteps'
-import StepControls from '@/components/shared/StepControls'
+import React from 'react'
+import { Link } from 'react-router-dom'
 import ComplexityBadge from '@/components/shared/ComplexityBadge'
-import CodeBlock from '@/components/shared/CodeBlock'
 
-interface TreeNode {
-  val: number
-  left: TreeNode | null
-  right: TreeNode | null
-  x?: number
-  y?: number
-  id: number
-}
-
-interface VizNode { id: number; val: number; x: number; y: number }
-interface VizEdge { x1: number; y1: number; x2: number; y2: number }
-
-let nodeId = 0
-function mkNode(val: number): TreeNode { return { val, left: null, right: null, id: nodeId++ } }
-
-function insert(root: TreeNode | null, val: number): TreeNode {
-  if (!root) return mkNode(val)
-  if (val < root.val) root.left = insert(root.left, val)
-  else if (val > root.val) root.right = insert(root.right, val)
-  return root
-}
-
-function buildTree(values: number[]): TreeNode | null {
-  nodeId = 0
-  let root: TreeNode | null = null
-  for (const v of values) root = insert(root, v)
-  return root
-}
-
-function layout(node: TreeNode | null, x: number, y: number, gap: number): void {
-  if (!node) return
-  node.x = x; node.y = y
-  layout(node.left, x - gap, y + 80, gap / 2)
-  layout(node.right, x + gap, y + 80, gap / 2)
-}
-
-function collectNodes(node: TreeNode | null): VizNode[] {
-  if (!node) return []
-  return [{ id: node.id, val: node.val, x: node.x!, y: node.y! }, ...collectNodes(node.left), ...collectNodes(node.right)]
-}
-
-function collectEdges(node: TreeNode | null): VizEdge[] {
-  if (!node) return []
-  const edges: VizEdge[] = []
-  if (node.left) edges.push({ x1: node.x!, y1: node.y!, x2: node.left.x!, y2: node.left.y! })
-  if (node.right) edges.push({ x1: node.x!, y1: node.y!, x2: node.right.x!, y2: node.right.y! })
-  return [...edges, ...collectEdges(node.left), ...collectEdges(node.right)]
-}
-
-type Traversal = 'inorder' | 'preorder' | 'postorder' | 'insert'
-
-function getInorder(node: TreeNode | null, acc: number[] = []): number[] {
-  if (!node) return acc
-  getInorder(node.left, acc); acc.push(node.val); getInorder(node.right, acc)
-  return acc
-}
-
-function getPreorder(node: TreeNode | null, acc: number[] = []): number[] {
-  if (!node) return acc
-  acc.push(node.val); getPreorder(node.left, acc); getPreorder(node.right, acc)
-  return acc
-}
-
-function getPostorder(node: TreeNode | null, acc: number[] = []): number[] {
-  if (!node) return acc
-  getPostorder(node.left, acc); getPostorder(node.right, acc); acc.push(node.val)
-  return acc
-}
-
-interface Step { highlight: number[]; visited: number[]; message: string; tree: TreeNode | null }
-
-function traversalSteps(root: TreeNode | null, type: Traversal, insertVal?: number): Step[] {
-  const steps: Step[] = []
-  const visited: number[] = []
-
-  function traverse(node: TreeNode | null) {
-    if (!node) return
-    if (type === 'preorder') {
-      steps.push({ highlight: [node.id], visited: [...visited], message: `Visit ${node.val} (preorder: root first)`, tree: root })
-      visited.push(node.id)
-      traverse(node.left); traverse(node.right)
-    } else if (type === 'inorder') {
-      traverse(node.left)
-      steps.push({ highlight: [node.id], visited: [...visited], message: `Visit ${node.val} (inorder: left → root → right)`, tree: root })
-      visited.push(node.id)
-      traverse(node.right)
-    } else if (type === 'postorder') {
-      traverse(node.left); traverse(node.right)
-      steps.push({ highlight: [node.id], visited: [...visited], message: `Visit ${node.val} (postorder: children first)`, tree: root })
-      visited.push(node.id)
-    }
-  }
-
-  steps.push({ highlight: [], visited: [], message: `Starting ${type} traversal`, tree: root })
-  traverse(root)
-  steps.push({ highlight: [], visited: [...visited], message: `${type} complete: [${type === 'inorder' ? getInorder(root) : type === 'preorder' ? getPreorder(root) : getPostorder(root)}]`, tree: root })
-  return steps
-}
-
-function insertSteps(root: TreeNode | null, val: number): Step[] {
-  const steps: Step[] = []
-  steps.push({ highlight: [], visited: [], message: `Insert ${val} into BST`, tree: root })
-  const path: number[] = []
-  let cur = root
-  while (cur) {
-    path.push(cur.id)
-    steps.push({ highlight: [cur.id], visited: [...path.slice(0, -1)], message: `${val} ${val < cur.val ? '<' : '>'} ${cur.val} — go ${val < cur.val ? 'left' : 'right'}`, tree: root })
-    if (val < cur.val) cur = cur.left
-    else cur = cur.right
-  }
-  const newRoot = insert(JSON.parse(JSON.stringify(root)), val)
-  layout(newRoot, 300, 40, 120)
-  steps.push({ highlight: [], visited: path, message: `Inserted ${val} as a new leaf node`, tree: newRoot })
-  return steps
-}
-
-const INITIAL_VALUES = [50, 30, 70, 20, 40, 60, 80]
-
-const CODE_EXAMPLES = [
-  {
-    lang: 'javascript' as const, label: 'JavaScript',
-    code: `class BST {
-  insert(root, val) { // O(log n) avg, O(n) worst
-    if (!root) return { val, left: null, right: null };
-    if (val < root.val) root.left = this.insert(root.left, val);
-    else if (val > root.val) root.right = this.insert(root.right, val);
-    return root;
-  }
-
-  // Inorder = sorted order for BST
-  inorder(node, result = []) {
-    if (!node) return result;
-    this.inorder(node.left, result);
-    result.push(node.val);
-    this.inorder(node.right, result);
-    return result;
-  }
-
-  search(node, val) { // O(log n) avg
-    if (!node || node.val === val) return node;
-    if (val < node.val) return this.search(node.left, val);
-    return this.search(node.right, val);
-  }
-}`,
-  },
-  {
-    lang: 'python' as const, label: 'Python',
-    code: `class BST:
-    def insert(self, root, val):  # O(log n) avg
-        if not root:
-            return {"val": val, "left": None, "right": None}
-        if val < root["val"]:
-            root["left"] = self.insert(root["left"], val)
-        elif val > root["val"]:
-            root["right"] = self.insert(root["right"], val)
-        return root
-
-    def inorder(self, node, result=None):
-        if result is None: result = []
-        if not node: return result
-        self.inorder(node["left"], result)
-        result.append(node["val"])
-        self.inorder(node["right"], result)
-        return result
-
-    def search(self, node, val):  # O(log n) avg
-        if not node or node["val"] == val:
-            return node
-        if val < node["val"]:
-            return self.search(node["left"], val)
-        return self.search(node["right"], val)`,
-  },
-  {
-    lang: 'java' as const, label: 'Java',
-    code: `public class BST {
-    class Node {
-        int val; Node left, right;
-        Node(int v) { val = v; }
-    }
-
-    Node insert(Node root, int val) { // O(log n) avg
-        if (root == null) return new Node(val);
-        if (val < root.val) root.left = insert(root.left, val);
-        else if (val > root.val) root.right = insert(root.right, val);
-        return root;
-    }
-
-    void inorder(Node node, List<Integer> result) {
-        if (node == null) return;
-        inorder(node.left, result);
-        result.add(node.val);
-        inorder(node.right, result);
-    }
-
-    Node search(Node node, int val) { // O(log n) avg
-        if (node == null || node.val == val) return node;
-        if (val < node.val) return search(node.left, val);
-        return search(node.right, val);
-    }
-}`,
-  },
-]
-
-export default function TreeVisualizer() {
-  const [traversal, setTraversal] = useState<Traversal>('inorder')
-  const [insertVal, setInsertVal] = useState(45)
-
-  const buildAndLayout = (vals: number[], extra?: number) => {
-    const tree = buildTree(extra ? [...vals, extra] : vals)
-    layout(tree!, 300, 40, 120)
-    return tree
-  }
-
-  const rootTree = buildAndLayout(INITIAL_VALUES)
-
-  const steps = traversal === 'insert'
-    ? insertSteps(buildAndLayout(INITIAL_VALUES), insertVal)
-    : traversalSteps(buildAndLayout(INITIAL_VALUES), traversal)
-
-  const ctrl = useSteps(steps.length)
-  const cur = steps[ctrl.step]
-
-  const vizNodes = collectNodes(cur.tree)
-  const vizEdges = collectEdges(cur.tree)
-
-  const minX = Math.min(...vizNodes.map(n => n.x))
-  const maxX = Math.max(...vizNodes.map(n => n.x))
-  const svgW = Math.max(600, maxX - minX + 100)
-  const offsetX = -minX + 50
-
+export default function TreeOverview() {
   return (
     <div className="max-w-4xl mx-auto space-y-6">
       <div className="flex items-start justify-between flex-wrap gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Binary Search Tree</h1>
-          <p className="text-slate-500 dark:text-slate-400 mt-1">Ordered tree: left &lt; root &lt; right at every node</p>
+          <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Tree</h1>
+          <p className="text-slate-500 dark:text-slate-400 mt-1">Hierarchical structure — root, parent, child, leaf; the foundation for BST, Heap, and Trie</p>
         </div>
-        <ComplexityBadge time="O(log n) avg, O(n) worst" space="O(n)" />
+        <ComplexityBadge time="O(n) traversal" space="O(n)" />
       </div>
 
-      <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-xl p-4 text-sm text-amber-800 dark:text-amber-300 space-y-2">
-        <p>A BST enforces one simple invariant at every node: left subtree has only smaller values, right subtree has only larger values. This lets you search by <strong>eliminating half the tree at each step</strong> — O(log n) on average. It's binary search, but on a dynamic structure that supports O(log n) insert and delete without reshuffling everything.</p>
-        <p><strong>Inorder traversal</strong> (left → root → right) visits BST nodes in ascending sorted order. This is a key property: a BST is essentially a sorted container.</p>
-        <p><strong>The danger of imbalance:</strong> if you insert already-sorted values (1, 2, 3, 4, 5…), the tree degrades into a linked list — every node only has a right child, and search becomes O(n). Real databases and language standard libraries use <strong>self-balancing trees</strong> (AVL or Red-Black) that automatically rotate to maintain O(log n) height. Java's <code className="font-mono bg-amber-100 dark:bg-amber-900 px-1 rounded">TreeMap</code>, C++'s <code className="font-mono bg-amber-100 dark:bg-amber-900 px-1 rounded">std::map</code>, and database B-tree indexes all do this.</p>
+      <div className="bg-sky-50 dark:bg-sky-950/30 border border-sky-200 dark:border-sky-800 rounded-xl p-4 text-sm text-sky-800 dark:text-sky-300 space-y-3">
+        <p className="font-semibold text-sky-700 dark:text-sky-200">What is a Tree?</p>
+        <p>A tree is a connected, acyclic graph with a designated <strong>root</strong>. Unlike a general graph, there is exactly one path between any two nodes — no cycles, and a unique parent-child hierarchy flows from the root downward.</p>
+        <ul className="space-y-1 pl-1">
+          <li>• <strong>Root</strong> — the single top node with no parent; every tree has exactly one</li>
+          <li>• <strong>Leaf</strong> — a node with no children; the "endpoints" of the tree</li>
+          <li>• <strong>Internal node</strong> — any node that has at least one child</li>
+          <li>• <strong>Depth</strong> — number of edges from root to a node (root has depth 0)</li>
+          <li>• <strong>Height</strong> — longest path from a node down to a leaf; height of tree = height of root</li>
+          <li>• <strong>Subtree</strong> — a node and all of its descendants; every node is the root of its own subtree</li>
+          <li>• <strong>N−1 edges invariant</strong> — a tree with N nodes always has exactly N−1 edges; one edge connects each non-root node to its parent</li>
+        </ul>
+
+        <div className="mt-3 overflow-x-auto">
+          <svg width="540" height="220" className="block mx-auto" viewBox="0 0 540 220">
+            <line x1="270" y1="35" x2="150" y2="105" stroke="currentColor" strokeWidth="2" className="text-sky-400 dark:text-sky-600" />
+            <line x1="270" y1="35" x2="390" y2="105" stroke="currentColor" strokeWidth="2" className="text-sky-400 dark:text-sky-600" />
+            <line x1="150" y1="105" x2="80" y2="175" stroke="currentColor" strokeWidth="2" className="text-sky-400 dark:text-sky-600" />
+            <line x1="150" y1="105" x2="220" y2="175" stroke="currentColor" strokeWidth="2" className="text-sky-400 dark:text-sky-600" />
+            <line x1="390" y1="105" x2="320" y2="175" stroke="currentColor" strokeWidth="2" className="text-sky-400 dark:text-sky-600" />
+            <line x1="390" y1="105" x2="460" y2="175" stroke="currentColor" strokeWidth="2" className="text-sky-400 dark:text-sky-600" />
+            <circle cx="270" cy="35" r="24" className="fill-violet-500" />
+            <text x="270" y="35" textAnchor="middle" dy="0.35em" fontSize="13" fontWeight="700" fill="white">A</text>
+            <text x="270" y="68" textAnchor="middle" fontSize="11" className="fill-sky-600 dark:fill-sky-400">root</text>
+            <circle cx="150" cy="105" r="22" className="fill-sky-400 dark:fill-sky-600" />
+            <text x="150" y="105" textAnchor="middle" dy="0.35em" fontSize="13" fontWeight="700" fill="white">B</text>
+            <circle cx="390" cy="105" r="22" className="fill-sky-400 dark:fill-sky-600" />
+            <text x="390" y="105" textAnchor="middle" dy="0.35em" fontSize="13" fontWeight="700" fill="white">C</text>
+            <text x="390" y="135" textAnchor="middle" fontSize="10" className="fill-sky-600 dark:fill-sky-400">internal</text>
+            <circle cx="80" cy="175" r="22" className="fill-emerald-400 dark:fill-emerald-600" />
+            <text x="80" y="175" textAnchor="middle" dy="0.35em" fontSize="13" fontWeight="700" fill="white">D</text>
+            <text x="80" y="205" textAnchor="middle" fontSize="10" className="fill-emerald-600 dark:fill-emerald-400">leaf</text>
+            <circle cx="220" cy="175" r="22" className="fill-emerald-400 dark:fill-emerald-600" />
+            <text x="220" y="175" textAnchor="middle" dy="0.35em" fontSize="13" fontWeight="700" fill="white">E</text>
+            <text x="220" y="205" textAnchor="middle" fontSize="10" className="fill-emerald-600 dark:fill-emerald-400">leaf</text>
+            <circle cx="320" cy="175" r="22" className="fill-emerald-400 dark:fill-emerald-600" />
+            <text x="320" y="175" textAnchor="middle" dy="0.35em" fontSize="13" fontWeight="700" fill="white">F</text>
+            <text x="320" y="205" textAnchor="middle" fontSize="10" className="fill-emerald-600 dark:fill-emerald-400">leaf</text>
+            <circle cx="460" cy="175" r="22" className="fill-emerald-400 dark:fill-emerald-600" />
+            <text x="460" y="175" textAnchor="middle" dy="0.35em" fontSize="13" fontWeight="700" fill="white">G</text>
+            <text x="460" y="205" textAnchor="middle" fontSize="10" className="fill-emerald-600 dark:fill-emerald-400">leaf</text>
+            <text x="10" y="38" fontSize="10" className="fill-slate-400">depth 0</text>
+            <text x="10" y="108" fontSize="10" className="fill-slate-400">depth 1</text>
+            <text x="10" y="178" fontSize="10" className="fill-slate-400">depth 2</text>
+          </svg>
+        </div>
+        <p className="text-xs text-sky-600 dark:text-sky-500 text-center">7 nodes, 6 edges (N−1). Height = 2. A is root; D, E, F, G are leaves.</p>
       </div>
 
       <div className="bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800 rounded-xl p-4 text-sm">
-        <strong className="text-emerald-700 dark:text-emerald-300 block mb-2">BST vs HashMap — when to choose each</strong>
-        <ul className="space-y-1 text-emerald-800 dark:text-emerald-400">
-          <li>• <strong>HashMap</strong> — O(1) average lookup, but keys are unordered; no range queries, no floor/ceiling, no in-order iteration</li>
-          <li>• <strong>BST / TreeMap</strong> — O(log n) lookup, but supports range queries ("all values between 10 and 50"), floor/ceiling operations, and sorted iteration — essential for problems like "count elements in range", "find closest value", or "maintain sorted order with insertions"</li>
-          <li>• If you need both speed and ordering: use Java's <code className="font-mono text-xs bg-emerald-100 dark:bg-emerald-900 px-1 rounded">TreeMap</code> or Python's <code className="font-mono text-xs bg-emerald-100 dark:bg-emerald-900 px-1 rounded">sortedcontainers.SortedDict</code></li>
+        <strong className="text-emerald-700 dark:text-emerald-300 block mb-2">Binary tree shapes — what each name means</strong>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-emerald-800 dark:text-emerald-400">
+          <div>
+            <p className="font-semibold">Full binary tree</p>
+            <p>Every node has 0 or 2 children — no node has exactly one child. Expression trees are always full.</p>
+          </div>
+          <div>
+            <p className="font-semibold">Complete binary tree</p>
+            <p>All levels filled except possibly the last, which is filled left to right. Heaps are complete trees, stored in arrays with index math.</p>
+          </div>
+          <div>
+            <p className="font-semibold">Perfect binary tree</p>
+            <p>All internal nodes have exactly 2 children and all leaves are at the same depth. N = 2^(h+1) − 1 nodes; maximum density.</p>
+          </div>
+          <div>
+            <p className="font-semibold">Balanced binary tree</p>
+            <p>Height is O(log n). AVL trees guarantee |leftHeight − rightHeight| ≤ 1 at every node. Red-Black trees use color rules for looser balance.</p>
+          </div>
+          <div className="sm:col-span-2">
+            <p className="font-semibold">Degenerate (skewed) tree</p>
+            <p>Every internal node has one child — essentially a linked list. Inserting a sorted sequence into a BST produces this; height becomes O(n), destroying search guarantees.</p>
+          </div>
+        </div>
+      </div>
+
+      <div className="bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl p-4 text-sm">
+        <strong className="text-slate-700 dark:text-slate-200 block mb-3">Traversal strategies — DFS vs BFS</strong>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <p className="font-medium text-slate-700 dark:text-slate-300">DFS — depth-first (stack / recursion)</p>
+            <ul className="space-y-1 text-slate-600 dark:text-slate-400">
+              <li>• <strong>Inorder</strong> (L → Root → R) — sorted output for a BST</li>
+              <li>• <strong>Preorder</strong> (Root → L → R) — serialize/copy a tree; parent always before children</li>
+              <li>• <strong>Postorder</strong> (L → R → Root) — delete a tree; children processed before parent</li>
+            </ul>
+          </div>
+          <div className="space-y-2">
+            <p className="font-medium text-slate-700 dark:text-slate-300">BFS — breadth-first (queue)</p>
+            <ul className="space-y-1 text-slate-600 dark:text-slate-400">
+              <li>• <strong>Level-order</strong> — visit all nodes at depth d before depth d+1</li>
+              <li>• Used for: minimum depth, right side view, level averages, zigzag traversal</li>
+              <li>• Each level in the queue represents one wave of nodes</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <p className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-3">Tree sub-types in this app</p>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <Link to="/data-structures/bst"
+            className="border border-slate-200 dark:border-slate-700 rounded-xl p-4 hover:border-violet-400 hover:bg-violet-50 dark:hover:bg-violet-950/30 transition-colors group">
+            <div className="text-2xl mb-2">🔍</div>
+            <p className="font-semibold text-slate-800 dark:text-white group-hover:text-violet-700 dark:group-hover:text-violet-300">Binary Search Tree</p>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">left &lt; node &lt; right — O(log n) search, insert, delete</p>
+          </Link>
+          <Link to="/data-structures/heap"
+            className="border border-slate-200 dark:border-slate-700 rounded-xl p-4 hover:border-violet-400 hover:bg-violet-50 dark:hover:bg-violet-950/30 transition-colors group">
+            <div className="text-2xl mb-2">📊</div>
+            <p className="font-semibold text-slate-800 dark:text-white group-hover:text-violet-700 dark:group-hover:text-violet-300">Heap</p>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Complete binary tree — O(1) peek min/max, O(log n) insert/extract</p>
+          </Link>
+          <Link to="/data-structures/trie"
+            className="border border-slate-200 dark:border-slate-700 rounded-xl p-4 hover:border-violet-400 hover:bg-violet-50 dark:hover:bg-violet-950/30 transition-colors group">
+            <div className="text-2xl mb-2">🔤</div>
+            <p className="font-semibold text-slate-800 dark:text-white group-hover:text-violet-700 dark:group-hover:text-violet-300">Trie</p>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Each edge is a character — O(m) prefix search and autocomplete</p>
+          </Link>
+        </div>
+      </div>
+
+      <div className="bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl p-4 text-sm">
+        <strong className="text-slate-700 dark:text-slate-200 block mb-2">Advanced tree types (interview context)</strong>
+        <ul className="space-y-1.5 text-slate-600 dark:text-slate-400">
+          <li>• <strong>AVL tree</strong> — self-balancing BST; enforces |leftHeight − rightHeight| ≤ 1 via rotations; O(log n) guaranteed for all ops</li>
+          <li>• <strong>Red-Black tree</strong> — self-balancing BST with color rules; less strictly balanced than AVL but cheaper to maintain; used in Java's <code className="font-mono text-xs bg-slate-200 dark:bg-slate-700 px-1 rounded">TreeMap</code> and Linux scheduler</li>
+          <li>• <strong>Segment tree</strong> — binary tree where each node stores aggregate of a range (sum, min, max); O(log n) range queries and point updates; built in O(n)</li>
+          <li>• <strong>Fenwick tree (BIT)</strong> — compact alternative to segment tree for prefix sums; O(log n) update and query, O(n) space with simpler code</li>
+          <li>• <strong>B-tree / B+ tree</strong> — multi-way balanced tree; minimizes disk I/O by keeping more keys per node; the basis of all database indexes and file systems</li>
+          <li>• <strong>N-ary tree</strong> — each node can have up to N children; used for file systems (directory trees), JSON/XML DOM, and organization charts</li>
         </ul>
       </div>
 
-      <div className="flex gap-2 flex-wrap">
-        {(['inorder', 'preorder', 'postorder', 'insert'] as const).map(t => (
-          <button key={t} onClick={() => { setTraversal(t); ctrl.reset() }}
-            className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-              traversal === t ? 'bg-violet-600 text-white' : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700'
-            }`}>
-            {t === 'insert' ? 'Insert' : `${t.charAt(0).toUpperCase() + t.slice(1)} Traversal`}
-          </button>
-        ))}
-        {traversal === 'insert' && (
-          <input type="number" value={insertVal} onChange={e => { setInsertVal(+e.target.value); ctrl.reset() }}
-            className="w-24 px-2 py-1 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm" />
-        )}
+      <div className="bg-indigo-50 dark:bg-indigo-950/30 border border-indigo-200 dark:border-indigo-800 rounded-xl p-4 text-sm">
+        <strong className="text-indigo-700 dark:text-indigo-300 block mb-2">Famous techniques on trees</strong>
+        <ul className="space-y-1.5 text-indigo-800 dark:text-indigo-400">
+          <li>• <Link to="/patterns/dfs" className="font-medium underline decoration-dotted underline-offset-2 hover:text-indigo-600 dark:hover:text-indigo-200">DFS (recursive / iterative)</Link> — the workhorse for most tree problems; use recursion for elegance, an explicit stack to avoid stack-overflow on deep trees</li>
+          <li>• <Link to="/patterns/bfs" className="font-medium underline decoration-dotted underline-offset-2 hover:text-indigo-600 dark:hover:text-indigo-200">BFS / level-order</Link> — any problem that mentions "level", "depth", or "shortest path in an unweighted tree"</li>
+          <li>• <strong>LCA (Lowest Common Ancestor)</strong> — binary lifting or Euler tour + sparse table; foundational for many path problems on trees</li>
+          <li>• <strong>Tree diameter</strong> — two DFS passes (or one DFS tracking max depth); the longest path between any two nodes</li>
+          <li>• <strong>Path sum / root-to-leaf</strong> — DFS carrying a running sum; check at leaves; pruning possible with target sum</li>
+          <li>• <strong>Serialize / deserialize</strong> — preorder DFS with null markers fully encodes a tree; used in distributed systems and databases</li>
+        </ul>
       </div>
-
-      <div className="viz-container overflow-x-auto">
-        <svg width={svgW} height={280} className="block mx-auto">
-          {/* Edges */}
-          {vizEdges.map((e, i) => (
-            <line key={i} x1={e.x1 + offsetX} y1={e.y1} x2={e.x2 + offsetX} y2={e.y2}
-              stroke="currentColor" strokeWidth={2} className="text-slate-300 dark:text-slate-700" />
-          ))}
-          {/* Nodes */}
-          {vizNodes.map(n => {
-            const isHighlight = cur.highlight.includes(n.id)
-            const isVisited = cur.visited.includes(n.id)
-            return (
-              <g key={n.id} transform={`translate(${n.x + offsetX},${n.y})`}>
-                <circle r={24} className={`transition-all duration-300 ${
-                  isHighlight ? 'fill-violet-500' : isVisited ? 'fill-emerald-500' : 'fill-slate-200 dark:fill-slate-700'
-                }`} />
-                <text textAnchor="middle" dy="0.35em" fontSize={14} fontWeight="600"
-                  className={isHighlight || isVisited ? 'fill-white' : 'fill-slate-700 dark:fill-slate-200'}>
-                  {n.val}
-                </text>
-              </g>
-            )
-          })}
-        </svg>
-
-        {/* Legend */}
-        <div className="flex justify-center gap-4 text-xs text-slate-500 pb-3">
-          <span className="flex items-center gap-1"><span className="w-3 h-3 rounded-full bg-violet-500 inline-block"></span> Current</span>
-          <span className="flex items-center gap-1"><span className="w-3 h-3 rounded-full bg-emerald-500 inline-block"></span> Visited</span>
-        </div>
-
-        <div className="border-t border-slate-200 dark:border-slate-800 p-4 text-center">
-          <p className="text-sm text-slate-600 dark:text-slate-300">{cur.message}</p>
-        </div>
-      </div>
-
-      <StepControls ctrl={ctrl} />
-      <CodeBlock examples={CODE_EXAMPLES} />
     </div>
   )
 }
