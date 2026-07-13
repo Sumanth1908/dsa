@@ -108,7 +108,7 @@ export default function CodeBlock({ examples }: CodeBlockProps) {
         <div className="flex">
           {examples.map((ex, i) => (
             <button
-              key={ex.lang}
+              key={`${ex.lang}-${i}`}
               onClick={() => setActive(i)}
               className={`px-4 py-2.5 text-xs font-medium transition-colors border-b-2 ${
                 i === active

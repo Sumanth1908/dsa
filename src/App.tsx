@@ -1,12 +1,15 @@
 import React, { Suspense, lazy } from 'react'
-import { createBrowserRouter, RouterProvider } from 'react-router-dom'
+import { createBrowserRouter, RouterProvider, Link } from 'react-router-dom'
 import { ThemeProvider } from '@/contexts/ThemeContext'
 import Layout from '@/components/layout/Layout'
+import { registry } from '@/registry'
 
 const HomePage = lazy(() => import('@/modules/home/HomePage'))
 
+// One generic index page serves every section — driven by the registry
+const SectionIndexPage = lazy(() => import('@/components/shared/SectionIndex'))
+
 // ── Data Structures ───────────────────────────────────────────────────────
-const DSIndex = lazy(() => import('@/modules/data-structures'))
 const ArrayViz = lazy(() => import('@/modules/data-structures/array'))
 const StackViz = lazy(() => import('@/modules/data-structures/stack'))
 const QueueViz = lazy(() => import('@/modules/data-structures/queue'))
@@ -18,12 +21,10 @@ const GraphViz = lazy(() => import('@/modules/data-structures/graph'))
 const HeapViz = lazy(() => import('@/modules/data-structures/heap'))
 
 // ── Algorithms ────────────────────────────────────────────────────────────
-const AlgoIndex = lazy(() => import('@/modules/algorithms'))
 const SortingViz = lazy(() => import('@/modules/algorithms/sorting'))
 const BinarySearchViz = lazy(() => import('@/modules/algorithms/searching'))
 
 // ── Problem Patterns ──────────────────────────────────────────────────────
-const PatternsIndex = lazy(() => import('@/modules/patterns'))
 const TwoPointerViz = lazy(() => import('@/modules/patterns/two-pointer'))
 const SlidingWindowViz = lazy(() => import('@/modules/patterns/sliding-window'))
 const FastSlowViz = lazy(() => import('@/modules/patterns/fast-slow'))
@@ -38,38 +39,36 @@ const TopKElementsViz = lazy(() => import('@/modules/patterns/top-k'))
 const MonotonicStackViz = lazy(() => import('@/modules/patterns/monotonic-stack'))
 
 // ── AI & ML ───────────────────────────────────────────────────────────────
-const AIMLIndex = lazy(() => import('@/modules/ai-ml'))
 const RAGViz = lazy(() => import('@/modules/ai-ml/rag'))
 const VectorEmbeddingsViz = lazy(() => import('@/modules/ai-ml/vector-embeddings'))
 const NeuralNetworksViz = lazy(() => import('@/modules/ai-ml/neural-networks'))
 
 // ── Containers ────────────────────────────────────────────────────────────
-const ContainersIndex = lazy(() => import('@/modules/containers'))
 const KubernetesViz = lazy(() => import('@/modules/containers/kubernetes'))
 
 // ── JavaScript ────────────────────────────────────────────────────────────
-const JavaScriptIndex = lazy(() => import('@/modules/javascript'))
 const EventLoopViz = lazy(() => import('@/modules/programming-concepts/async'))
 
-// ── Java ──────────────────────────────────────────────────────────────
-const JavaIndex = lazy(() => import('@/modules/java'))
+// ── Java ──────────────────────────────────────────────────────────────────
 const JavaStreamsViz = lazy(() => import('@/modules/programming-concepts/java-streams'))
 
+// ── Design Patterns ───────────────────────────────────────────────────────
+const CreationalPatternsViz = lazy(() => import('@/modules/design-patterns/creational'))
+const StructuralPatternsViz = lazy(() => import('@/modules/design-patterns/structural'))
+const BehavioralPatternsViz = lazy(() => import('@/modules/design-patterns/behavioral'))
+
 // ── Python ────────────────────────────────────────────────────────────────
-const PythonIndex = lazy(() => import('@/modules/python'))
 const PyGeneratorsViz = lazy(() => import('@/modules/programming-concepts/python-generators'))
 const PyDecoratorsViz = lazy(() => import('@/modules/programming-concepts/python-decorators'))
 const PyContextMgrViz = lazy(() => import('@/modules/programming-concepts/python-context-managers'))
 
 // ── Coding Essentials ─────────────────────────────────────────────────────
-const EssentialsIndex = lazy(() => import('@/modules/coding-essentials'))
 const ConcurrencyViz = lazy(() => import('@/modules/programming-concepts/concurrency'))
 const CPUThreadsViz = lazy(() => import('@/modules/programming-concepts/cpu-threads'))
 const MemoryModelViz = lazy(() => import('@/modules/programming-concepts/memory'))
 const JWTViz = lazy(() => import('@/modules/programming-concepts/jwt'))
 
 // ── System Design ─────────────────────────────────────────────────────────
-const SystemDesignIndex = lazy(() => import('@/modules/system-design'))
 const SystemDesignApproachViz = lazy(() => import('@/modules/system-design/system-design-approach'))
 const EventBookingViz = lazy(() => import('@/modules/system-design/event-booking'))
 const VideoProcessingViz = lazy(() => import('@/modules/system-design/video-processing'))
@@ -84,7 +83,6 @@ const CDNViz = lazy(() => import('@/modules/system-design/cdn'))
 const APIDesignViz = lazy(() => import('@/modules/system-design/api-design'))
 
 // ── Networking ────────────────────────────────────────────────────────────
-const NetworkingIndex = lazy(() => import('@/modules/networking'))
 const OSIModelViz = lazy(() => import('@/modules/networking/osi-model'))
 const TCPViz = lazy(() => import('@/modules/networking/tcp'))
 const UDPViz = lazy(() => import('@/modules/networking/udp'))
@@ -98,17 +96,39 @@ function Loading() {
   )
 }
 
+function NotFound() {
+  return (
+    <div className="max-w-md mx-auto text-center py-20 space-y-4">
+      <div className="text-6xl">🧭</div>
+      <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Page not found</h1>
+      <p className="text-sm text-slate-500 dark:text-slate-400">
+        This topic doesn't exist (yet). Head back home or pick a section from the sidebar.
+      </p>
+      <Link to="/" className="inline-block px-5 py-2.5 rounded-xl bg-violet-600 hover:bg-violet-700 text-white text-sm font-medium transition-colors">
+        Back to Home
+      </Link>
+    </div>
+  )
+}
+
 const S = (C: React.ComponentType) => <Suspense fallback={<Loading />}><C /></Suspense>
 
-const router = createBrowserRouter([
+// Exported so tests can verify registry ↔ route consistency
+// eslint-disable-next-line react-refresh/only-export-components
+export const appRoutes = [
   {
     path: '/',
     element: <Layout />,
     children: [
       { index: true, element: S(HomePage) },
 
+      // Section index pages — generated from the registry
+      ...registry.map(section => ({
+        path: section.path.slice(1),
+        element: S(SectionIndexPage),
+      })),
+
       // Data Structures
-      { path: 'data-structures', element: S(DSIndex) },
       { path: 'data-structures/array', element: S(ArrayViz) },
       { path: 'data-structures/stack', element: S(StackViz) },
       { path: 'data-structures/queue', element: S(QueueViz) },
@@ -120,7 +140,6 @@ const router = createBrowserRouter([
       { path: 'data-structures/heap', element: S(HeapViz) },
 
       // Algorithms
-      { path: 'algorithms', element: S(AlgoIndex) },
       { path: 'algorithms/bubble-sort', element: <Suspense fallback={<Loading />}><SortingViz algo="bubble" /></Suspense> },
       { path: 'algorithms/merge-sort', element: <Suspense fallback={<Loading />}><SortingViz algo="merge" /></Suspense> },
       { path: 'algorithms/quick-sort', element: <Suspense fallback={<Loading />}><SortingViz algo="quick" /></Suspense> },
@@ -128,7 +147,6 @@ const router = createBrowserRouter([
       { path: 'algorithms/binary-search', element: S(BinarySearchViz) },
 
       // Patterns
-      { path: 'patterns', element: S(PatternsIndex) },
       { path: 'patterns/two-pointer', element: S(TwoPointerViz) },
       { path: 'patterns/sliding-window', element: S(SlidingWindowViz) },
       { path: 'patterns/fast-slow', element: S(FastSlowViz) },
@@ -143,38 +161,36 @@ const router = createBrowserRouter([
       { path: 'patterns/monotonic-stack', element: S(MonotonicStackViz) },
 
       // AI & ML
-      { path: 'ai-ml', element: S(AIMLIndex) },
       { path: 'ai-ml/rag', element: S(RAGViz) },
       { path: 'ai-ml/vector-embeddings', element: S(VectorEmbeddingsViz) },
       { path: 'ai-ml/neural-networks', element: S(NeuralNetworksViz) },
 
       // Containers
-      { path: 'containers', element: S(ContainersIndex) },
       { path: 'containers/kubernetes', element: S(KubernetesViz) },
 
       // JavaScript
-      { path: 'javascript', element: S(JavaScriptIndex) },
       { path: 'javascript/event-loop', element: S(EventLoopViz) },
 
       // Java
-      { path: 'java', element: S(JavaIndex) },
       { path: 'java/streams', element: S(JavaStreamsViz) },
 
+      // Design Patterns
+      { path: 'design-patterns/creational', element: S(CreationalPatternsViz) },
+      { path: 'design-patterns/structural', element: S(StructuralPatternsViz) },
+      { path: 'design-patterns/behavioral', element: S(BehavioralPatternsViz) },
+
       // Python
-      { path: 'python', element: S(PythonIndex) },
       { path: 'python/generators', element: S(PyGeneratorsViz) },
       { path: 'python/decorators', element: S(PyDecoratorsViz) },
       { path: 'python/context-managers', element: S(PyContextMgrViz) },
 
       // Coding Essentials
-      { path: 'essentials', element: S(EssentialsIndex) },
       { path: 'essentials/concurrency', element: S(ConcurrencyViz) },
       { path: 'essentials/cpu-threads', element: S(CPUThreadsViz) },
       { path: 'essentials/memory', element: S(MemoryModelViz) },
       { path: 'essentials/jwt', element: S(JWTViz) },
 
       // System Design
-      { path: 'system-design', element: S(SystemDesignIndex) },
       { path: 'system-design/approach', element: S(SystemDesignApproachViz) },
       { path: 'system-design/event-booking', element: S(EventBookingViz) },
       { path: 'system-design/video-processing', element: S(VideoProcessingViz) },
@@ -189,14 +205,18 @@ const router = createBrowserRouter([
       { path: 'system-design/api-design', element: S(APIDesignViz) },
 
       // Networking
-      { path: 'networking', element: S(NetworkingIndex) },
       { path: 'networking/osi-model', element: S(OSIModelViz) },
       { path: 'networking/tcp', element: S(TCPViz) },
       { path: 'networking/udp', element: S(UDPViz) },
       { path: 'networking/websocket', element: S(WebSocketViz) },
+
+      // Catch-all
+      { path: '*', element: <NotFound /> },
     ],
   },
-], { basename: import.meta.env.BASE_URL })
+]
+
+const router = createBrowserRouter(appRoutes, { basename: import.meta.env.BASE_URL })
 
 export default function App() {
   return (

@@ -16,7 +16,7 @@ export default function LoadBalancingVisualizer() {
   const [strategy, setStrategy] = useState<Strategy>('round-robin')
   const [servers, setServers] = useState<Server[]>(INITIAL_SERVERS.map(s => ({ ...s })))
   const [requests, setRequests] = useState<Request[]>([])
-  const [rrIndex, setRrIndex] = useState(0)
+  const [, setRrIndex] = useState(0)
   const [running, setRunning] = useState(false)
   const [log, setLog] = useState<string[]>(['Load balancer ready. Click Start to send requests.'])
   const reqIdRef = useRef(0)

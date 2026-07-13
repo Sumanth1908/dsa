@@ -87,7 +87,6 @@ interface RectStep {
 
 function largestRectSteps(bars: number[]): RectStep[] {
   const steps: RectStep[] = []
-  const extended = [...bars, 0]  // sentinel
   const stack: number[] = []
   let maxArea = 0
 

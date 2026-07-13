@@ -98,11 +98,6 @@ export default function CDNVisualizer() {
 
   const isArrow = (a: string) => cur.activeArrows.includes(a)
 
-  const nodeStyle = (active: boolean, color: string) =>
-    `rounded-xl border-2 p-3 text-center transition-all duration-300 ${
-      active ? `${color} scale-105 shadow-lg` : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800'
-    }`
-
   return (
     <div className="max-w-4xl mx-auto space-y-6">
       <div>

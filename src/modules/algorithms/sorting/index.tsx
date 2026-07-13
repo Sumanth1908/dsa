@@ -24,7 +24,7 @@ function bubbleSteps(arr: number[]): SortStep[] {
     for (let j = 0; j < a.length - 1 - i; j++) {
       steps.push({ array: [...a], comparing: [j, j + 1], swapping: [], sorted: [...sorted], message: `Compare a[${j}]=${a[j]} with a[${j + 1}]=${a[j + 1]}` })
       if (a[j] > a[j + 1]) {
-        ;[a[j], a[j + 1]] = [a[j + 1], a[j]]
+        [a[j], a[j + 1]] = [a[j + 1], a[j]]
         steps.push({ array: [...a], comparing: [], swapping: [j, j + 1], sorted: [...sorted], message: `Swap: ${a[j + 1]} > ${a[j]} → swap` })
       }
     }
@@ -95,12 +95,12 @@ function quickSteps(arr: number[]): SortStep[] {
       if (a[j] <= pivot) {
         i++
         if (i !== j) {
-          ;[a[i], a[j]] = [a[j], a[i]]
+          [a[i], a[j]] = [a[j], a[i]]
           steps.push({ array: [...a], comparing: [], swapping: [i, j], sorted: [...sorted], pivot: high, message: `Swap a[${i}]=${a[i]} ↔ a[${j}]=${a[j]}` })
         }
       }
     }
-    ;[a[i + 1], a[high]] = [a[high], a[i + 1]]
+    [a[i + 1], a[high]] = [a[high], a[i + 1]]
     steps.push({ array: [...a], comparing: [], swapping: [i + 1, high], sorted: [...sorted], pivot: i + 1, message: `Place pivot ${pivot} at correct position ${i + 1}` })
     return i + 1
   }
@@ -123,7 +123,7 @@ function heapSteps(arr: number[]): SortStep[] {
     if (l < n && a[l] > a[largest]) largest = l
     if (r < n && a[r] > a[largest]) largest = r
     if (largest !== i) {
-      ;[a[i], a[largest]] = [a[largest], a[i]]
+      [a[i], a[largest]] = [a[largest], a[i]]
       steps.push({ array: [...a], comparing: [], swapping: [i, largest], sorted: [...sorted], message: `Swap ${a[largest]} ↔ ${a[i]}` })
       heapify(n, largest)
     }
@@ -133,7 +133,7 @@ function heapSteps(arr: number[]): SortStep[] {
   steps.push({ array: [...a], comparing: [], swapping: [], sorted: [...sorted], message: 'Max-heap built. Now extract elements.' })
 
   for (let i = a.length - 1; i > 0; i--) {
-    ;[a[0], a[i]] = [a[i], a[0]]
+    [a[0], a[i]] = [a[i], a[0]]
     sorted.push(i)
     steps.push({ array: [...a], comparing: [], swapping: [0, i], sorted: [...sorted], message: `Swap root ${a[i]} to position ${i}` })
     heapify(i, 0)

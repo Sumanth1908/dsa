@@ -231,8 +231,6 @@ try (DatabaseConnection db = new DatabaseConnection("jdbc:postgresql://localhost
   },
 ]
 
-type ResourceStatus = 'closed' | 'open' | 'error'
-
 function ResourcePill({ label, status }: { label: string; status: 'inactive' | 'active' | 'committed' | 'rolled-back' | 'closed' | 'error' }) {
   const colors = {
     inactive: 'bg-slate-100 dark:bg-slate-800 text-slate-500 border-slate-200 dark:border-slate-700',

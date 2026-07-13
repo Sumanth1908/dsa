@@ -1,12 +1,14 @@
 import React from 'react'
-import { registry } from '@/registry'
+import { Link } from 'react-router-dom'
+import { ArrowRight } from 'lucide-react'
+import { registry, groups } from '@/registry'
 import ModuleCard from '@/components/shared/ModuleCard'
 
 const totalTopics = registry.reduce((sum, s) => sum + s.subcategories.length, 0)
 
 export default function HomePage() {
   return (
-    <div className="max-w-6xl mx-auto space-y-10">
+    <div className="max-w-6xl mx-auto space-y-12">
       {/* Hero */}
       <div className="text-center space-y-4 py-8">
         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-violet-100 dark:bg-violet-950 text-violet-600 dark:text-violet-400 text-sm font-medium border border-violet-200 dark:border-violet-800">
@@ -19,65 +21,81 @@ export default function HomePage() {
           DevRef — Your Interactive Engineering Reference
         </div>
         <h1 className="text-4xl md:text-5xl font-bold text-slate-900 dark:text-white leading-tight">
-          Algorithms, Systems & Code
+          Don't just read about it.
           <br />
-          <span className="text-violet-600 dark:text-violet-400">Step by Step</span>
+          <span className="text-violet-600 dark:text-violet-400">Watch it happen.</span>
         </h1>
         <p className="text-lg text-slate-500 dark:text-slate-400 max-w-2xl mx-auto">
-          Interactive visualizers for DSA, system design, AI/ML, Python, JavaScript, Kubernetes, and networking —
-          with real code examples in JS, Python & Java.
+          {totalTopics} interactive visualizers that slow computer science down to one step at a time —
+          from your first array to distributed systems, with real code in JavaScript, Python & Java.
         </p>
+        <div className="flex items-center justify-center gap-3 pt-2">
+          <Link to="/data-structures/array"
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-violet-600 hover:bg-violet-700 text-white text-sm font-medium transition-colors">
+            Start with Arrays <ArrowRight size={16} />
+          </Link>
+          <Link to="/patterns"
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-800 text-sm font-medium transition-colors">
+            Prepping interviews? Jump to Patterns
+          </Link>
+        </div>
       </div>
 
-      {/* Stats — derived dynamically from registry */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-        <div className="bg-violet-600 dark:bg-violet-700 rounded-xl p-4 text-center text-white">
-          <div className="text-3xl font-bold">{totalTopics}</div>
-          <div className="text-xs text-violet-200 mt-1">Total Topics</div>
-        </div>
-        {registry.map(s => (
-          <div key={s.id} className={`${s.bgColor} rounded-xl border ${s.borderColor} p-4 text-center`}>
-            <div className={`text-2xl font-bold ${s.color}`}>{s.subcategories.length}</div>
-            <div className="text-xs text-slate-500 dark:text-slate-400 mt-1 leading-tight">{s.title}</div>
-          </div>
-        ))}
-      </div>
-
-      {/* Module cards */}
-      <div>
-        <h2 className="text-sm font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-4">
-          All Sections
-        </h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-          {registry.map(section => (
-            <ModuleCard key={section.id} section={section} />
-          ))}
-        </div>
+      {/* The journey — four stages, in order */}
+      <div className="space-y-10">
+        {groups.map((group, gi) => {
+          const sections = registry.filter(s => s.group === group.id)
+          const count = sections.reduce((n, s) => n + s.subcategories.length, 0)
+          return (
+            <div key={group.id}>
+              <div className="flex items-baseline gap-3 mb-1">
+                <span className="text-2xl font-bold text-slate-200 dark:text-slate-700 font-mono">
+                  0{gi + 1}
+                </span>
+                <h2 className="text-xl font-bold text-slate-900 dark:text-white">{group.title}</h2>
+                <span className="text-xs text-slate-400 dark:text-slate-500">{count} topics</span>
+              </div>
+              <p className="text-sm text-slate-500 dark:text-slate-400 mb-4 ml-10">{group.tagline}</p>
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                {sections.map(section => (
+                  <ModuleCard key={section.id} section={section} />
+                ))}
+              </div>
+            </div>
+          )
+        })}
       </div>
 
       {/* Quick tips */}
       <div className="bg-slate-900 dark:bg-slate-800 rounded-2xl p-6 text-white">
         <h3 className="font-bold text-lg mb-3">How to use this app</h3>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-slate-300">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 text-sm text-slate-300">
           <div className="flex gap-3">
             <span className="text-2xl">▶️</span>
             <div>
-              <div className="font-medium text-white">Step-by-step</div>
-              Use Play/Pause/Step controls on each visualizer to go at your own pace.
+              <div className="font-medium text-white">Step through it</div>
+              Play, pause, and scrub every animation — nothing moves faster than you can follow.
+            </div>
+          </div>
+          <div className="flex gap-3">
+            <span className="text-2xl">🧭</span>
+            <div>
+              <div className="font-medium text-white">Follow the path</div>
+              Prev / Next at the bottom of every topic walks the whole curriculum in order.
+            </div>
+          </div>
+          <div className="flex gap-3">
+            <span className="text-2xl">🔍</span>
+            <div>
+              <div className="font-medium text-white">Search anything</div>
+              The sidebar search finds topics by name or tag — try "heap" or "race condition".
             </div>
           </div>
           <div className="flex gap-3">
             <span className="text-2xl">🔀</span>
             <div>
               <div className="font-medium text-white">Switch languages</div>
-              Every code example has tabs for JavaScript, Python, and Java.
-            </div>
-          </div>
-          <div className="flex gap-3">
-            <span className="text-2xl">🌙</span>
-            <div>
-              <div className="font-medium text-white">Dark / Light</div>
-              Toggle the theme from the top-right of the header.
+              Code examples come in JavaScript, Python, and Java tabs.
             </div>
           </div>
         </div>

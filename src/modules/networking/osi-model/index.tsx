@@ -188,7 +188,7 @@ while (true) {
     out.println("HTTP/1.1 200 OK");
     out.println("Content-Type: application/json");
     out.println();
-    out.println("{\"id\": 42, \"name\": \"Alice\"}");
+    out.println("{"id": 42, "name": "Alice"}");
     clientSocket.close();  // TCP FIN (L4 teardown)
 }`,
   },

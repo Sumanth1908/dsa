@@ -51,7 +51,7 @@ function extractSteps(initial: number[], isMin: boolean): Step[] {
   return steps
 }
 
-function getNodePos(i: number, total: number): { x: number; y: number } {
+function getNodePos(i: number, _total: number): { x: number; y: number } {
   const level = Math.floor(Math.log2(i + 1))
   const levelStart = (1 << level) - 1
   const posInLevel = i - levelStart

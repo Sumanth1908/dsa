@@ -12,7 +12,6 @@ interface Step {
 function detectCycleSteps(hasCycle: boolean): Step[] {
   const steps: Step[] = []
   // Nodes: 0→1→2→3→4→(cycle back to 2 if hasCycle)
-  const n = 6
   const next = hasCycle ? [1, 2, 3, 4, 5, 3] : [1, 2, 3, 4, 5, -1]
 
   steps.push({ slow: 0, fast: 0, hasCycle: null, message: `Both probes start at node 0 (object root). Slow follows one reference at a time; fast follows two.`, step: 0 })
@@ -44,9 +43,6 @@ function detectCycleSteps(hasCycle: boolean): Step[] {
   }
   return steps
 }
-
-const NODES_WITH_CYCLE = [0, 1, 2, 3, 4, 5] // 5 → back to 3
-const NODES_NO_CYCLE = [0, 1, 2, 3, 4, 5]
 
 const CODE_EXAMPLES = [
   {

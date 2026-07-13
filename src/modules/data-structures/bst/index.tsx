@@ -76,7 +76,7 @@ function getPostorder(node: TreeNode | null, acc: number[] = []): number[] {
 
 interface Step { highlight: number[]; visited: number[]; message: string; tree: TreeNode | null }
 
-function traversalSteps(root: TreeNode | null, type: Traversal, insertVal?: number): Step[] {
+function traversalSteps(root: TreeNode | null, type: Traversal, _insertVal?: number): Step[] {
   const steps: Step[] = []
   const visited: number[] = []
 
@@ -217,8 +217,6 @@ export default function TreeVisualizer() {
     layout(tree!, 300, 40, 120)
     return tree
   }
-
-  const rootTree = buildAndLayout(INITIAL_VALUES)
 
   const steps = traversal === 'insert'
     ? insertSteps(buildAndLayout(INITIAL_VALUES), insertVal)
