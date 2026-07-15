@@ -505,13 +505,24 @@ export default function JavaStreamsVisualizer() {
       {/* ── TAB 1: Stream Pipeline ── */}
       <div className={tab !== 'pipeline' ? 'hidden' : 'space-y-4'}>
         <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-xl p-4">
-          <h3 className="font-semibold text-amber-800 dark:text-amber-300 mb-1">The Key Idea</h3>
+          <h3 className="font-semibold text-amber-800 dark:text-amber-300 mb-1">The Story</h3>
           <p className="text-sm text-amber-700 dark:text-amber-400">
+            A stream is a factory conveyor belt for data: items ride past stations — one station rejects the
+            broken ones (filter), the next paints each item (map). But here's the trick: the belt doesn't move
+            at all until someone at the very end actually asks for the boxes (collect). You describe the whole
+            assembly line first; it runs only when an order arrives — and each item travels the full line one
+            at a time.
+          </p>
+        </div>
+
+        <div className="bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800 rounded-xl p-4">
+          <h3 className="font-semibold text-emerald-800 dark:text-emerald-300 mb-1">The Key Idea</h3>
+          <p className="text-sm text-emerald-700 dark:text-emerald-400">
             Java Streams are <strong>not data structures</strong> — they are <em>lazy pipelines</em>.
-            You chain operations (<code className="bg-amber-100 dark:bg-amber-900 px-1 rounded text-xs">filter</code>,{' '}
-            <code className="bg-amber-100 dark:bg-amber-900 px-1 rounded text-xs">map</code>, etc.) to describe what to do,
+            You chain operations (<code className="bg-emerald-100 dark:bg-emerald-900 px-1 rounded text-xs">filter</code>,{' '}
+            <code className="bg-emerald-100 dark:bg-emerald-900 px-1 rounded text-xs">map</code>, etc.) to describe what to do,
             but <strong>nothing runs until you call a terminal operation</strong> like{' '}
-            <code className="bg-amber-100 dark:bg-amber-900 px-1 rounded text-xs">collect()</code>.
+            <code className="bg-emerald-100 dark:bg-emerald-900 px-1 rounded text-xs">collect()</code>.
             Think of it as an assembly line blueprint — it only activates when the factory starts.
           </p>
         </div>

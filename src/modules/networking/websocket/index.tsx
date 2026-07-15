@@ -72,6 +72,17 @@ export default function WebSocketVisualizer() {
         </p>
       </div>
 
+      <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-xl p-4">
+        <h3 className="font-medium text-amber-800 dark:text-amber-300 mb-1">The Story</h3>
+        <p className="text-sm text-amber-700 dark:text-amber-400">
+          Ordinary HTTP is writing letters: every question needs a new envelope, a new trip to the postbox — and
+          the other side can never write to you first. A WebSocket is switching to a phone call: you make one
+          connection, keep it open, and now either side can speak the instant something happens. That's how a
+          chat message reaches you the moment it's sent, instead of your app mailing "anything new?" letters
+          every second.
+        </p>
+      </div>
+
       <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-xl p-4 text-sm text-amber-800 dark:text-amber-300 space-y-2">
         <p>HTTP is request-response: the client always has to ask before the server can answer. For a chat app, this means polling ("any new messages yet?") every second — 99% of requests return nothing. WebSocket solves this by upgrading an existing HTTP connection to a persistent full-duplex channel where the <strong>server can push data to the client at any time</strong> without being asked.</p>
         <p>The handshake is a regular HTTP GET with special <code className="font-mono bg-amber-100 dark:bg-amber-900 px-1 rounded">Upgrade: websocket</code> headers. The server's <code className="font-mono bg-amber-100 dark:bg-amber-900 px-1 rounded">101 Switching Protocols</code> response signals the protocol switch. After that, the same TCP socket carries lightweight binary frames instead of HTTP headers — frames are as small as 2 bytes overhead vs. hundreds of bytes per HTTP request.</p>

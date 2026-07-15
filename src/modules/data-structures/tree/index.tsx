@@ -13,6 +13,16 @@ export default function TreeOverview() {
         <ComplexityBadge time="O(n) traversal" space="O(n)" />
       </div>
 
+      <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-xl p-4">
+        <h3 className="font-medium text-amber-800 dark:text-amber-300 mb-1">The Story</h3>
+        <p className="text-sm text-amber-700 dark:text-amber-400">
+          Look at a company org chart: one CEO at the top, managers below, their teams below that — and nobody
+          reports to two bosses. Questions like "who works under Priya?" become a simple walk down the branches.
+          That's a tree: data arranged as a hierarchy instead of a line. Your file system, this website's HTML,
+          and your family tree are all the same shape.
+        </p>
+      </div>
+
       <div className="bg-sky-50 dark:bg-sky-950/30 border border-sky-200 dark:border-sky-800 rounded-xl p-4 text-sm text-sky-800 dark:text-sky-300 space-y-3">
         <p className="font-semibold text-sky-700 dark:text-sky-200">What is a Tree?</p>
         <p>A tree is a connected, acyclic graph with a designated <strong>root</strong>. Unlike a general graph, there is exactly one path between any two nodes — no cycles, and a unique parent-child hierarchy flows from the root downward.</p>

@@ -275,6 +275,17 @@ export default function VideoProcessingViz() {
       </div>
 
       <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-xl p-4">
+        <h3 className="font-medium text-amber-800 dark:text-amber-300 mb-1">The Story</h3>
+        <p className="text-sm text-amber-700 dark:text-amber-400">
+          You upload one video — but the world will watch it on a cracked phone in a weak-signal train, a
+          laptop on hotel Wi-Fi, and a 4K living-room TV. So behind the scenes, a pipeline chops your file into
+          small segments and re-encodes each one at several sizes, letting every viewer's player grab the next
+          chunk in whatever quality their connection can swallow right now. That's why "processing…" takes a
+          while after upload — and why playback almost never stutters.
+        </p>
+      </div>
+
+      <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-xl p-4">
         <p className="text-sm text-amber-800 dark:text-amber-300">
           A 10-minute 1080p video uploaded by a creator becomes ~40 files — 3 qualities × ~13 chunks each — plus 4 playlist files, distributed across edge servers on every continent. This pipeline runs in ~20 minutes after upload.
         </p>

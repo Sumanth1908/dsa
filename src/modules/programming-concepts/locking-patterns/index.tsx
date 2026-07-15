@@ -103,18 +103,51 @@ interface Pattern {
   label: string
   tagline: string
   activeClass: string
+  story: string
   steps: Step[]
 }
 
 const PATTERNS: Pattern[] = [
-  { id: 'mutex', label: 'Mutex', tagline: 'Exclusive access, one at a time', activeClass: 'bg-rose-600 text-white shadow', steps: mutexSteps },
-  { id: 'semaphore', label: 'Semaphore', tagline: 'N permits, capped concurrency', activeClass: 'bg-amber-600 text-white shadow', steps: semaphoreSteps },
-  { id: 'rwlock', label: 'Read-Write Lock', tagline: 'Many readers OR one writer', activeClass: 'bg-sky-600 text-white shadow', steps: rwlockSteps },
-  { id: 'reentrant', label: 'Reentrant Lock', tagline: 'Same thread can re-acquire', activeClass: 'bg-violet-600 text-white shadow', steps: reentrantSteps },
-  { id: 'spinlock', label: 'Spinlock', tagline: 'Busy-wait instead of sleeping', activeClass: 'bg-orange-600 text-white shadow', steps: spinlockSteps },
-  { id: 'optimistic', label: 'Optimistic vs Pessimistic', tagline: 'Lock upfront vs check-at-commit', activeClass: 'bg-teal-600 text-white shadow', steps: optimisticSteps },
-  { id: 'deadlock', label: 'Deadlock', tagline: 'Circular wait — and the fix', activeClass: 'bg-red-700 text-white shadow', steps: deadlockSteps },
-  { id: 'distributed', label: 'Distributed Lock', tagline: 'Locking across separate servers', activeClass: 'bg-indigo-600 text-white shadow', steps: distributedSteps },
+  {
+    id: 'mutex', label: 'Mutex', tagline: 'Exclusive access, one at a time', activeClass: 'bg-rose-600 text-white shadow',
+    story: 'A petrol station has one bathroom and one key hanging at the counter. Take the key, use the bathroom, hang it back — whoever finds the hook empty simply waits. Below, A and B are two cashiers who both need to update the same $100 cash-drawer count. The key guarantees they take turns, so no count ever goes missing.',
+    steps: mutexSteps,
+  },
+  {
+    id: 'semaphore', label: 'Semaphore', tagline: 'N permits, capped concurrency', activeClass: 'bg-amber-600 text-white shadow',
+    story: 'A tiny car park has 2 spaces and a barrier that counts: it lifts while spaces remain and stays down once both are taken — the third car waits until somebody drives out. Below, three workers share 2 permits. It\'s the bathroom key again, except there are two keys on the hook.',
+    steps: semaphoreSteps,
+  },
+  {
+    id: 'rwlock', label: 'Read-Write Lock', tagline: 'Many readers OR one writer', activeClass: 'bg-sky-600 text-white shadow',
+    story: 'A museum lets any number of visitors admire a painting at the same time — looking never hurts. But when the restorer arrives with her brushes, the room is emptied and the door locked until she\'s done: nobody should see a painting half-repainted. Below, R1 and R2 are visitors, W is the restorer.',
+    steps: rwlockSteps,
+  },
+  {
+    id: 'reentrant', label: 'Reentrant Lock', tagline: 'Same thread can re-acquire', activeClass: 'bg-violet-600 text-white shadow',
+    story: 'You lock your bedroom door from the inside. Opening your own wardrobe inside that room shouldn\'t lock you out — it\'s YOUR lock, you\'re already in. A reentrant lock keeps a tally instead of a yes/no: you locked twice (room, then wardrobe), so you must unlock twice on the way out before anyone else may enter.',
+    steps: reentrantSteps,
+  },
+  {
+    id: 'spinlock', label: 'Spinlock', tagline: 'Busy-wait instead of sleeping', activeClass: 'bg-orange-600 text-white shadow',
+    story: 'The office bathroom is occupied. Do you walk back to your desk and ask a colleague to call you when it\'s free (a normal lock — the waiter sleeps)? Or stand at the door trying the handle every second (a spinlock)? Standing there wastes your time, but if the occupant is quick, you\'re in the moment they leave — faster than the walk back.',
+    steps: spinlockSteps,
+  },
+  {
+    id: 'optimistic', label: 'Optimistic vs Pessimistic', tagline: 'Lock upfront vs check-at-commit', activeClass: 'bg-teal-600 text-white shadow',
+    story: 'Two colleagues must edit the same paper report. Pessimistic plan: take the only folder off the shelf so the other has to wait — safe, slow. Optimistic plan: both photocopy it and edit freely; whoever returns second notices the original changed since their copy, throws away their edits, and redoes them. Below, both plans play out on the same bank row.',
+    steps: optimisticSteps,
+  },
+  {
+    id: 'deadlock', label: 'Deadlock', tagline: 'Circular wait — and the fix', activeClass: 'bg-red-700 text-white shadow',
+    story: 'Two chefs, one salt shaker, one pepper grinder. Chef A grabs the salt and reaches for the pepper; chef B grabbed the pepper and is reaching for the salt. Both stand frozen, politely waiting forever — dinner never gets cooked. The fix is a house rule: everyone always picks up the salt FIRST. Then nobody can ever be holding what the other needs.',
+    steps: deadlockSteps,
+  },
+  {
+    id: 'distributed', label: 'Distributed Lock', tagline: 'Locking across separate servers', activeClass: 'bg-indigo-600 text-white shadow',
+    story: 'Two hotel receptionists in different buildings must not both sell the last penthouse night. No door key can help — they never touch the same door. Instead they share a booking board both can see: "penthouse: taken until 3pm". And the note must expire on its own, because if a receptionist goes home sick without erasing it, the room would stay blocked forever.',
+    steps: distributedSteps,
+  },
 ]
 
 const STATE_STYLES: Record<WorkerState, string> = {
@@ -342,8 +375,19 @@ export default function LockingPatternsVisualizer() {
       </div>
 
       <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-xl p-4">
-        <h3 className="font-medium text-amber-800 dark:text-amber-300 mb-1">Why so many kinds of lock?</h3>
+        <h3 className="font-medium text-amber-800 dark:text-amber-300 mb-1">The Story</h3>
         <p className="text-sm text-amber-700 dark:text-amber-400">
+          You share a flat with three roommates and there's one bathroom. The unspoken rule — "if the door's
+          locked, wait your turn" — is the entire idea of locking. Whenever several people (threads, servers)
+          share one thing (a variable, a database row, a file), you need rules for who gets it, who waits, and
+          what happens if someone forgets to unlock. Every pattern below is that same bathroom rule, tuned for a
+          different situation.
+        </p>
+      </div>
+
+      <div className="bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800 rounded-xl p-4">
+        <h3 className="font-medium text-emerald-800 dark:text-emerald-300 mb-1">Why so many kinds of lock?</h3>
+        <p className="text-sm text-emerald-700 dark:text-emerald-400">
           A plain mutex is always correct but always serializes. Every other pattern here trades some of that
           safety margin for throughput in a specific situation: N-way concurrency (semaphore), read-heavy access
           (read-write lock), recursive callers (reentrant), sub-microsecond critical sections (spinlock), rare
@@ -367,6 +411,12 @@ export default function LockingPatternsVisualizer() {
             <div className="opacity-80 text-[10px] mt-0.5">{p.tagline}</div>
           </button>
         ))}
+      </div>
+
+      {/* Story for the selected pattern */}
+      <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-xl p-4">
+        <h3 className="font-medium text-amber-800 dark:text-amber-300 mb-1">📖 {pattern.label} — The Story</h3>
+        <p className="text-sm text-amber-700 dark:text-amber-400">{pattern.story}</p>
       </div>
 
       <div className={`viz-container p-6 space-y-4 border-2 transition-all duration-300 ${cur.danger ? 'border-rose-400 dark:border-rose-700' : 'border-transparent'}`}>

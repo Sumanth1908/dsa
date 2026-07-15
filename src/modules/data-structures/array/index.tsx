@@ -189,6 +189,16 @@ export default function ArrayVisualizer() {
         <ComplexityBadge time="O(n) search, O(1) access" space="O(n)" />
       </div>
 
+      <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-xl p-4">
+        <h3 className="font-medium text-amber-800 dark:text-amber-300 mb-1">The Story</h3>
+        <p className="text-sm text-amber-700 dark:text-amber-400">
+          Picture a row of apartment mailboxes numbered 0, 1, 2… The postman never searches — he walks straight
+          to box #7 because the number tells him exactly where it is. That's an array: numbered slots with
+          instant access. The catch: squeezing a new mailbox in between #2 and #3 means shifting every box after
+          it one spot over — which is why inserting in the middle is the expensive part.
+        </p>
+      </div>
+
       <div className="bg-sky-50 dark:bg-sky-950/30 border border-sky-200 dark:border-sky-800 rounded-xl p-4 text-sm text-sky-800 dark:text-sky-300 space-y-2">
         <p className="font-semibold text-sky-700 dark:text-sky-200">What is an Array?</p>
         <p>An array is a <strong>fixed-size, ordered collection</strong> of elements stored back-to-back in memory. Think of numbered mailboxes in a hallway — each has an address (index 0, 1, 2…) and you can jump to any box directly without checking the others.</p>

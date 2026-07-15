@@ -288,6 +288,16 @@ export default function TrieVisualizer() {
         <ComplexityBadge time="O(m) search/insert" space="O(N·m)" />
       </div>
 
+      <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-xl p-4">
+        <h3 className="font-medium text-amber-800 dark:text-amber-300 mb-1">The Story</h3>
+        <p className="text-sm text-amber-700 dark:text-amber-400">
+          Type "ca" into your phone's contacts and it instantly offers Carlos, Cathy, Catherine. It isn't
+          scanning your whole contact list — it walks letter by letter down a tree of shared beginnings:
+          c → a → then every branch below is a name starting with "ca". That's a trie, and it's the structure
+          behind every autocomplete box you've ever typed into.
+        </p>
+      </div>
+
       <div className="bg-sky-50 dark:bg-sky-950/30 border border-sky-200 dark:border-sky-800 rounded-xl p-4 text-sm text-sky-800 dark:text-sky-300 space-y-2">
         <p className="font-semibold text-sky-700 dark:text-sky-200">What is a Trie?</p>
         <p>A trie (pronounced "try", from re<em>trie</em>val) is a tree where each <strong>edge</strong> represents a character. To look up a word, follow the edges one character at a time from the root. If you reach a node marked as a word-end, the word exists.</p>

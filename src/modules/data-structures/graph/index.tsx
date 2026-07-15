@@ -215,6 +215,16 @@ export default function GraphVisualizer() {
         <ComplexityBadge time="O(V + E)" space="O(V)" />
       </div>
 
+      <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-xl p-4">
+        <h3 className="font-medium text-amber-800 dark:text-amber-300 mb-1">The Story</h3>
+        <p className="text-sm text-amber-700 dark:text-amber-400">
+          Look at a subway map: stations connected by lines — some stations are big interchanges, some are dead
+          ends, and there are loops everywhere. Or your friendships: you know Maya, Maya knows Ali, Ali knows
+          you. Anything shaped like "things plus the connections between them" is a graph, and questions like
+          "how do I get from A to B?" or "are these two people connected?" are graph traversals.
+        </p>
+      </div>
+
       <div className="bg-sky-50 dark:bg-sky-950/30 border border-sky-200 dark:border-sky-800 rounded-xl p-4 text-sm text-sky-800 dark:text-sky-300 space-y-2">
         <p className="font-semibold text-sky-700 dark:text-sky-200">What is a Graph?</p>
         <p>A graph is a set of <strong>nodes (vertices)</strong> connected by <strong>edges</strong>. Unlike trees, graphs have no root, no parent-child hierarchy, and can have cycles. They're the most general structure in computer science — every tree is a special-case graph.</p>

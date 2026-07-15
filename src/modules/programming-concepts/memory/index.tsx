@@ -353,6 +353,18 @@ export default function MemoryModelViz() {
         </p>
       </div>
 
+      <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-xl p-4">
+        <h3 className="font-medium text-amber-800 dark:text-amber-300 mb-1">The Story</h3>
+        <p className="text-sm text-amber-700 dark:text-amber-400">
+          Your program's memory is a desk and a warehouse. The desk (stack) is small and self-cleaning: each
+          task's papers vanish automatically the moment the task is done. The warehouse (heap) holds anything
+          big or long-lived — but nothing ever leaves unless someone tidies up. That someone is the garbage
+          collector, walking the aisles asking "is anyone still using this?" A memory leak is a shelf everyone
+          forgot they're technically still 'using' — so the janitor can never throw it out, and the warehouse
+          slowly fills.
+        </p>
+      </div>
+
       <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-xl p-4 text-sm text-amber-800 dark:text-amber-300 space-y-2">
         <p>Every program has two main memory regions. The <strong>Stack</strong> is a region managed automatically by the CPU: when a function is called, a frame is pushed (holding local variables and return address); when it returns, the frame is popped in microseconds — no GC needed. Stack is fast but small (typically 1–8 MB).</p>
         <p>The <strong>Heap</strong> is a large pool for dynamic allocations — objects, arrays, strings. Heap memory must be explicitly reclaimed: either manually (C/C++) or by a <strong>garbage collector</strong> (Java, Python, JavaScript). GC tracks which objects are still reachable and frees the rest. The challenge: GC introduces pauses and complexity.</p>

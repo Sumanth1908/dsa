@@ -66,6 +66,17 @@ export default function CAPTheoremVisualizer() {
         </p>
       </div>
 
+      <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-xl p-4">
+        <h3 className="font-medium text-amber-800 dark:text-amber-300 mb-1">The Story</h3>
+        <p className="text-sm text-amber-700 dark:text-amber-400">
+          A bank has two branches that sync every transaction over a phone line — and today the line is dead.
+          A customer walks into EACH branch to withdraw the same last $100. Now the impossible choice: keep
+          serving customers (stay available — and risk paying out the $100 twice), or lock the counters until
+          the line is fixed (stay consistent — and turn away everyone). You cannot have both while the line is
+          down. That, in one broken phone line, is the CAP theorem.
+        </p>
+      </div>
+
       <div className="bg-rose-50 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-800 rounded-xl p-4 text-sm">
         <strong className="text-rose-700 dark:text-rose-400">Key insight:</strong>
         <span className="text-rose-600 dark:text-rose-400"> Network partitions WILL happen. So the real choice is between Consistency (CP) and Availability (AP).</span>

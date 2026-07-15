@@ -412,6 +412,17 @@ export default function SortingVisualizer({ algo: propAlgo }: SortingVisualizerP
         <ComplexityBadge time={COMPLEXITY[algo].time} space={COMPLEXITY[algo].space} />
       </div>
 
+      <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-xl p-4">
+        <h3 className="font-medium text-amber-800 dark:text-amber-300 mb-1">The Story</h3>
+        <p className="text-sm text-amber-700 dark:text-amber-400">
+          You're dealt a messy hand of playing cards and instinctively start arranging it — pick a card, slide
+          it where it belongs. Every sorting algorithm is a different strategy for that same chore: some compare
+          neighbours and swap (bubble), some grow a sorted section one card at a time (insertion), some split
+          the pile, sort the halves, and merge (merge sort). The differences barely matter for 10 cards — and
+          matter enormously for 10 million.
+        </p>
+      </div>
+
       <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-xl p-4 text-sm text-amber-800 dark:text-amber-300 space-y-2">
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <div>

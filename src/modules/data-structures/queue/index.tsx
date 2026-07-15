@@ -116,6 +116,16 @@ export default function QueueVisualizer() {
         <ComplexityBadge time="O(1) enqueue/dequeue" space="O(n)" />
       </div>
 
+      <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-xl p-4">
+        <h3 className="font-medium text-amber-800 dark:text-amber-300 mb-1">The Story</h3>
+        <p className="text-sm text-amber-700 dark:text-amber-400">
+          It's the line at a movie ticket counter. Whoever arrives first stands at the front and gets served
+          first; newcomers join at the back. Nobody cuts. That's a queue — first in, first out — and it's how
+          printers handle documents, how support tickets get answered, and how your computer schedules the tasks
+          waiting for their turn.
+        </p>
+      </div>
+
       <div className="bg-sky-50 dark:bg-sky-950/30 border border-sky-200 dark:border-sky-800 rounded-xl p-4 text-sm text-sky-800 dark:text-sky-300 space-y-2">
         <p className="font-semibold text-sky-700 dark:text-sky-200">What is a Queue?</p>
         <p>A queue is a collection where elements enter at one end (the <strong>rear</strong>) and leave from the other (the <strong>front</strong>) — exactly like a line at a coffee shop. The first person in line is the first to be served.</p>

@@ -201,8 +201,19 @@ export default function StructuralPatternsViz() {
       </div>
 
       <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-xl p-4">
-        <h3 className="font-medium text-amber-800 dark:text-amber-300 mb-1">Why structural patterns exist</h3>
+        <h3 className="font-medium text-amber-800 dark:text-amber-300 mb-1">The Story</h3>
         <p className="text-sm text-amber-700 dark:text-amber-400">
+          Your laptop's plug doesn't fit the socket abroad — you don't rewire the laptop, you slot in a travel
+          adapter (Adapter). When it gets cold you don't grow thicker skin — you put on a jacket, and a raincoat
+          over that; each layer adds something without changing you (Decorator). And at a hotel you press one
+          button, "concierge", instead of ringing the kitchen, laundry, and taxi desk separately (Facade). Three
+          everyday moves — structural patterns apply them to objects.
+        </p>
+      </div>
+
+      <div className="bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800 rounded-xl p-4">
+        <h3 className="font-medium text-emerald-800 dark:text-emerald-300 mb-1">Why structural patterns exist</h3>
+        <p className="text-sm text-emerald-700 dark:text-emerald-400">
           Real systems grow by combining objects, not editing them. <strong>Decorator</strong> adds behaviour by wrapping
           (Java's entire I/O stack), <strong>Adapter</strong> lets incompatible interfaces cooperate (every legacy
           integration you'll ever do), and <strong>Facade</strong> hides a subsystem behind one friendly method

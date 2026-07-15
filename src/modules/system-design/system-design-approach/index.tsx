@@ -102,6 +102,17 @@ export default function SystemDesignApproachViz() {
       </div>
 
       <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-xl p-4">
+        <h3 className="font-medium text-amber-800 dark:text-amber-300 mb-1">The Story</h3>
+        <p className="text-sm text-amber-700 dark:text-amber-400">
+          Nobody builds a house by immediately laying bricks. First you ask who's living there and how many
+          rooms they need (requirements). Then you estimate the plot and the budget (capacity). Then a rough
+          blueprint (high-level design), then the detailed plumbing and wiring (deep dives), and only at the
+          end do you debate marble versus tile (trade-offs). "Design WhatsApp" is the same project — this
+          framework is the architect's discipline, applied to software.
+        </p>
+      </div>
+
+      <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-xl p-4">
         <p className="text-sm text-amber-800 dark:text-amber-300">
           System design questions are intentionally vague ("Design WhatsApp"). Your job is to drive the conversation — ask clarifying questions, make assumptions explicit, and justify every decision with trade-offs. Interviewers want to see <em>how you think</em>, not just the final diagram.
         </p>

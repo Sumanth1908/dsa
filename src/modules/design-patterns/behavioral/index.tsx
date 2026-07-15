@@ -218,8 +218,20 @@ export default function BehavioralPatternsViz() {
       </div>
 
       <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-xl p-4">
-        <h3 className="font-medium text-amber-800 dark:text-amber-300 mb-1">Why behavioral patterns exist</h3>
+        <h3 className="font-medium text-amber-800 dark:text-amber-300 mb-1">The Story</h3>
         <p className="text-sm text-amber-700 dark:text-amber-400">
+          A navigation app offers "fastest", "no tolls", "walking" — same trip, three swappable route-picking
+          brains you choose between at tap-time (Strategy). A YouTube channel doesn't phone each fan when a
+          video drops — fans subscribe, and everyone gets notified (Observer). And a restaurant order ticket
+          turns "table 9 wants pasta" into a thing the waiter can hand off, queue up, or even cancel — without
+          cooking anything himself (Command). Behavioral patterns decide who chooses, who gets told, and who
+          does the work.
+        </p>
+      </div>
+
+      <div className="bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800 rounded-xl p-4">
+        <h3 className="font-medium text-emerald-800 dark:text-emerald-300 mb-1">Why behavioral patterns exist</h3>
+        <p className="text-sm text-emerald-700 dark:text-emerald-400">
           The hardest coupling to break isn't structural — it's behavioural: giant if/else chains on type
           (<strong>Strategy</strong> kills those), objects that must know exactly who to update
           (<strong>Observer</strong> inverts that), and actions welded to the button that triggers them

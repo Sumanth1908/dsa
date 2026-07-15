@@ -246,6 +246,17 @@ export default function GamingSystemViz() {
       </div>
 
       <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-xl p-4">
+        <h3 className="font-medium text-amber-800 dark:text-amber-300 mb-1">The Story</h3>
+        <p className="text-sm text-amber-700 dark:text-amber-400">
+          Eight strangers around the world press "Race". Someone has to pair them fairly — a beginner against a
+          pro is fun for nobody (matchmaking). Someone neutral has to decide who actually crossed the line
+          first — never the players' own phones, because cheaters lie (the authoritative server is the referee).
+          And every car's position must reach every screen fast enough that nothing teleports — even if a few
+          updates get lost on the way (UDP). This design walks all three.
+        </p>
+      </div>
+
+      <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-xl p-4">
         <p className="text-sm text-amber-800 dark:text-amber-300">
           <strong>The key constraint:</strong> Game servers must be authoritative — clients cannot be trusted to self-report positions (cheating). The server runs the physics, clients just send inputs and render what the server says. This is why multiplayer games have dedicated server farms.
         </p>

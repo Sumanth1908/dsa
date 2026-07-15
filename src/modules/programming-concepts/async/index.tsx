@@ -141,6 +141,17 @@ export default function EventLoopVisualizer() {
         </p>
       </div>
 
+      <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-xl p-4">
+        <h3 className="font-medium text-amber-800 dark:text-amber-300 mb-1">The Story</h3>
+        <p className="text-sm text-amber-700 dark:text-amber-400">
+          A JavaScript program is a kitchen with exactly one chef. When the pasta needs ten minutes, the chef
+          doesn't stand staring at the pot — he sets a kitchen timer (Web API), moves on to the salad, and when
+          the timer rings, the "drain the pasta" note joins the end of his to-do list (task queue). The event
+          loop is the chef's one iron rule: finish what's in your hands, then pick up the oldest note. One pair
+          of hands, never idle, nothing burns.
+        </p>
+      </div>
+
       <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-xl p-4 text-sm text-amber-800 dark:text-amber-300 space-y-2">
         <p>JavaScript is <strong>single-threaded</strong> — there is exactly one call stack, and only one function runs at a time. But a browser or Node.js can handle thousands of concurrent I/O operations. How? Not with threads — with the <strong>event loop</strong>. When you call <code className="font-mono bg-amber-100 dark:bg-amber-900 px-1 rounded">setTimeout</code> or <code className="font-mono bg-amber-100 dark:bg-amber-900 px-1 rounded">fetch()</code>, the work is handed off to a background Web API (a browser thread, or libuv in Node). The JS thread stays free to do other work. When the timer fires or the fetch resolves, a callback is placed in a queue and picked up by the event loop when the call stack is empty.</p>
         <p><strong>This is why blocking the event loop is so dangerous.</strong> If you run a CPU-heavy computation synchronously (e.g., sorting a million items), the call stack stays occupied — no other callbacks can run, no requests can be served, the browser UI freezes. The fix: offload to a Web Worker (browser) or worker thread (Node.js), or break the work into chunks with <code className="font-mono bg-amber-100 dark:bg-amber-900 px-1 rounded">setImmediate</code>.</p>

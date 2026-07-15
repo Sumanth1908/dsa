@@ -178,6 +178,16 @@ export default function LinkedListVisualizer() {
         <ComplexityBadge time="O(n) search, O(1) head insert" space="O(n)" />
       </div>
 
+      <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-xl p-4">
+        <h3 className="font-medium text-amber-800 dark:text-amber-300 mb-1">The Story</h3>
+        <p className="text-sm text-amber-700 dark:text-amber-400">
+          A treasure hunt: each clue tells you only where the next clue is hidden. To reach the 5th clue you
+          must walk through the first four — there's no jumping ahead. But slipping a brand-new clue into the
+          middle of the hunt is easy: rewrite one note to point to it, done. That's a linked list — slow to
+          search, but cheap to splice things in and out.
+        </p>
+      </div>
+
       <div className="bg-sky-50 dark:bg-sky-950/30 border border-sky-200 dark:border-sky-800 rounded-xl p-4 text-sm text-sky-800 dark:text-sky-300 space-y-2">
         <p className="font-semibold text-sky-700 dark:text-sky-200">What is a Linked List?</p>
         <p>A linked list is a chain of <strong>nodes</strong> where each node holds a value and a pointer to the next node. Unlike an array, nodes don't need to be adjacent in memory — the pointer is what connects them. Think of a scavenger hunt: each clue tells you where to find the next one.</p>

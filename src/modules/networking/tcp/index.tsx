@@ -86,6 +86,16 @@ export default function TCPVisualizer() {
         </p>
       </div>
 
+      <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-xl p-4">
+        <h3 className="font-medium text-amber-800 dark:text-amber-300 mb-1">The Story</h3>
+        <p className="text-sm text-amber-700 dark:text-amber-400">
+          A TCP connection is a phone call. You dial (SYN), they pick up and say "hello?" (SYN-ACK), you reply
+          "hey, it's me" (ACK) — and only then does the real conversation begin. Every sentence gets a little
+          "got it" back; anything that goes unheard is repeated. And when you're done, nobody just slams the
+          phone down — both sides say goodbye before hanging up.
+        </p>
+      </div>
+
       <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-xl p-4 text-sm text-amber-800 dark:text-amber-300 space-y-2">
         <p>TCP is a <strong>reliable, ordered, connection-oriented</strong> protocol. Before any data is exchanged, both sides must agree they're ready — that's the 3-way handshake. During the handshake, each side picks a random <strong>Initial Sequence Number (ISN)</strong> and communicates it to the other. All subsequent packets include sequence numbers so the receiver can detect gaps, duplicates, and reorder out-of-order packets.</p>
         <p><strong>Why reliability is hard:</strong> The internet is unreliable by design. IP packets can be dropped by overloaded routers, arrive out of order via different paths, or be duplicated. TCP hides all of this. Every byte sent gets an ACK; if no ACK arrives within a timeout, TCP retransmits. A sliding window lets the sender transmit multiple packets before waiting for ACKs, keeping the pipe full (flow control). Congestion control (slow start, AIMD) detects network overload and backs off.</p>

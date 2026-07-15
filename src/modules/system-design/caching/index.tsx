@@ -75,6 +75,17 @@ export default function CachingVisualizer() {
         </p>
       </div>
 
+      <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-xl p-4">
+        <h3 className="font-medium text-amber-800 dark:text-amber-300 mb-1">The Story</h3>
+        <p className="text-sm text-amber-700 dark:text-amber-400">
+          You keep the snacks you reach for most in your desk drawer instead of walking to the shop every time.
+          But the drawer is small — so when it's full and you bring something new, out goes whatever you
+          haven't touched in the longest time. That's an LRU cache: small, fast, and ruthless about evicting
+          the least-recently-used. The clever part below is doing "which snack is oldest?" instantly, without
+          rummaging.
+        </p>
+      </div>
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
         <div className="bg-slate-50 dark:bg-slate-800/50 rounded-xl p-4">
           <h3 className="font-semibold text-slate-700 dark:text-slate-300 mb-2">How LRU works</h3>

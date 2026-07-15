@@ -60,6 +60,17 @@ export default function MessageQueuesVisualizer() {
         </p>
       </div>
 
+      <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-xl p-4">
+        <h3 className="font-medium text-amber-800 dark:text-amber-300 mb-1">The Story</h3>
+        <p className="text-sm text-amber-700 dark:text-amber-400">
+          The waiter doesn't stand in the kitchen waiting for your burger. He clips the order to the ticket
+          rail and goes back to serving tables; the kitchen pulls tickets at its own pace. A slammed kitchen
+          just means a longer rail — never a frozen waiter. That rail is a message queue: it lets the fast part
+          of a system and the slow part work without ever waiting on each other, and no order is lost even if
+          the kitchen falls behind.
+        </p>
+      </div>
+
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
         {[
           { title: 'At-most-once', desc: 'Fire and forget — messages may be lost but never duplicated', color: 'amber' },

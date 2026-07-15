@@ -181,6 +181,16 @@ export default function HeapVisualizer() {
         <ComplexityBadge time="O(log n) insert/extract" space="O(n)" />
       </div>
 
+      <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-xl p-4">
+        <h3 className="font-medium text-amber-800 dark:text-amber-300 mb-1">The Story</h3>
+        <p className="text-sm text-amber-700 dark:text-amber-400">
+          In a hospital emergency room, patients aren't seen in arrival order — the most critical case always
+          goes first. The triage board answers exactly one question, instantly: "who's most urgent right now?"
+          It doesn't bother keeping everyone else perfectly sorted. That's a heap: the most important item is
+          always on top, and it stays that way even as patients keep arriving.
+        </p>
+      </div>
+
       <div className="bg-sky-50 dark:bg-sky-950/30 border border-sky-200 dark:border-sky-800 rounded-xl p-4 text-sm text-sky-800 dark:text-sky-300 space-y-2">
         <p className="font-semibold text-sky-700 dark:text-sky-200">What is a Heap?</p>
         <p>A heap is a <strong>complete binary tree</strong> with one rule: every parent is "better" than both its children — smaller in a min-heap, larger in a max-heap. The result: the globally best element is always at the root, accessible in O(1).</p>

@@ -288,9 +288,19 @@ export default function PubSubVisualizer() {
       </div>
 
       <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-xl p-4">
-        <h3 className="font-medium text-amber-800 dark:text-amber-300 mb-1">The Key Insight — Decoupling</h3>
+        <h3 className="font-medium text-amber-800 dark:text-amber-300 mb-1">The Story</h3>
         <p className="text-sm text-amber-700 dark:text-amber-400">
-          The Weather Station doesn't know that a Mobile App, Web Dashboard, and Smart Home exist — it just publishes to the <code className="bg-amber-100 dark:bg-amber-900 px-1 rounded text-xs">weather</code> topic.
+          A newspaper doesn't know its readers' names. It prints one edition and every subscriber finds it on
+          their doorstep; a new reader just signs up, and the printing press never changes. That's
+          publish-subscribe: senders shout into a topic, listeners subscribe to the topic, and neither side
+          knows the other exists.
+        </p>
+      </div>
+
+      <div className="bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800 rounded-xl p-4">
+        <h3 className="font-medium text-emerald-800 dark:text-emerald-300 mb-1">The Key Insight — Decoupling</h3>
+        <p className="text-sm text-emerald-700 dark:text-emerald-400">
+          The Weather Station doesn't know that a Mobile App, Web Dashboard, and Smart Home exist — it just publishes to the <code className="bg-emerald-100 dark:bg-emerald-900 px-1 rounded text-xs">weather</code> topic.
           New subscribers can join without any code changes to the publisher. This is why Pub-Sub scales so well: adding a 4th subscriber is a configuration change, not a code change.
         </p>
       </div>

@@ -243,6 +243,16 @@ export default function TreeVisualizer() {
         <ComplexityBadge time="O(log n) avg, O(n) worst" space="O(n)" />
       </div>
 
+      <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-xl p-4">
+        <h3 className="font-medium text-amber-800 dark:text-amber-300 mb-1">The Story</h3>
+        <p className="text-sm text-amber-700 dark:text-amber-400">
+          Play the guessing game: "I'm thinking of a number between 1 and 100." You guess 50 — "higher!" — and
+          instantly half the numbers are gone. Guess 75 — "lower!" — half of what's left vanishes. A binary
+          search tree keeps data arranged so every lookup IS that game: smaller goes left, bigger goes right,
+          and each step throws away half the remaining possibilities.
+        </p>
+      </div>
+
       <div className="bg-sky-50 dark:bg-sky-950/30 border border-sky-200 dark:border-sky-800 rounded-xl p-4 text-sm text-sky-800 dark:text-sky-300 space-y-2">
         <p className="font-semibold text-sky-700 dark:text-sky-200">What is a Binary Search Tree?</p>
         <p>A BST is a binary tree with one invariant at every node: <strong>all values in the left subtree are smaller, all in the right subtree are larger</strong>. This turns searching into a "higher or lower" guessing game — each comparison eliminates half the remaining tree.</p>

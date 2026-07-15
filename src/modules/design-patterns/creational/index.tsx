@@ -250,8 +250,19 @@ export default function CreationalPatternsViz() {
       </div>
 
       <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-xl p-4">
-        <h3 className="font-medium text-amber-800 dark:text-amber-300 mb-1">Why creational patterns exist</h3>
+        <h3 className="font-medium text-amber-800 dark:text-amber-300 mb-1">The Story</h3>
         <p className="text-sm text-amber-700 dark:text-amber-400">
+          Think of ordering furniture instead of building it. Some things must be one-of-a-kind: a building has
+          exactly ONE electrical main, and everyone must use that same one (Singleton). Sometimes you just say
+          "I need something to sit on" and the shop picks the right chair for your room (Factory). And for the
+          custom wardrobe there's an order form: doors, colour, mirror — fill in the steps, then say "build it"
+          (Builder). Creational patterns are these three ways of not hammering things together yourself.
+        </p>
+      </div>
+
+      <div className="bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800 rounded-xl p-4">
+        <h3 className="font-medium text-emerald-800 dark:text-emerald-300 mb-1">Why creational patterns exist</h3>
+        <p className="text-sm text-emerald-700 dark:text-emerald-400">
           Every `new` scattered through a codebase is a hard-wired dependency on a concrete class. Creational patterns
           move object construction into one deliberate place: <strong>Singleton</strong> when there must be exactly one
           (connection pools, config), <strong>Factory</strong> when the concrete type varies at runtime (notification

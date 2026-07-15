@@ -144,6 +144,16 @@ export default function StackVisualizer() {
         <ComplexityBadge time="O(1) push/pop/peek" space="O(n)" />
       </div>
 
+      <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-xl p-4">
+        <h3 className="font-medium text-amber-800 dark:text-amber-300 mb-1">The Story</h3>
+        <p className="text-sm text-amber-700 dark:text-amber-400">
+          Think of the spring-loaded plate dispenser in a cafeteria: clean plates go on top, and the next person
+          takes from the top too. The plate at the bottom might sit there all day. Last one in, first one out —
+          that's the entire stack. It's also exactly how your browser's Back button and your code's function
+          calls work: whatever happened most recently is dealt with first.
+        </p>
+      </div>
+
       <div className="bg-sky-50 dark:bg-sky-950/30 border border-sky-200 dark:border-sky-800 rounded-xl p-4 text-sm text-sky-800 dark:text-sky-300 space-y-2">
         <p className="font-semibold text-sky-700 dark:text-sky-200">What is a Stack?</p>
         <p>A stack is a collection where you can only add or remove from one end — the <strong>top</strong>. Think of a stack of plates: you put new plates on top and take from the top; you never reach into the middle.</p>

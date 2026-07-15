@@ -239,6 +239,16 @@ export default function EventBookingViz() {
       </div>
 
       <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-xl p-4">
+        <h3 className="font-medium text-amber-800 dark:text-amber-300 mb-1">The Story</h3>
+        <p className="text-sm text-amber-700 dark:text-amber-400">
+          One seat left for Saturday's concert, and two fans hit "Buy" at the exact same instant. Both requests
+          check the database — "seats available: 1" — both are satisfied, both charge the card, both send a
+          cheerful confirmation email. On Saturday, two strangers hold tickets for seat 14C. Nobody wrote buggy
+          code; the timing itself was the bug. This case study designs the booking API, then fixes exactly that.
+        </p>
+      </div>
+
+      <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-xl p-4">
         <p className="text-sm text-amber-800 dark:text-amber-300">
           <strong>The hard problem:</strong> Two users simultaneously book the last seat for a concert. Without proper locking, both succeed — you've just oversold. Ticketmaster, EventBrite, and BookMyShow all solve this with some form of optimistic or pessimistic locking.
         </p>

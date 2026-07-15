@@ -24,6 +24,17 @@ export default function UDPVsTCPVisualizer() {
         </p>
       </div>
 
+      <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-xl p-4">
+        <h3 className="font-medium text-amber-800 dark:text-amber-300 mb-1">The Story</h3>
+        <p className="text-sm text-amber-700 dark:text-amber-400">
+          TCP is a phone call: dial, wait for "hello?", confirm every sentence, say goodbye. UDP is mailing
+          postcards: write, drop in the box, move on — no dial tone, no "got it", no goodbye. Some postcards
+          arrive out of order; some never arrive, and you'll never know. Careless? For a bank transfer, yes.
+          For a live video call, a frame from one second ago is worthless anyway — better to lose it and keep
+          moving than freeze everything waiting for it.
+        </p>
+      </div>
+
       <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-xl p-4 text-sm text-amber-800 dark:text-amber-300 space-y-2">
         <p>UDP is a <strong>"fire and forget"</strong> protocol. You send a datagram and never know if it arrived. No handshake, no acknowledgement, no retransmission, no ordering guarantee. This sounds terrible — but it's exactly what you want when speed matters more than completeness. A video call dropping 1% of packets is invisible to human eyes. But TCP's retransmission of that lost packet would arrive 200ms late, causing the entire stream to freeze waiting for it — far worse than just skipping it.</p>
         <p><strong>DNS uses UDP</strong> because a lookup is one request + one response — if the response doesn't arrive in 500ms, you just send a new request. The overhead of a TCP handshake would double the latency for every domain lookup.</p>

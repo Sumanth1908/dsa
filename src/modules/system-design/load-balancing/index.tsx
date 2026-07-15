@@ -92,6 +92,17 @@ export default function LoadBalancingVisualizer() {
         <p className="text-slate-500 dark:text-slate-400 mt-1">Distribute incoming requests across multiple servers</p>
       </div>
 
+      <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-xl p-4">
+        <h3 className="font-medium text-amber-800 dark:text-amber-300 mb-1">The Story</h3>
+        <p className="text-sm text-amber-700 dark:text-amber-400">
+          One cashier, a growing line, grumbling customers — so the supermarket opens five tills and posts a
+          greeter at the door pointing each shopper to a till. That greeter is a load balancer. The interesting
+          part is the greeter's strategy: send people to tills in rotation (round-robin)? To whichever line is
+          shortest (least connections)? And what happens when till #3 suddenly closes mid-shift? Try each
+          strategy below.
+        </p>
+      </div>
+
       <div className="flex gap-2 flex-wrap">
         {(['round-robin', 'least-connections', 'random'] as Strategy[]).map(s => (
           <button key={s} onClick={() => { setStrategy(s); reset() }}
