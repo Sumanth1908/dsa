@@ -198,6 +198,7 @@ export const registry: ModuleSection[] = [
     group: 'design',
     subcategories: [
       { id: 'concurrency', title: 'Concurrency', path: '/essentials/concurrency', description: 'Coffee-shop model: sync vs async vs multi-threaded — race conditions and mutexes', difficulty: 'advanced', tags: ['threads', 'event loop', 'coroutines', 'race condition', 'mutex'] },
+      { id: 'locking-patterns', title: 'Locking Patterns', path: '/essentials/locking-patterns', description: 'Mutex, semaphore, read-write lock, reentrant lock, spinlock, optimistic vs pessimistic, deadlock, distributed lock', difficulty: 'advanced', tags: ['mutex', 'semaphore', 'deadlock', 'optimistic locking', 'distributed lock'] },
       { id: 'cpu-threads', title: 'CPU & Threads', path: '/essentials/cpu-threads', description: 'Cores, threads, I/O-bound vs CPU-bound — restaurant kitchen analogy', difficulty: 'intermediate', tags: ['hardware', 'parallelism', 'I/O-bound', 'CPU-bound'] },
       { id: 'memory', title: 'Memory Model', path: '/essentials/memory', description: 'Stack vs Heap, garbage collection, and memory leaks', difficulty: 'advanced', tags: ['JVM', 'V8', 'CPython', 'GC', 'heap', 'stack'] },
       { id: 'jwt', title: 'JWT Authentication', path: '/essentials/jwt', description: 'Token structure, signing, and claims — decoded live', difficulty: 'intermediate', tags: ['auth', 'security', 'tokens', 'HMAC', 'stateless'] },

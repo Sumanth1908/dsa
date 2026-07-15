@@ -64,6 +64,7 @@ const PyContextMgrViz = lazy(() => import('@/modules/programming-concepts/python
 
 // ── Coding Essentials ─────────────────────────────────────────────────────
 const ConcurrencyViz = lazy(() => import('@/modules/programming-concepts/concurrency'))
+const LockingPatternsViz = lazy(() => import('@/modules/programming-concepts/locking-patterns'))
 const CPUThreadsViz = lazy(() => import('@/modules/programming-concepts/cpu-threads'))
 const MemoryModelViz = lazy(() => import('@/modules/programming-concepts/memory'))
 const JWTViz = lazy(() => import('@/modules/programming-concepts/jwt'))
@@ -186,6 +187,7 @@ export const appRoutes = [
 
       // Coding Essentials
       { path: 'essentials/concurrency', element: S(ConcurrencyViz) },
+      { path: 'essentials/locking-patterns', element: S(LockingPatternsViz) },
       { path: 'essentials/cpu-threads', element: S(CPUThreadsViz) },
       { path: 'essentials/memory', element: S(MemoryModelViz) },
       { path: 'essentials/jwt', element: S(JWTViz) },
