@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 import { useSteps } from '@/hooks/useSteps'
 import StepControls from '@/components/shared/StepControls'
 import ComplexityBadge from '@/components/shared/ComplexityBadge'
-import CodeBlock from '@/components/shared/CodeBlock'
+import CodeTabs from '@/components/shared/CodeTabs'
 
 type Problem = 'knapsack' | 'lcs' | 'lis'
 
@@ -211,6 +211,25 @@ public int lcs(String s1, String s2) {
   },
 ]
 
+const DOUBTS = [
+  {
+    q: 'Memoization (top-down) vs tabulation (bottom-up) — which do I write?',
+    a: 'Same subproblems, different driver. Top-down (memoization) is faster to write: take your recursive brute-force solution and add a cache (`memo = {}`). It only computes states you actually need, so on sparse problem spaces (e.g., only a few knapsack weights matter), it skips the rest. Bottom-up (tabulation) avoids recursion depth limits—no stack overflow on deep problems—and unlocks space optimizations: you can loop from base cases upward and keep only the previous row instead of the full 2D table (e.g., in coin change, store one row and slide it forward). Both give the same time complexity; the choice depends on problem shape and coding comfort.\n\n**Rule of thumb:** Start with top-down if you can write the recursion easily; convert to bottom-up if you hit stack limits or need space optimization.',
+  },
+  {
+    q: 'How do I recognize a DP problem?',
+    a: 'Two ingredients unlock the pattern. First, overlapping subproblems: the same smaller question recurs multiple times across different branches (e.g., `fib(3)` appears twice in the recursion tree for `fib(5)`). Second, optimal substructure: the best answer for a large problem builds from best sub-answers (the best path to destination X must contain the best path to some intermediate waypoint Y). Trigger phrases reveal DP situations: "count the ways to...", "find minimum cost to...", "maximize profit from...", or "choose items subject to constraints". If every decision at every step matters and you can define a state capturing those choices, DP likely applies.\n\n**Common mistake:** Confusing greedy optimization with DP—just because a problem has choices does not mean greedy works.',
+  },
+  {
+    q: 'Where do people actually get stuck?',
+    a: 'Defining the state is the hardest part. Before writing a single line of code, write one sentence: "dp[i] = the best X considering the first i items" or "dp[i][j] = the best Y considering items 0..i-1 with capacity j". If the recurrence relationship does not naturally fall out of that definition, the state is incomplete—you need to add a dimension. For example, in LIS, "dp[i] = longest increasing subsequence" is too vague; you must say "dp[i] = longest increasing subsequence **ending at index i**". In knapsack, "dp[i] = best value" needs the capacity: "dp[i][w] = best value using items 0..i-1 with remaining capacity w". Spend 10 minutes on the state definition; the code will write itself.\n\n**Rule of thumb:** Your state sentence should answer "what does this cell represent?" so clearly that a teammate understands the entire problem without code.',
+  },
+  {
+    q: 'Why does greedy fail where DP works?',
+    a: 'Greedy locks in the locally best move at each step and never reconsiders; DP explores all choices at each state and picks the one leading to the global optimum. The difference is stark in problems with "traps"—states where the locally best choice blocks the globally best path. Coin change with coins `{1, 3, 4}` and target 6 shows this: greedy picks the largest coin (4), leaving 2, then takes 1+1, yielding three coins total. DP evaluates `3+3=6` (two coins) and recognizes it as better. Other trap examples: the longest path in a DAG (greedy picks one edge, misses better detours), or scheduling jobs with deadlines (greedy by earliest deadline can conflict; DP respects constraints).\n\n**Common mistake:** Assuming greedy works because it feels efficient—always verify on a multi-choice problem with an edge case that breaks the greedy heuristic.',
+  },
+]
+
 export default function DynamicProgrammingVisualizer() {
   const [problem, setProblem] = useState<Problem>('knapsack')
   const [s1] = useState('AGGTCAB')
@@ -373,7 +392,7 @@ export default function DynamicProgrammingVisualizer() {
       </div>
 
       <StepControls ctrl={ctrl} />
-      <CodeBlock examples={CODE_EXAMPLES} />
+      <CodeTabs doubts={DOUBTS} examples={CODE_EXAMPLES} />
     </div>
   )
 }

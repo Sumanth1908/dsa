@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 import { useSteps } from '@/hooks/useSteps'
 import StepControls from '@/components/shared/StepControls'
 import ComplexityBadge from '@/components/shared/ComplexityBadge'
-import CodeBlock from '@/components/shared/CodeBlock'
+import CodeTabs from '@/components/shared/CodeTabs'
 
 type Problem = 'permutations' | 'subsets' | 'nqueens'
 
@@ -292,6 +292,21 @@ const ACTION_COLORS: Record<string, string> = {
   invalid:   'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500',
 }
 
+const DOUBTS = [
+  {
+    q: 'What separates backtracking from brute force?',
+    a: 'Pruning. Brute force generates every complete candidate exhaustively and then checks if it satisfies constraints — very wasteful. Backtracking is smarter: it checks constraints at each partial step and abandons doomed branches immediately, cutting the search tree exponentially. For example, in N-Queens, as soon as you place two queens that attack each other (say in rows 1 and 2), backtracking immediately rejects all millions of ways to fill rows 3 through N with those two queens already clashing. Instead it backtracks and tries the next column for row 2. This early pruning is what makes backtracking tractable for large N: solving 8-Queens requires exploring roughly 2,000 board configurations, whereas brute force must first generate all 8^8 ≈ 16 million arrangements and discard nearly all of them. **Rule of thumb:** backtracking checks constraints at every step; brute force generates first, filters second.',
+  },
+  {
+    q: 'Why push, recurse, then pop?',
+    a: 'All branches share one mutable path array to save memory — reusing the same list instead of cloning it each time. The sequence is: push (add the current choice), recurse (explore its consequences), pop (remove it). Push and pop are the bracket that lets the next sibling choice start from identical state. Forget the pop and every later branch is poisoned because you never restore the array. For example, if you\'re exploring permutations of [A, B, C] and you try A then B, then recurse, then you pop B back off — the array is [A] again. Now when you loop and try A then C, the path is clean. But if you forgot the pop after B, the path would be [A, B] when you try C, so you\'d generate [A, B, C] instead of [A, C]. This is why the template always has matching push–recurse–pop triplets. **Common mistake:** removing the pop after testing the code without it seems to "work" on small cases by accident.',
+  },
+  {
+    q: 'Why is my result list full of empty or identical arrays?',
+    a: 'You stored a reference to the array, not a copy. `results.push(path)` saves the same array object that lives in the call stack; every time you pop from that array later, all references in results point to the same (now empty) array. Store a snapshot instead: `results.push([...path])` or `results.push(path.slice())` creates a separate array. For example, if path is [A, B] and you push it, results gets one entry pointing to that array. Later when you pop B, path becomes [A] — but the entry in results still points to the same array object, which is now [A]. Then if you pop A, that entry is now an empty array. At the end, all entries in results are empty (or the last partial path). This is one of the most common bugs in backtracking code — the snapshot fix takes one character (`[...path]` vs `path`) but prevents hours of debugging. **Common mistake:** thinking `results.push(path)` is safe because you\'re making copies elsewhere (you\'re not).',
+  },
+]
+
 export default function BacktrackingVisualizer() {
   const [problem, setProblem] = useState<Problem>('permutations')
   const [n, setN] = useState(3)
@@ -476,7 +491,7 @@ export default function BacktrackingVisualizer() {
       </div>
 
       <StepControls ctrl={ctrl} />
-      <CodeBlock examples={CODE_EXAMPLES} />
+      <CodeTabs doubts={DOUBTS} examples={CODE_EXAMPLES} />
     </div>
   )
 }

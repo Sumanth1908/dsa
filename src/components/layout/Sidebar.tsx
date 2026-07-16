@@ -39,20 +39,27 @@ export default function Sidebar({ collapsed, onToggle }: SidebarProps) {
         collapsed ? 'w-14' : 'w-64'
       }`}
     >
-      {/* Logo */}
+      {/* Logo — links back to the home page */}
       <div className="flex items-center gap-3 px-3 py-3.5 border-b border-slate-200 dark:border-slate-800">
-        <svg viewBox="0 0 32 32" className="w-8 h-8 flex-shrink-0" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <rect width="32" height="32" rx="8" fill="#7c3aed"/>
-          <polyline points="11,9 6,16 11,23" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
-          <polyline points="21,9 26,16 21,23" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
-          <line x1="19.5" y1="8.5" x2="12.5" y2="23.5" stroke="white" strokeWidth="2.5" strokeLinecap="round"/>
-        </svg>
-        {!collapsed && (
-          <div>
-            <div className="font-bold text-slate-900 dark:text-white text-sm leading-none">DevRef</div>
-            <div className="text-[10px] text-slate-400 mt-0.5 leading-none">DSA · Systems · Code</div>
-          </div>
-        )}
+        <NavLink
+          to="/"
+          aria-label="Go to home page"
+          title="Home"
+          className="flex items-center gap-3 min-w-0 rounded-lg hover:opacity-80 transition-opacity"
+        >
+          <svg viewBox="0 0 32 32" className="w-8 h-8 flex-shrink-0" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect width="32" height="32" rx="8" fill="#7c3aed"/>
+            <polyline points="11,9 6,16 11,23" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+            <polyline points="21,9 26,16 21,23" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+            <line x1="19.5" y1="8.5" x2="12.5" y2="23.5" stroke="white" strokeWidth="2.5" strokeLinecap="round"/>
+          </svg>
+          {!collapsed && (
+            <div>
+              <div className="font-bold text-slate-900 dark:text-white text-sm leading-none">DevRef</div>
+              <div className="text-[10px] text-slate-400 mt-0.5 leading-none">DSA · Systems · Code</div>
+            </div>
+          )}
+        </NavLink>
         <button
           onClick={onToggle}
           aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}

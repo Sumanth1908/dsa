@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 import { useSteps } from '@/hooks/useSteps'
 import StepControls from '@/components/shared/StepControls'
 import ComplexityBadge from '@/components/shared/ComplexityBadge'
-import CodeBlock from '@/components/shared/CodeBlock'
+import CodeTabs from '@/components/shared/CodeTabs'
 
 interface Step {
   slow: number; fast: number; hasCycle: boolean | null; message: string
@@ -137,6 +137,21 @@ public ListNode detectCycleStart(ListNode head) {
 const NODE_X = [80, 160, 240, 320, 400, 480]
 const NODE_Y = 80
 
+const DOUBTS = [
+  {
+    q: 'Why must fast and slow meet — could fast not jump over slow?',
+    a: 'Once both pointers are inside a cycle, their relative gap shrinks by exactly 1 each step: the fast pointer advances 2 nodes while the slow pointer advances 1 node, so the net gap closes by 1. If they start at distance g apart within the cycle, that gap becomes 0 after exactly g steps. At a constant relative speed of 1, the fast pointer can never skip over the slow one — it simply gets 1 step closer each iteration until they collide.\nThink of a circular racetrack: if one runner laps another at exactly 2x speed, they must meet. The math is unavoidable: with discrete steps and linear arithmetic, overshoot is impossible.\n**Common mistake:** thinking the faster pointer might somehow miss the slower one if the cycle length is odd or even — it can\'t, because their relative distance decreases by 1 each turn.',
+  },
+  {
+    q: 'Why does resetting one pointer to head find the cycle START?',
+    a: 'This is a beautiful mathematical insight: at the meeting point inside the cycle, the distance from the list head to the cycle entrance exactly equals the distance from the meeting point onwards to that entrance (thinking modulo the cycle length). When you reset one pointer to the head and walk both at speed 1, they must collide exactly at the cycle entrance.\nWhy? Because the slow pointer has traveled distance X from head to meet-point. The fast pointer has traveled distance 2X in the same time, meaning 2X = X + k*C (where C is cycle length). So X = k*C, proving that the remaining path from meet-point to entrance is also X.\n**Rule of thumb:** this geometric relationship holds for any cycle length — the algebra is inevitable. This technique finds not just the cycle\'s existence but its entry point with zero extra space.',
+  },
+  {
+    q: 'A hash set of seen nodes also detects cycles — why prefer this?',
+    a: 'Both approaches detect cycles in O(n) time, but this fast-slow method uses O(1) space while a hash set of visited nodes uses O(n) space — a huge difference in memory-constrained systems. Beyond linked lists, the same two-pointer principle generalizes beautifully: if you want the middle node, move fast at 2x speed until it reaches the end, and slow will be at the midpoint.\nThe pattern even works on sequences of values: in the Happy Number problem, you generate sequences (where each value is the sum of squared digits) and detect if you loop back using the same fast-slow technique. Languages like Python and Java optimize for this pattern in their standard libraries.\n**Common mistake:** assuming hash set is always simpler and choosing it without considering memory constraints or the generality of the algorithm.',
+  },
+]
+
 export default function FastSlowVisualizer() {
   const [hasCycle, setHasCycle] = useState(true)
   const steps = detectCycleSteps(hasCycle)
@@ -265,7 +280,7 @@ export default function FastSlowVisualizer() {
       </div>
 
       <StepControls ctrl={ctrl} />
-      <CodeBlock examples={CODE_EXAMPLES} />
+      <CodeTabs doubts={DOUBTS} examples={CODE_EXAMPLES} />
     </div>
   )
 }

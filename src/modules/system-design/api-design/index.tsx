@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import CodeBlock from '@/components/shared/CodeBlock'
+import CodeTabs from '@/components/shared/CodeTabs'
 
 type Operation = 'get-product' | 'create-order' | 'authenticate'
 
@@ -160,6 +160,25 @@ function RequestPanel({ req, label, color }: { req: Example['rest'] | Example['r
   )
 }
 
+const DOUBTS = [
+  {
+    q: 'PUT vs PATCH vs POST?',
+    a: 'PUT and PATCH both modify a resource, but differ in scope and guarantees. PUT replaces the entire resource at a known URL — you send the complete state, and it\'s idempotent, meaning calling it multiple times produces the same result as calling it once. PATCH applies a partial change; you send only the fields you\'re updating, not the whole object. POST is for creating resources or triggering actions where the server decides the outcome — it\'s not idempotent by default, making retries risky. If a network timeout doubles a POST `/orders` request, you\'ll charge the customer twice. For payment systems, you\'d add an `Idempotency-Key` header to make POST safe. **Rule of thumb:** Use PUT for full replacements (like editing a user profile entirely), PATCH for surgical updates (like toggling a single boolean), and POST for creation or action-triggered side effects.',
+  },
+  {
+    q: 'Why is idempotency such a big deal?',
+    a: 'Idempotency is critical because networks are unreliable and systems retry automatically. When a timeout occurs, a client might resend the same request. If your API isn\'t idempotent, two identical POST requests could have different outcomes — ordering two pizzas instead of one, or charging a card twice. An idempotent endpoint returns the same result no matter how many times it\'s called, making retries safe. For payment systems, you implement this using an `Idempotency-Key` header: the client includes a unique token (like a UUID), and the server dedupes based on that token, ensuring one request of "charge $100" results in exactly one charge, even if it\'s retried ten times. Amazon and Stripe both require this. **Common mistake:** Forgetting idempotency on POST endpoints — thinking "it\'ll never be called twice" is wishful thinking when networks are involved.',
+  },
+  {
+    q: 'REST vs RPC vs GraphQL — how do I pick?',
+    a: 'The choice depends on your use case. REST is resource-oriented — you model everything as nouns (users, products, orders) with standard CRUD verbs. It\'s cacheable (GET requests can be cached by CDN and browsers), universally understood, and the standard for public APIs. RPC (including gRPC) is action-oriented — you call functions like `getProduct(id)` or `placeOrder(items)` on a single endpoint. RPC is fast and has strongly-typed contracts via Protobuf, ideal for internal microservice communication. GraphQL lets many differently-shaped clients query the same backend: clients specify exactly which fields they need, avoiding over-fetching and under-fetching. The trade-off is server-side complexity — you need a resolver for each field and field combination. **Rule of thumb:** REST for public APIs, RPC for internal services, GraphQL when you have many client types with varying data needs.',
+  },
+  {
+    q: 'How should I version — /v2/ in the URL or a header?',
+    a: 'URL versioning and header versioning each have trade-offs. URL versioning puts the version in the path (e.g., `/v2/users/123`) — it\'s visible to anyone reading logs or URLs, easily cacheable by CDNs, and trivially routable to different code paths. Header versioning puts the version in a custom header (e.g., `Accept-Version: 2`) — it\'s "purer" REST in principle, but harder to debug (you don\'t see it in URLs), and caching becomes tricky since the same URL with different headers could need different responses. The pragmatic choice is URL versioning for public APIs. The deeper answer: avoid versioning altogether by designing additive, backward-compatible changes — add new fields without removing old ones, use optional parameters, deprecate gracefully. Twitter, Stripe, and GitHub all evolved their APIs without major version bumps. **Rule of thumb:** URL versioning for simplicity, but design for backwards compatibility first.',
+  },
+]
+
 export default function APIDesignVisualizer() {
   const [op, setOp] = useState<Operation>('get-product')
   const ex = EXAMPLES[op]
@@ -241,7 +260,7 @@ export default function APIDesignVisualizer() {
         </table>
       </div>
 
-      <CodeBlock examples={CODE_EXAMPLES} />
+      <CodeTabs doubts={DOUBTS} examples={CODE_EXAMPLES} />
     </div>
   )
 }

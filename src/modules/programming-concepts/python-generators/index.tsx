@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { useSteps } from '@/hooks/useSteps'
 import StepControls from '@/components/shared/StepControls'
-import CodeBlock from '@/components/shared/CodeBlock'
+import CodeTabs from '@/components/shared/CodeTabs'
 
 // Simulated log lines — our generator streams these one at a time
 const LOG_LINES = [
@@ -201,6 +201,25 @@ System.out.println("Errors: " + errorCount);`,
   },
 ]
 
+const DOUBTS = [
+  {
+    q: 'What is the difference between yield and return?',
+    a: '`return` ends the function permanently and hands back one value; after it executes, the function is dead. `yield` pauses the function mid-execution, emits one value to the caller, and remembers exactly where it stopped — all local variables stay alive in memory. The next `next()` call resumes from that exact line, not the top of the function.\n\nExample: in `log_stream()`, after the first `yield line.strip()`, the variable `line` stays in memory. When `next()` resumes, the loop continues reading the **next** line from the file. Compare this to `return` — any local state is discarded, and restarting the function starts from line 1.\n\n**Rule of thumb:** generators are resumable; regular functions are not.',
+  },
+  {
+    q: 'Why does calling the generator function not run any code?',
+    a: 'Calling `log_stream("access.log")` only builds a generator object — a recipe, not the meal. No code in the function body runs until you actually iterate. The body runs lazily: the first `next()` (or the first iteration of a `for` loop) wakes up the generator and executes it up to the first `yield`, then pauses.\n\nThis deferred execution is the core power of generators. Imagine `log_stream("10gb_file.log")` — calling it returns instantly (no file I/O), because the `open()` inside hasn\'t run yet. Only when you call `next()` does the file open and the first line load into memory. This is why generators work with huge files: the entire file never loads.\n\n**Common mistake:** writing `gen = my_generator()` and expecting the code to already have run.',
+  },
+  {
+    q: 'Can I restart or rewind an exhausted generator?',
+    a: 'No. Once a generator raises `StopIteration` (when its function body ends), it is done forever — iterating it again yields nothing. Generators cannot be reset or rewound to the beginning; they are one-time-use objects.\n\nTo process the values again, call the generator function again to create a fresh generator object with its own state. Example: `gen1 = log_stream("f.log")` → exhausted after iterating it. Creating `gen2 = log_stream("f.log")` gives you a brand new independent generator, starting from the top of the loop. This is different from lists, which can be iterated multiple times: `my_list = [1, 2, 3]` can be looped over and over.\n\n**Rule of thumb:** generators are consumable once; to restart, call the function again.',
+  },
+  {
+    q: 'Generator vs list comprehension — when do I pick which?',
+    a: 'If you need everything at once — random indexing (`items[42]`), calling `len()`, or iterating multiple passes — you must build a list. Lists are eager: all values load into memory upfront, allowing O(1) lookup. If you process items one at a time and don\'t need random access, use a generator instead.\n\nGenerators are memory-efficient for large sequences. With a 10 million-line file: a list would allocate ~8 GB, while a generator holds only one line at a time (~200 bytes). Generators also start yielding results immediately — the first `next()` returns a value right away, not after loading all 10M lines. Example: `[x for x in huge_file]` (list) blocks until done; `(x for x in huge_file)` (generator expression) returns control instantly.\n\n**Rule of thumb:** lists = all-or-nothing access; generators = one-at-a-time streaming.',
+  },
+]
+
 export default function PyGeneratorsVisualizer() {
   const steps = genSteps()
   const ctrl = useSteps(steps.length)
@@ -369,7 +388,7 @@ export default function PyGeneratorsVisualizer() {
       </div>
 
       <StepControls ctrl={ctrl} />
-      <CodeBlock examples={CODE_EXAMPLES} />
+      <CodeTabs examples={CODE_EXAMPLES} doubts={DOUBTS} />
     </div>
   )
 }

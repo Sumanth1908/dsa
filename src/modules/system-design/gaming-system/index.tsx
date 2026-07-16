@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { useSteps } from '@/hooks/useSteps'
 import StepControls from '@/components/shared/StepControls'
-import CodeBlock from '@/components/shared/CodeBlock'
+import CodeTabs from '@/components/shared/CodeTabs'
 
 interface MatchStep {
   phase: 'idle' | 'queued' | 'matched' | 'spawning' | 'ready' | 'playing'
@@ -231,6 +231,25 @@ const SERVER_COLORS = {
   running: 'text-emerald-600 border-emerald-400 dark:border-emerald-600',
 }
 
+const DOUBTS = [
+  {
+    q: 'Why must the game server be authoritative?',
+    a: 'Clients can be modified — trust them and speed hacks and wallhacks follow instantly. Clients send INPUTS only ("moved left", "accelerate"); the server receives these inputs and simulates the one true world of physics and positions, then broadcasts results back to all players. Whatever the client renders locally is a suggestion based on prediction; when the authoritative state arrives from the server, it becomes the source of truth.\nExample: a cheater\'s client could claim "teleport to finish line", but the server validates all inputs — impossible positions and extreme velocities are rejected before affecting gameplay. The server\'s state is the final verdict; clients never dictate positions. This is why competitive games run dedicated server farms instead of peer-to-peer.\n**Rule of thumb:** if players can modify the client, they can\'t be trusted for anything that affects the outcome.',
+  },
+  {
+    q: 'How does play feel instant over a 100ms connection?',
+    a: 'Client-side prediction masks network latency by having your client simulate your own action **immediately** (you see the steer happen right away), then reconciles when the authoritative server state arrives by replaying unacknowledged inputs. This hides the round-trip delay. Other players are intentionally rendered a beat behind and smoothly interpolated between server updates — they move predictably rather than jerking. When a correction lands (the server says your actual position differs from what you predicted), the client teleports briefly to match: that visible glitch is "rubber-banding". Example: at 0ms you press left, your client shows the turn instantly, but the server confirms your actual move at 100ms. If your prediction was correct, it looks smooth. If wrong, rubber-band snaps you back. **Common mistake:** thinking rubber-banding means bad internet; it\'s actually the anti-cheat mechanism protecting authoritative servers.',
+  },
+  {
+    q: 'How does matchmaking trade wait time against match quality?',
+    a: 'Matchmaking uses a dynamic tolerance window: start strict (e.g., only match within ±50 MMR, same region) and widen the acceptable range the longer someone waits. This keeps queue times bounded — most players match within 30 seconds — while quality degrades gracefully rather than suddenly. Example: after 10 seconds, widen to ±100 MMR; after 30 seconds, ±200 MMR. The algorithm balances three signals: skill (MMR), latency (ping distance), and party size (solo vs. 5-stack). A solo player might wait longer because finding balanced opponents is harder. This prevents forever-queues (matching timeouts) while preserving competitive integrity at the start. The wider tolerance range trades experienced players against instant matches. **Rule of thumb:** players prefer waiting longer for fair matchups over getting instant mismatches.',
+  },
+  {
+    q: 'Why put an event broker between game services?',
+    a: 'An event broker (Kafka) decouples the race-critical path from heavy downstream work. Match events (race.finished, kill.logged, purchase.completed) fan out to many independent consumers — stats collectors, leaderboard updates, anti-cheat analysis, notifications. Without a broker, the game loop would wait synchronously for all services: leaderboard +200ms, anti-cheat +300ms, notifications +150ms. The server would block before accepting the next race. With Kafka, the game server publishes one event and returns immediately; the broker buffers and replays for each consumer independently. Service down? The event stays queued. Traffic spike? The broker absorbs bursts without stalling gameplay. Example: esports finals with 100k players finishing races simultaneously — Kafka queues all events; direct calls would crash leaderboards. **Common mistake:** thinking event brokers add latency to the game loop; they actually protect it by absorbing downstream spikes.',
+  },
+]
+
 export default function GamingSystemViz() {
   const [tab, setTab] = useState<'matchmaking' | 'services'>('matchmaking')
   const ctrl = useSteps(MATCH_STEPS.length)
@@ -352,7 +371,7 @@ export default function GamingSystemViz() {
         )}
       </div>
 
-      <CodeBlock examples={CODE_EXAMPLES} />
+      <CodeTabs doubts={DOUBTS} examples={CODE_EXAMPLES} />
     </div>
   )
 }

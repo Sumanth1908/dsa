@@ -1,7 +1,7 @@
 import React from 'react'
 import { useSteps } from '@/hooks/useSteps'
 import StepControls from '@/components/shared/StepControls'
-import CodeBlock from '@/components/shared/CodeBlock'
+import CodeTabs from '@/components/shared/CodeTabs'
 
 interface Step {
   active: string[]
@@ -103,6 +103,25 @@ const POD_STATE_COLOR: Record<Step['podState'], string> = {
   creating: 'bg-violet-400',
   running: 'bg-emerald-500',
 }
+
+const DOUBTS = [
+  {
+    q: 'Pod vs container — why the extra wrapper?',
+    a: 'A pod is the smallest schedulable unit in Kubernetes: one or more containers that share a network namespace (same IP, same `localhost`), share volumes, and are always scheduled, started, and killed together.\nThe wrapper exists because some containers are only useful as a tightly-coupled pair, and the scheduler must never split them. If your app container lands on Worker Node 1, its sidecar lands there too — guaranteed. Concretely, in an Istio service mesh every application pod also runs an `istio-proxy` (Envoy) sidecar that intercepts all traffic; it only works because it shares the app\'s IP. Same story for a Fluent Bit log shipper tailing files from a shared `emptyDir` volume.\nWhat sharing a pod buys you:\n- One IP per pod — containers talk over `localhost:port`, no service discovery needed between them.\n- Shared volumes — one container writes, the other reads.\n- One lifecycle — created and garbage-collected as a unit; a Deployment scales pods, never individual containers.\n**Rule of thumb:** one main process per container, one tightly-coupled unit per pod. If two containers could sensibly scale independently, they belong in separate pods.',
+  },
+  {
+    q: 'What does "desired state reconciliation" actually mean?',
+    a: 'It means you declare a target ("3 replicas of nginx") and controllers run an endless loop that measures reality against that target and acts to close any gap. You never say "start a pod" — you say "3 should exist" and the cluster converges.\nMechanically, every controller follows the same three beats:\n- Observe — watch the API server for actual state (the ReplicaSet controller sees 2 running nginx pods).\n- Compare — diff against the desired state recorded in etcd (the spec says `replicas: 3`).\n- Act — issue the smallest correction (create 1 Pod object), then loop again.\nThis is why killing a pod with `kubectl delete pod nginx-xyz` looks like a restart but isn\'t: nothing "restarts" anything. The ReplicaSet controller simply notices 2 != 3 on its next pass and creates a fresh pod with a new name and IP. The same loop handles scale-ups (desired jumped to 10), node failures (pods vanished, recreate them elsewhere), and rollbacks — one mechanism, no special-case code. It also makes operations idempotent: applying the same manifest twice is a no-op because the diff is zero.\n**Interview tip:** if asked "how does Kubernetes self-heal?", the sharp answer is that there is no separate healing feature — the reconciliation loop IS the feature.',
+  },
+  {
+    q: 'Why do I need a Service if every pod has an IP?',
+    a: 'Because pod IPs are ephemeral: every reschedule, eviction, or rollout mints a brand-new one. A Service gives you a single stable virtual IP (ClusterIP) and DNS name that load-balances across whichever pods currently match its label selector.\nConsider the failure mode without one. Your frontend hardcodes `10.244.1.7` for a backend pod. A node drains during an upgrade, the pod comes back on another node as `10.244.3.12`, and the frontend is now pointing at nothing. During a rolling deploy of 10 replicas, all 10 IPs churn within a couple of minutes.\nHow a Service fixes it:\n- The Service gets a fixed ClusterIP (say `10.96.0.15`) and a DNS name like `backend.default.svc.cluster.local` that never change.\n- The endpoints controller continuously tracks which ready pods match the selector `app: backend`.\n- `kube-proxy` programs iptables/IPVS rules on every node so traffic to the ClusterIP is spread across the live pod IPs.\nReadiness probes plug into this: a pod failing its probe is removed from the endpoint list, so the Service silently stops routing to it — no client changes needed.\n**Rule of thumb:** never store a pod IP anywhere. Talk to Services — or a headless Service if you genuinely need per-pod addressing.',
+  },
+  {
+    q: 'Deployment vs StatefulSet?',
+    a: 'Use a Deployment for interchangeable, stateless pods — web servers, stateless APIs. Use a StatefulSet when each pod needs a durable identity and its own storage. Deployments treat pods as cattle; StatefulSets treat them as numbered pets.\nWhat "sticky identity" actually means in a StatefulSet:\n- Stable names — pods are `db-0`, `db-1`, `db-2`, not random suffixes like `web-7d4b9-x2k1p`. If `db-1` dies, its replacement is named `db-1` again and reattaches the same disk.\n- Per-pod storage — `volumeClaimTemplates` give each replica its own PersistentVolume that survives rescheduling.\n- Ordered operations — pods start 0 then 1 then 2 and terminate in reverse, so a follower never boots before its leader.\n- Stable DNS via a headless Service — `db-0.db.default.svc.cluster.local` always reaches that specific pod.\nThat is exactly what databases and quorum systems need: a Kafka broker or PostgreSQL replica must come back with the same identity and data, or the cluster treats it as a stranger and triggers expensive re-replication. An nginx pod needs none of this — any replica can serve any request, so a Deployment\'s cheap, parallel, identity-free replacement is ideal.\n**Common mistake:** reaching for a StatefulSet just because the app writes files. If the data is a cache or can be rebuilt, a Deployment (optionally with a PVC) is simpler.',
+  },
+]
 
 export default function KubernetesVisualizer() {
   const steps = k8sSteps()
@@ -207,7 +226,7 @@ export default function KubernetesVisualizer() {
       </div>
 
       <StepControls ctrl={ctrl} />
-      <CodeBlock examples={CODE_EXAMPLES} />
+      <CodeTabs doubts={DOUBTS} examples={CODE_EXAMPLES} />
     </div>
   )
 }

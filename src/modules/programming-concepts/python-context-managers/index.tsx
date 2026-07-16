@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { useSteps } from '@/hooks/useSteps'
 import StepControls from '@/components/shared/StepControls'
-import CodeBlock from '@/components/shared/CodeBlock'
+import CodeTabs from '@/components/shared/CodeTabs'
 
 type ExitMode = 'normal' | 'exception'
 
@@ -249,6 +249,21 @@ function ResourcePill({ label, status }: { label: string; status: 'inactive' | '
   )
 }
 
+const DOUBTS = [
+  {
+    q: 'Is `with` just for files?',
+    a: 'The `with` statement is not limited to files — it works with ANY resource that needs guaranteed setup and teardown. Common examples include locks (`with lock: # code waits for lock, then releases it atomically`), database transactions (commit on success, rollback on failure), temporary directories, mock patches in tests, timers, and network connections.\n The key pattern: you initialize the resource, do something with it, and MUST clean up afterward — whether that\'s unlocking a threading mutex, closing a database cursor, or deleting a temporary file. Every time you\'ve written `try/finally` to guarantee cleanup, a context manager is the cleaner solution. **Rule of thumb:** if your code needs the same cleanup after both success and failure, a context manager owns it.',
+  },
+  {
+    q: 'What is special about __exit__ receiving the exception?',
+    a: 'The `__exit__` method receives three arguments — `(exc_type, exc_val, exc_tb)` — that describe any exception raised inside the `with` block. If no exception occurred, all three are `None`. This design ensures cleanup ALWAYS runs, even when an exception is raised, because `__exit__` is called before the exception propagates.\n What makes it powerful is the return value: if `__exit__` returns `True`, the exception is SUPPRESSED and the program continues. If it returns `False` or `None`, the exception is re-raised after cleanup finishes. For example, `contextlib.suppress(ValueError)` implements `__exit__` to return `True` only when `exc_type is ValueError`, silencing that specific error while letting others propagate.\n **Common mistake:** forgetting that returning nothing (implicitly `None`) is the same as returning `False` — the exception propagates.',
+  },
+  {
+    q: 'How does @contextmanager split one function into enter and exit?',
+    a: 'The `@contextmanager` decorator transforms a generator function into a context manager. Here\'s the execution flow: when Python enters the `with` block, it calls the decorated function until it hits `yield` — everything before that line IS the `__enter__` protocol (setup). The value yielded binds to the `as` variable.\n Then the function pauses, the `with` block body executes, and when the block exits (normally or via exception), the decorator automatically wraps the rest of the function in a `try/finally` — the code after `yield` becomes the `__exit__` protocol (cleanup). Example: `@contextmanager def timer(): start = time.time(); yield; print(f"Elapsed: {time.time() - start}s")` — setup is `time.time()`, cleanup is the print.\n The entire generator is paused at the yield for the entire duration of the `with` block. **Rule of thumb:** use `@contextmanager` for simple one-off setup/teardown; define `__enter__` and `__exit__` for reusable resource classes.',
+  },
+]
+
 export default function PyContextManagersVisualizer() {
   const [mode, setMode] = useState<ExitMode>('normal')
   const steps = mode === 'normal' ? normalSteps() : exceptionSteps()
@@ -388,7 +403,7 @@ export default function PyContextManagersVisualizer() {
       </div>
 
       <StepControls ctrl={ctrl} />
-      <CodeBlock examples={CODE_EXAMPLES} />
+      <CodeTabs doubts={DOUBTS} examples={CODE_EXAMPLES} />
     </div>
   )
 }

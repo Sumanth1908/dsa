@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { useSteps } from '@/hooks/useSteps'
 import StepControls from '@/components/shared/StepControls'
-import CodeBlock from '@/components/shared/CodeBlock'
+import CodeTabs from '@/components/shared/CodeTabs'
 
 type Tab = 'pipeline' | 'infinite' | 'continuous' | 'framing'
 
@@ -453,6 +453,25 @@ interval(100).pipe(                 // emit every 100ms forever
 ]
 
 // ── Component ─────────────────────────────────────────────────────────────────
+
+const DOUBTS = [
+  {
+    q: 'Why does my stream pipeline "do nothing"?',
+    a: 'Intermediate operations like `map` and `filter` are LAZY — they only describe the pipeline, not execute it. Nothing actually runs until you call a terminal operation like `collect()`, `forEach()`, or `reduce()`. The stream is an inert blueprint: you chain operations to specify what to do, but the CPU sits idle until the terminal op pulls data through the entire pipeline.\n\nConsider a stream of 1 million transactions filtered to FOOD category then mapped to amounts. Describing the pipeline costs virtually nothing — zero iteration, zero memory allocation. The moment you call `.collect()`, all million items flow through the filter and map in sequence.\n\nNo terminal operation → no work → no output → confusing silence. This is the single most common stream mistake: beginners write `.map()` and expect the list to change, then wonder why nothing happened. **Common mistake:** forgetting that `.map()` returns a lazy stream, not a mutated list — you must always end with `.collect()` or similar.',
+  },
+  {
+    q: 'Does stream().map() change my original list?',
+    a: 'No — streams never mutate their source collection; they produce a new result instead. `stream().map(x -> x * 2)` does not change the original list; it creates a new stream of transformed values that you collect into a fresh list.\n\nMutating shared state inside a lambda IS technically possible — you could write `.forEach(item -> sharedMap.put(item.id, item))` — but this breaks the entire mental model and becomes catastrophically dangerous the moment someone adds `.parallel()`. Parallel streams split work across threads, and now your shared mutations cause data races, lost updates, and crashes.\n\n**Rule of thumb:** treat lambdas as immutable transformers. If you\'re reaching for shared state mutation, you probably need a different pattern (like `Collectors.groupingBy()` with a proper collector). This keeps your code thread-safe and future-proof, whether someone parallelizes it later or not.',
+  },
+  {
+    q: 'Why does reusing a stream throw IllegalStateException?',
+    a: 'A stream is a one-shot, disposable pipeline over a source, not a reusable container like a List. Once a terminal operation (like `collect()`) consumes it, the stream is spent and cannot be reused. Calling `collect()` a second time on the same stream throws `IllegalStateException`.\n\nWhy? Streams represent lazy computation, not cached data. A stream is more like an iterator — it advances through its source element-by-element — and iterators exhaust. Once you\'ve iterated through, the iterator is done.\n\nThe fix is simple: create a fresh stream each time. Call `list.stream().filter(...).collect()` multiple times if needed — stream creation is cheap (just a wrapper object). The filtering and mapping happen fresh each time you call `.collect()`. **Common mistake:** saving a stream in a variable and trying to reuse it. Always generate from the source collection directly.',
+  },
+  {
+    q: 'When should I NOT use .parallel()?',
+    a: 'Parallel streams have significant thread-pool and work-stealing overhead; they only pay off on genuinely large, CPU-heavy tasks. Avoid `.parallelStream()` in these cases:\n\n- Small collections — fork-join overhead dwarfs any speedup (rule of thumb: >10k items).\n- I/O-bound work per element — threads wait on network or disk, blocking the pool.\n- Order-dependent operations — parallel breaks guarantees like `.limit()` and `.sorted()` (must use special collectors).\n- Stateful lambdas or shared mutation — causes data races unless you use a thread-safe collector.\n\nParallel shines for large arrays of independent, CPU-intensive operations: compute Fibonacci numbers for 100k integers, or run numerical simulations on each element. Here, threads truly parallelize work and the overhead vanishes in the CPU burn.\n\n**Rule of thumb:** measure before parallelizing. Use `ForkJoinPool.commonPool()` only if profiling shows parallelism actually cuts execution time. For I/O-bound workloads, consider async or reactive patterns instead.',
+  },
+]
 
 export default function JavaStreamsVisualizer() {
   const [tab, setTab] = useState<Tab>('pipeline')
@@ -1166,7 +1185,7 @@ rl.on('line', (line) => {              // fires once per complete \\n-delimited 
       </div>
 
       {/* Code block (always visible) */}
-      <CodeBlock examples={CODE_EXAMPLES} />
+      <CodeTabs doubts={DOUBTS} examples={CODE_EXAMPLES} />
     </div>
   )
 }

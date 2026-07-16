@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import DoubtsBlock from '@/components/shared/DoubtsBlock'
 
 type Phase = 'requirements' | 'scale' | 'api' | 'architecture' | 'tradeoffs'
 
@@ -81,6 +82,25 @@ const TRADEOFFS = [
     chose: 'Per-channel ordering (not global)',
     reason: 'Global ordering requires distributed consensus (too slow). Per-channel is sufficient — users only care about order within a conversation.',
     tradeoff: 'Cross-channel ordering not guaranteed — acceptable for chat',
+  },
+]
+
+const DOUBTS = [
+  {
+    q: 'Where do I start when told "design Twitter"?',
+    a: 'Do not jump straight to architecture. Start by nailing scope: which features are in (post, follow, timeline — not DMs), what scale (DAU, read:write ratio), and which quality matters most (latency? availability? consistency?). These five minutes of scoping decide 80% of every choice you make afterward.\nWhy? Because a low-latency, read-heavy system (Twitter-style feeds) needs caching, replicas, and Redis everywhere. A high-consistency, write-heavy system (a bank ledger) needs Postgres and strong transactions. A system optimizing availability (Slack) tolerates temporary inconsistency. Without clear scope, you\'ll either over-engineer with wrong tools or miss critical requirements. Always ask clarifying questions first — What\'s the write:read ratio? Do we need real-time or eventual consistency? How many concurrent users at day 1 versus year 1? These answers lock in your entire architecture.\n**Rule of thumb:** scope out loud, get interviewer agreement, then build.',
+  },
+  {
+    q: 'How precise should back-of-envelope math be?',
+    a: 'Think order of magnitude, never precise numbers. The goal is category decisions (one database or shards? cache or not?), not decimal accuracy.\nExample: if you estimate 100M DAU times 10 reads per user, that\'s roughly 10^9 reads per day, averaging ~12k/s with maybe 3–5x spike at peak hours. That single calculation tells you whether one SQL box survives (no), whether you need read replicas (yes), whether in-memory caching helps (probably). But if you spend 10 minutes deciding whether it\'s 11,234 or 11,567 reads/s, you\'ve already lost — the precision vanishes once you hit network congestion, cache misses, and garbage collection pauses.\nThe numbers are anchors for reasoning, not predictions. Use them to flip binary switches in your design (cache or not, single box or distributed, consistency or eventual).\n**Common mistake:** debating "10,234 vs 10,456 QPS" instead of "does 10k QPS fit in memory or need disk reads?"',
+  },
+  {
+    q: 'When do I introduce caches, queues, and shards?',
+    a: 'Only after a baseline end-to-end design works on paper. Name the bottleneck first, then add its specific fix.\nRead-heavy? Add cache and replicas. If a single Postgres box handles 1M reads/day but your system needs 10M, redis in front eases the load and read replicas distribute it. Slow work in the request path? Queue it asynchronously — a file upload should not block the user\'s POST /upload response, so push it to Kafka and return immediately. Data outgrowing one box? Shard by user ID, date, or geography — but only if single-node replication and scaling with SSD storage don\'t buy you another year.\nJumping straight to "Kafka plus microservices plus distributed transactions" with zero named bottleneck is the classic red flag. Overcomplexity kills more systems than under-scoping does. Add tools only when you can point to the exact problem they solve.\n**Rule of thumb:** complexity is a cost — pay it only when forced.',
+  },
+  {
+    q: 'Thirty minutes on the clock — depth or breadth?',
+    a: 'Breadth first: sketch a complete end-to-end skeleton so the whole system exists on the whiteboard. Then drill deep into one or two components where the hard trade-offs live.\nStart by drawing client → load balancer → API servers → database. Ensure every component has a role and data flows in a loop. This skeleton takes 5–10 minutes but signals to the interviewer that you think in systems, not isolated pieces. Then, depending on their questions, pick the hardest problem: maybe it\'s the Kafka consumer lag in the message queue, or the consistency model for distributed transactions, or whether to use Cassandra or MySQL. Ask them directly — "What aspect is most interesting to you: latency, scale, or consistency?" — and focus your remaining 15 minutes there.\nVague breadth leaves you exposed to follow-up questions. Deep focus on one area shows mastery. The combination of both is what separates strong candidates.\n**Rule of thumb:** breadth shows you understand systems; depth shows you can reason under pressure.',
   },
 ]
 
@@ -284,6 +304,8 @@ export default function SystemDesignApproachViz() {
           </div>
         )}
       </div>
+
+      <DoubtsBlock doubts={DOUBTS} />
     </div>
   )
 }

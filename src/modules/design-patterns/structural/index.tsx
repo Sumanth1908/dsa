@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { useSteps } from '@/hooks/useSteps'
 import StepControls from '@/components/shared/StepControls'
-import CodeBlock from '@/components/shared/CodeBlock'
+import CodeTabs from '@/components/shared/CodeTabs'
 
 type Pattern = 'decorator' | 'adapter' | 'facade'
 
@@ -181,6 +181,39 @@ const PATTERN_META: Record<Pattern, { title: string; intent: string }> = {
   facade: { title: 'Facade', intent: 'Put one simple, intention-revealing method in front of a complicated subsystem' },
 }
 
+const DOUBTS: Record<string, { q: string; a: string }[]> = {
+  decorator: [
+    {
+      q: 'Decorator vs inheritance — why wrap instead of subclass?',
+      a: "Subclassing bakes features into the class hierarchy at compile time, so every combination becomes a new class. For a beverage system, you'd need EspressoWithMilk, EspressoWithSyrup, EspressoWithMilkAndSyrup, and so on — a factorial explosion. Decorators flip this: they stack at RUNTIME without creating new classes. Wrap an Espresso with a Milk decorator, then wrap that with a Mocha decorator. Any combination works, in any order, because each decorator implements the same interface and delegates to the one inside it. Java's BufferedReader wrapping InputStreamReader wrapping FileInputStream shows this exactly — the stream can be composed three ways or ten ways without defining new subclasses. Each layer adds one single behavior around the same interface, keeping code open for extension but closed for modification. **Rule of thumb:** if you're creating subclasses for combinations, reach for Decorator instead.",
+    },
+    {
+      q: 'Decorator vs Proxy — the structure looks identical?',
+      a: "Both use identical structure — wrapping an object and delegating calls — but solve opposite problems. A decorator adds behavior the client explicitly requested: a BufferedReader wraps a FileInputStream to add buffering, a compression wrapper adds gzip encoding. The client knows the decorator is there and asked for it. A proxy, by contrast, CONTROLS ACCESS to the underlying object without the client's knowledge: lazy-loading a database query, enforcing permissions, or transparently remoting a method call to another machine. The proxy is invisible to the client — it can swap in and out at the boundary. In code, both inherit the same interface and wrap the same type; in intent, one is invited behavior and the other is transparent control. **Common mistake:** assuming the structure alone tells you which pattern you're looking at — read the intention, not the shape.",
+    },
+  ],
+  adapter: [
+    {
+      q: 'Adapter vs Facade — both wrap other code, so what differs?',
+      a: "An Adapter CONVERTS one interface into another that the client expects, translating incompatible boundaries without changing either side. Think of converting an array to a List using Arrays.asList, or InputStreamReader turning raw bytes into characters. The square-peg-round-hole metaphor is exact: the peg doesn't change, the hole doesn't change, only the adapter mediates. A Facade, by contrast, converts nothing — it doesn't bridge between two incompatible types. Instead, it places one simple, intention-revealing method in front of a complex subsystem of many independent classes. CheckoutFacade.checkout(...) orchestrates inventory, payment, shipping, and email without translating between incompatible interfaces; it just hides orchestration complexity. Adapter is bilateral (connects two things), while Facade is unilateral (simplifies one messy thing). **Rule of thumb:** Adapter when you have a boundary problem between old and new; Facade when you have a complexity problem inside a subsystem.",
+    },
+    {
+      q: 'Where do adapters naturally appear in real projects?',
+      a: "Adapters naturally flourish at boundaries you do not control: integrating third-party SDKs (Stripe, Twilio), payment providers, or legacy systems locked behind a strange interface. The pattern is powerful here because you can't change the external code. Define YOUR own clean interface first — something your application code uses everywhere. Then write one lightweight Adapter per external vendor that translates between your interface and theirs. When you need to swap vendors — Stripe to Square, REST API version 2 to version 3, legacy COBOL system to modern database — you change only that one adapter file. The rest of your codebase never sees the change. This is the inverse of firefighting: instead of searching the codebase for every call to a payment service, the contract lives in one place. **Rule of thumb:** if you control neither side of the boundary, Adapter is your escape route.",
+    },
+  ],
+  facade: [
+    {
+      q: 'Is a facade just a god class waiting to happen?',
+      a: "A facade's single job is to DELEGATE and orchestrate, never to own business logic. It should choreograph calls into the underlying subsystem in the right order, handle error cases, and present a clean contract to the outside world — but it should NOT accumulate domain logic, validation rules, or state. Imagine a CheckoutFacade that not only calls InventoryService, PaymentGateway, ShippingService, and EmailService in sequence, but also starts doing tax calculations, currency conversions, or inventory forecasting. That's the smell: complexity has leaked out of the subsystem into the facade. When that happens, the facade becomes a god class — a dumping ground that's harder to test and violates single responsibility. The fix is ruthless: any behavior beyond pure delegation belongs in the subsystem itself, in a new service class, or not at all. **Common mistake:** using a facade to avoid fixing a messy subsystem; facades amplify poor design, they don't hide it.",
+    },
+    {
+      q: 'Does a facade forbid direct access to the subsystem?',
+      a: "No — a facade is a convenience, not a wall. It makes the happy path simple (one method call), but it never forbids advanced callers from using the subsystem directly. If a power user needs to charge a refund that skips the inventory step, they can call PaymentGateway directly; the facade is not a prison. This distinction is critical because facades are not access-control gates — they are shortcuts. They exist to serve the 80% of use cases that follow a predictable pattern. The remaining 20% of callers who need flexibility or specific orderings can bypass the facade entirely, and that's by design. In fact, keeping the subsystem classes public and independent means they stay testable in isolation. **Rule of thumb:** when a facade starts preventing code from working unless it goes through the facade, you've accidentally built a layer of control instead of convenience — refactor toward composition instead.",
+    },
+  ],
+}
+
 export default function StructuralPatternsViz() {
   const [pattern, setPattern] = useState<Pattern>('decorator')
 
@@ -350,7 +383,7 @@ export default function StructuralPatternsViz() {
       </div>
 
       <StepControls ctrl={ctrl} />
-      <CodeBlock examples={[{ lang: 'java', label: `Java — ${PATTERN_META[pattern].title}`, code: JAVA_CODE[pattern] }]} />
+      <CodeTabs doubts={DOUBTS[pattern]} examples={[{ lang: 'java', label: `Java — ${PATTERN_META[pattern].title}`, code: JAVA_CODE[pattern] }]} />
     </div>
   )
 }

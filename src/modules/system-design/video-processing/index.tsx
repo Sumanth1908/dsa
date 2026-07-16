@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { useSteps } from '@/hooks/useSteps'
 import StepControls from '@/components/shared/StepControls'
-import CodeBlock from '@/components/shared/CodeBlock'
+import CodeTabs from '@/components/shared/CodeTabs'
 
 interface PipelineStep {
   stage: string
@@ -259,6 +259,25 @@ public class VideoProcessor implements RequestHandler<SQSEvent, Void> {
   },
 ]
 
+const DOUBTS = [
+  {
+    q: 'Why not just serve the uploaded MP4 directly?',
+    a: 'A single MP4 file cannot adapt to every viewer — someone on a 3G connection gets the same 4 Mbps stream as someone with fiber, causing buffering. Instead, transcode once into a quality ladder: the same source at 240p (600 kbps), 480p (1.5 Mbps), 720p (3 Mbps), and 1080p (5 Mbps). When a viewer starts playing, their player measures bandwidth and picks the highest quality that won\'t buffer. As their connection improves (WiFi to 5G), the player upgrades at the next segment boundary; if it drops, it downgrades. Codec support varies too: older Android devices may not decode H.265, so always transcode to H.264 as a fallback. **Rule of thumb:** plan 3–5 quality tiers; most services (YouTube, Netflix) use 480p as the baseline quality target.',
+  },
+  {
+    q: 'What do HLS and DASH actually do?',
+    a: 'HLS and DASH slice each quality rendition into small segments (typically 6 seconds) and publish a manifest file listing all segments and available qualities. A 10-minute video becomes ~100 segments of 6 seconds each. The player downloads the master manifest, which lists quality options (480p, 720p, 1080p), then picks one and fetches its variant playlist. The player measures throughput in real time: if the first segment downloads in 3 seconds, it estimates 4 Mbps and requests the next at 1080p. If the next segment takes 20 seconds, throughput drops to ~500 kbps, so it switches to 480p for the following segment. Segment boundaries are the only switching points, so viewers never see quality jump mid-playback. **Common mistake:** using very long segments (30+ seconds) to reduce manifest file sizes — this makes adaptive bitrate slower to respond to network changes.',
+  },
+  {
+    q: 'Why do big uploads go up in chunks?',
+    a: 'A single 2 GB PUT request that fails at 1.99 GB (99% done) must restart from byte zero — hours of uploading wasted. Chunked (multipart) upload splits the file into independent parts: if part 50 of 400 fails, you only retry part 50, not the entire upload. AWS S3\'s multipart API exemplifies this: the client initiates an upload (getting an upload ID), sends each 5–100 MB part independently, and calls CompleteMultipartUpload with part ETags. Upside: upload 5 parts in parallel on separate threads, dramatically cutting wall-clock time. Downside: if the client crashes before CompleteMultipartUpload, S3 keeps those parts around (you pay storage costs) until they expire (typically 7 days). **Rule of thumb:** chunk size 5–100 MB balances retry overhead (smaller = faster retries on slow networks) against API call overhead (larger = fewer calls).',
+  },
+  {
+    q: 'Where does the CDN fit in this pipeline?',
+    a: 'Video segments (the `.ts` files in HLS) are immutable once generated — they never change. This makes them perfect for CDN caching. When a viewer in Tokyo requests a segment, the nearest CDN edge server checks local storage. If cached, it serves in ~5 milliseconds. If not, it fetches once from the origin and caches indefinitely for future viewers. Popular viral videos see 90%+ of requests served from edge caches; the origin barely sees traffic. Long-tail content (an obscure tutorial) might see only the first few segments cached if viewers start watching. Origins typically use cache-keys including video ID and quality level, so 720p and 1080p versions of the same video cache separately. **Common mistake:** applying short cache TTLs (time-to-live) to video segments — you can safely cache them forever since they\'re immutable. Only apply short TTLs (30 seconds) to master.m3u8 playlists, which must stay fresh for live streams.',
+  },
+]
+
 export default function VideoProcessingViz() {
   const [activeStage, setActiveStage] = useState<number | null>(null)
   const [tab, setTab] = useState<'pipeline' | 'stream'>('pipeline')
@@ -373,7 +392,7 @@ export default function VideoProcessingViz() {
         )}
       </div>
 
-      <CodeBlock examples={CODE_EXAMPLES} />
+      <CodeTabs doubts={DOUBTS} examples={CODE_EXAMPLES} />
     </div>
   )
 }

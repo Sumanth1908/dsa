@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 import { useSteps } from '@/hooks/useSteps'
 import StepControls from '@/components/shared/StepControls'
 import ComplexityBadge from '@/components/shared/ComplexityBadge'
-import CodeBlock from '@/components/shared/CodeBlock'
+import CodeTabs from '@/components/shared/CodeTabs'
 
 interface Step { left: number; right: number; mid: number; answer: number; message: string }
 
@@ -113,6 +113,21 @@ int idx = Arrays.binarySearch(arr, 5); // returns index`,
 
 const N = 20
 
+const DOUBTS = [
+  {
+    q: 'How can I binary search without a sorted array?',
+    a: 'You don\'t need a sorted array — you need a **monotonic predicate**: a boolean test that flips exactly once from false to true across your search space. The predicate doesn\'t care about the data structure; it cares about the problem boundary. Examples: "is this commit bad?", "can we finish all tasks within d days?", "can we cut the wood with k saws?". Binary search works by finding that flip point efficiently. The key insight is that once you can evaluate the predicate at a midpoint and definitively discard half the space, binary search applies. You repeatedly halve the search range until the boundary is found. This transforms problems that look array-independent (like finding the square root of 2 or the minimized value for a constraint) into efficient O(log n) or O(log range) solutions.\n**Rule of thumb:** if you can answer yes/no to a midpoint and the answer is monotonic, binary search applies.',
+  },
+  {
+    q: 'What is "binary search on the answer" concretely?',
+    a: 'In the Koko eating bananas problem, you can\'t sort the piles or rearrange them — but the answer space (eating speeds from 1 to max pile size) IS implicitly monotonic. If Koko finishes within the time limit eating at speed k, she also finishes at k+1 (faster is always feasible). This monotonicity lets you binary search the answer directly. Instead of trying every speed 1 to max, you guess the midpoint and run an O(n) feasibility check: "can Koko finish these n piles in time at speed mid?" Based on the result, narrow the range and repeat. The complexity is O(n log range), far better than O(n × max) for brute force. This pattern—searching for the minimum/maximum value that satisfies a constraint—appears in many problems: minimum speed, minimum days to finish, maximum allocated budget, etc.\n**Common mistake:** trying to binary search without verifying the predicate is monotonic in the answer space.',
+  },
+  {
+    q: 'How do I find the FIRST valid answer rather than any valid one?',
+    a: 'When binary searching for the first/leftmost element, the critical difference from a standard binary search is this: on success, do NOT return immediately. Instead, record the candidate (`answer = mid`) and keep searching left (`high = mid - 1`) to see if there\'s an earlier match. The invariant is: after each step, the boundary still lies in `[low, high]`, and you never discard a candidate answer prematurely. This guarantees the loop converges onto the first valid answer. Example: finding the first index where `arr[i] >= target`. When you find a match at index mid, you don\'t know if index mid-1 also matches — you must search left. Conversely, when mid doesn\'t match, you immediately search right because no index before mid will match (the array is sorted). This technique applies to finding leftmost positions, first occurrence of a value, or the minimum that satisfies a constraint.\n**Rule of thumb:** record success and search left; discard immediately only when impossible.',
+  },
+]
+
 export default function BinarySearchPatternVisualizer() {
   const [bad, setBad] = useState(14)
   const steps = findFirstBadSteps(N, bad)
@@ -199,7 +214,7 @@ export default function BinarySearchPatternVisualizer() {
       </div>
 
       <StepControls ctrl={ctrl} />
-      <CodeBlock examples={CODE_EXAMPLES} />
+      <CodeTabs doubts={DOUBTS} examples={CODE_EXAMPLES} />
     </div>
   )
 }

@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { useSteps } from '@/hooks/useSteps'
 import StepControls from '@/components/shared/StepControls'
-import CodeBlock from '@/components/shared/CodeBlock'
+import CodeTabs from '@/components/shared/CodeTabs'
 
 // ─── STACK vs HEAP ANIMATION ──────────────────────────────────
 
@@ -331,6 +331,21 @@ System.out.println(weak.get());  // null — obj was collected`,
   },
 ]
 
+const DOUBTS = [
+  {
+    q: 'What actually decides stack vs heap?',
+    a: "Two factors decide: **lifetime** and **size**. If the data is known at compile time and dies when the function returns, it goes on the stack (function parameters, local variables). If it’s dynamic in size or must outlive the function call, it goes on the heap (objects, strings, arrays, closures’ captured scope). Stack allocation is automatic via the CPU; heap allocation requires a memory manager. Here’s the key: in JavaScript, Python, and Java, **local variables that hold references always live on the stack**—a `let user = {...}` stores the variable name and address on the stack, but the actual object lives on the heap.\nConsider a function: `function process() { let x = 42; let obj = {value: 1}; }`—the variable `x` (primitive 42) and the variable `obj` (a reference/pointer) both sit on the stack frame, but the `{value: 1}` object itself lives on the heap. Once `process()` returns, the stack frame is popped, freeing both variables instantly. The heap object is freed later by GC if unreachable.\n**Rule of thumb:** primitives and references go on the stack; the actual objects they reference go on the heap.",
+  },
+  {
+    q: 'If a garbage collector exists, how do leaks still happen?',
+    a: "The garbage collector can only free what is **provably unreachable**—if any reference still points to an object, the GC considers it live and keeps it. A memory leak occurs when you hold a reference to an object you no longer need. The GC is doing exactly what it's programmed to do; the bug is in **your code's liveness logic**. Classic example: a global event-handler registry that accumulates listeners but never removes them.\nIn a Node.js web server, if you do `eventEmitter.on('message', handler)` once per request but never call `.off()`, the registry grows indefinitely, and the handler closure captures the entire request context (headers, body, user data). The GC sees the reference in the registry and keeps everything alive. Similarly, a global cache `const cache = {}; cache[userId] = expensiveData;` with no eviction policy becomes a memory leak in long-running services: the cache only grows, entries are never deleted, and GC cannot reclaim them.\n**Common mistake:** assuming a GC means you can't leak memory. A GC prevents **only** use-after-free bugs; it cannot prevent keeping references you shouldn't.",
+  },
+  {
+    q: 'Why is stack allocation so much faster than heap?',
+    a: "Stack allocation is extraordinarily fast: it's just **incrementing one pointer** by the size of the frame. Freeing is equally fast: decrement the pointer. Both operations take constant time and require no search or bookkeeping. The CPU's instruction cache and data cache love this pattern because memory addresses are sequential and predictable. Heap allocation is far more complex: the allocator must search a free-list or bitmap to find a suitable block large enough, split it, and maintain metadata. Later, the GC must pause execution (in stop-the-world collectors like Mark and Sweep), walk the object graph to find what's reachable, and reclaim unmarked blocks—all expensive.\nHere's a concrete comparison: allocating 1,000 stack frames (function calls) might take microseconds; allocating and later garbage-collecting 1,000 heap objects can take milliseconds because GC must trace thousands of references. In performance-critical code (game loops, financial systems, real-time control), this overhead is why developers sometimes use **object pools**—pre-allocate objects and reuse them instead of creating new ones.\n**Rule of thumb:** stack is ideal for short-lived, fixed-size data; heap is for everything else, but at a performance cost.",
+  },
+]
+
 export default function MemoryModelViz() {
   const [tab, setTab] = useState<'stack-heap' | 'gc' | 'leaks'>('stack-heap')
   const [leakLang, setLeakLang] = useState(0)
@@ -535,7 +550,7 @@ export default function MemoryModelViz() {
         </div>
       )}
 
-      <CodeBlock examples={CODE_EXAMPLES} />
+      <CodeTabs doubts={DOUBTS} examples={CODE_EXAMPLES} />
     </div>
   )
 }

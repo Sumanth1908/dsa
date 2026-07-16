@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 import { useSteps } from '@/hooks/useSteps'
 import StepControls from '@/components/shared/StepControls'
 import ComplexityBadge from '@/components/shared/ComplexityBadge'
-import CodeBlock from '@/components/shared/CodeBlock'
+import CodeTabs from '@/components/shared/CodeTabs'
 
 interface Step { array: number[]; left: number; right: number; windowSum: number; maxSum: number; bestLeft: number; bestRight: number; message: string }
 
@@ -153,6 +153,21 @@ public int minSubarrayLen(int target, int[] nums) {
   },
 ]
 
+const DOUBTS = [
+  {
+    q: 'Fixed vs variable window — how do I tell which one a problem needs?',
+    a: 'The problem statement tells you which to use. If it says "...of size k" or "exactly k elements," use a fixed window: slide one step at a time, maintaining size k by adding one right-side element and dropping the left one. If it asks "longest" or "shortest" or "minimum/maximum satisfying a condition," use a variable window: grow right while valid, shrink left to restore validity, track the best window you\'ve seen.\n\nExample: "max sum subarray of size 5" is fixed (k=5 never changes), but "longest substring with ≤3 distinct chars" is variable (shrink left when the 4th unique char arrives). The key distinction: fixed processes the left move automatically, variable shrinks explicitly to meet the condition.\n\n**Rule of thumb:** fixed window size is given; variable window size adjusts to a constraint.',
+  },
+  {
+    q: 'There is a while inside the for — why is it still O(n)?',
+    a: 'The while loop doesn\'t mean nested iteration — use amortized analysis. The left pointer only moves forward, never backward, so across the entire run each element enters the window once (when right passes it) and leaves once (when left passes it). That\'s at most 2n total pointer moves for an array of length n, regardless of how many times the while executes per iteration.\n\nExample: in `lengthOfLongestSubstring("abcabcbb")`, when you hit the second "a," left jumps from 0 to 1, but that\'s one continuous forward traversal — left never backtracks. Even though while runs multiple times per outer loop iteration, every individual element is examined at most twice (once by right, once by left).\n\n**Key insight:** count pointer traversals, not nested loops. If each pointer crosses the array at most once, the total is O(n).',
+  },
+  {
+    q: 'When does sliding window silently give wrong answers?',
+    a: 'Sliding window assumes "monotonicity": if a window is invalid, all its supersets should be invalid too — but negative numbers break this. Growing a window with negative numbers can decrease the sum, so the greedy shrinking logic fails: a larger window might actually be better than a smaller one in ways your shrink-to-progress strategy can\'t foresee.\n\nExample: array `[5, -10, 3, 2, -1, 8]` with target sum 10 — when you hit -10, shrinking left doesn\'t reliably reduce the sum below the target; you might need the larger window containing both -10 and the 8 together. With negative values, window validity is not monotonic, so greedy shrinking gives wrong answers.\n\n**Common mistake:** assuming sliding window works for all optimization problems. Use it only when the validity condition is monotonic — i.e., if a window is invalid, all its supersets are also invalid.',
+  },
+]
+
 export default function SlidingWindowVisualizer() {
   const [k, setK] = useState(4)
   const steps = maxSubarraySteps(LATENCY, Math.min(k, LATENCY.length))
@@ -248,7 +263,7 @@ export default function SlidingWindowVisualizer() {
       </div>
 
       <StepControls ctrl={ctrl} />
-      <CodeBlock examples={CODE_EXAMPLES} />
+      <CodeTabs doubts={DOUBTS} examples={CODE_EXAMPLES} />
     </div>
   )
 }

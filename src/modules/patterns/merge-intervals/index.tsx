@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 import { useSteps } from '@/hooks/useSteps'
 import StepControls from '@/components/shared/StepControls'
 import ComplexityBadge from '@/components/shared/ComplexityBadge'
-import CodeBlock from '@/components/shared/CodeBlock'
+import CodeTabs from '@/components/shared/CodeTabs'
 
 interface Interval { start: number; end: number }
 interface Step {
@@ -165,6 +165,21 @@ function intervalX(v: number) { return (v - AXIS_MIN) / (AXIS_MAX - AXIS_MIN) * 
 
 const COLORS = ['#6366f1', '#f59e0b', '#22c55e', '#ef4444', '#06b6d4', '#ec4899']
 
+const DOUBTS = [
+  {
+    q: 'Why sort by start first?',
+    a: 'Sorting by start time is the cornerstone of the greedy solution—it guarantees that each new interval can only overlap the most recent merged interval, meaning you never need to backtrack. Without sorting, potential overlaps hide anywhere in the list, forcing an O(n²) brute-force comparison of every pair. For instance, consider the unsorted intervals [[3,5], [1,4], [2,6]]: without sorting, you might process [3,5] first, then discover [1,4] should have been merged earlier, creating cascading complexity. After sorting to [[1,4], [2,6], [3,5]], you process linearly once—each interval only interacts with the last merged block. The key insight is that sorting prevents out-of-order conflicts: if two intervals should overlap, they will meet during a single forward pass. **Rule of thumb:** The sort transforms O(n²) pair-checking into a single linear pass.',
+  },
+  {
+    q: 'Do [1,3] and [3,5] overlap?',
+    a: 'Whether [1,3] and [3,5] overlap depends entirely on the problem definition—there is no universal rule. For **interval merging**, touching endpoints typically count as overlapping, using the condition `start <= prevEnd`, so [1,3] and [3,5] would merge into [1,5]. For **meeting-room booking systems**, the interpretation differs: a room freeing at time 3 can be rebooked at time 3, so [1,3] and [3,5] do NOT conflict—they use `start < prevEnd` instead. This subtle difference—`<=` versus `<`—is where the bug lives in careless implementations. For example, Google Calendar treats overlapping meetings as conflicting with `<=`, while hospital operating rooms might use `<` to allow back-to-back surgeries. Always read the problem statement carefully to determine whether the boundary condition should be inclusive or exclusive. **Common mistake:** Assuming all interval problems use the same overlap definition.',
+  },
+  {
+    q: 'What is the complexity, and where does it actually go?',
+    a: 'The time complexity is O(n log n), but that\'s entirely dominated by sorting—the merging itself is O(n). The merge pass is a single linear scan: for each interval, you either extend the last merged interval (constant time) or add it as new (constant time). The O(n log n) comes entirely from the sort step; any comparison-based sort carries that cost. However, there\'s a crucial optimization: if your input arrives **pre-sorted** (which calendar and scheduling systems often guarantee), the sort becomes O(1) verification, and the entire algorithm runs in linear time. For example, Google Calendar events are already sorted by start time in the database, so merge is truly O(n) in practice. Even when not pre-sorted, many real systems cache sorted views, amortizing the sort cost across multiple queries. **Rule of thumb:** In memory-constrained or streaming scenarios, watch for pre-sorting opportunities to collapse the whole algorithm to linear.',
+  },
+]
+
 export default function MergeIntervalsVisualizer() {
   const [preset, setPreset] = useState(0)
   const intervals = PRESET_INTERVALS[preset]
@@ -274,7 +289,7 @@ export default function MergeIntervalsVisualizer() {
       </div>
 
       <StepControls ctrl={ctrl} />
-      <CodeBlock examples={CODE_EXAMPLES} />
+      <CodeTabs doubts={DOUBTS} examples={CODE_EXAMPLES} />
     </div>
   )
 }

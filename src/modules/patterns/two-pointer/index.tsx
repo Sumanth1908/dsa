@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 import { useSteps } from '@/hooks/useSteps'
 import StepControls from '@/components/shared/StepControls'
 import ComplexityBadge from '@/components/shared/ComplexityBadge'
-import CodeBlock from '@/components/shared/CodeBlock'
+import CodeTabs from '@/components/shared/CodeTabs'
 
 interface Step { array: number[]; left: number; right: number; sum: number; target: number; found: boolean; message: string }
 
@@ -134,6 +134,21 @@ public boolean isPalindrome(String s) {
   },
 ]
 
+const DOUBTS = [
+  {
+    q: 'Why does the opposite-ends version require sorted input?',
+    a: 'The move rule — "sum too small, advance left; too big, retreat right" — only works because the array is sorted. When sorted, increasing the left pointer always increases the sum, and decreasing the right pointer always decreases it. This monotonic guarantee lets you safely skip impossible pairs in one pass without backtracking.\n\nOn an unsorted array, this breaks immediately. Take [5, 2, 8, 3, 10] with target=13. Starting at left=0 ($5) and right=4 ($10), the sum is $15 — too large, so move right to index 3 ($3), giving $5+$3=$8. Move left again for $2+$3=$5, then $8+$3=$11. You can\'t confidently eliminate pairs because the next move doesn\'t guarantee a predictable change.\n\nYour options:\n- Sort first (O(n log n)) then two-pointer\n- Use a hash map instead (O(n) time, O(n) space)\n\n**Common mistake:** assuming two-pointer works on any array. Always verify the sorted precondition first.',
+  },
+  {
+    q: 'Two pointers are both moving — how is it still O(n)?',
+    a: 'Both pointers move, but the total complexity is still O(n) because you count total pointer movements, not iterations of the outer loop. The left pointer starts at index 0 and can only move right; the right pointer starts at the end and can only move left. They stop when they meet, so together they traverse the array exactly once — at most n steps combined.\n\nThink of it like two people walking toward each other on a street of length n. One starts at the left end, one at the right. They can only walk forward (left person rightward, right person leftward). They stop when they meet. No matter how many steps each takes individually, the sum of their steps is at most n.\n\nContrast this with brute force: checking every pair is O(n²) because you have two nested loops, each potentially visiting all n elements.\n\n**Rule of thumb:** when counting complexity for multi-pointer algorithms, track total pointer movements, not loop nesting depth.',
+  },
+  {
+    q: 'Opposite ends vs same direction — when is each used?',
+    a: 'Opposite-ends (one pointer at each end) is for finding pairs: you\'re hunting a single pair that satisfies a condition. Same-direction (both pointers moving forward, one faster than the other) is for in-place modifications: you\'re partitioning the array or removing unwanted elements.\n\nOpposite-ends examples: sum-pair problems (`arr[left] + arr[right] === target`), palindrome checks (compare left and right characters), container-with-most-water (maximize area by moving inward). All ask "does this pair exist?"\n\nSame-direction examples: removing duplicates in-place, deleting elements matching a condition, moving all zeros to the end. These ask "which elements stay and where?" The slow pointer marks the next valid position; the fast pointer scans ahead. When you find an element to keep, copy it to the slow pointer and advance both. When you find one to discard, skip it (fast advances alone).\n\n**Common mistake:** using opposite-ends to remove elements. You\'ll lose track of positions. Stick with same-direction for in-place modifications.',
+  },
+]
+
 export default function TwoPointerVisualizer() {
   const [target, setTarget] = useState(60)
   const steps = twoSumSteps(PRICES, target)
@@ -222,7 +237,7 @@ export default function TwoPointerVisualizer() {
       </div>
 
       <StepControls ctrl={ctrl} />
-      <CodeBlock examples={CODE_EXAMPLES} />
+      <CodeTabs doubts={DOUBTS} examples={CODE_EXAMPLES} />
     </div>
   )
 }

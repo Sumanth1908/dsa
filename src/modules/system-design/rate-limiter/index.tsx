@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react'
-import CodeBlock from '@/components/shared/CodeBlock'
+import CodeTabs from '@/components/shared/CodeTabs'
 
 type Algo = 'token-bucket' | 'leaky-bucket' | 'fixed-window'
 
@@ -110,6 +110,25 @@ const BUCKET_CAPACITY = 8
 const REFILL_RATE = 1    // 1 token per 2 seconds (visual)
 const WINDOW_LIMIT = 5
 const WINDOW_SECS = 8
+
+const DOUBTS = [
+  {
+    q: 'Token bucket vs leaky bucket?',
+    a: 'Token bucket allows controlled bursts; leaky bucket enforces a constant rate. With token bucket, tokens accumulate while idle up to a maximum capacity, so a quiet client can release a burst of requests at once before the refill rate limits further traffic — think of a user making 50 API calls in a second if they\'ve been idle. With leaky bucket, all requests queue and drain at exactly one fixed rate, so arrival pattern doesn\'t matter: traffic flows out at the same speed regardless of how spiky incoming requests are. Token bucket suits REST APIs and interactive clients that naturally produce bursts; leaky bucket suits systems protecting downstream services that can\'t handle sudden load (like a message-processing backend). **Rule of thumb:** token bucket for flexibility, leaky bucket for smoothing. Choose by whether controlled bursts are a feature (REST) or a threat (real-time systems).',
+  },
+  {
+    q: 'What is wrong with a fixed window counter?',
+    a: 'Fixed-window counters reset at hard boundaries, creating an edge case at the boundary. Imagine a 100 req/min limit: 100 requests arrive at 0:59, all accepted within the window; then the window resets at 1:00. Immediately, 100 more requests arrive at 1:01, also accepted (still within the 1:00-2:00 window). In two seconds, 200 requests were processed — double the intended rate. This happens because the window boundary is rigid: the counter doesn\'t remember the burst at 0:59 when it resets. Sliding-window algorithms fix this by tracking timestamps (or weighted counters) across boundaries — a request at 1:01 is checked against requests back to 0:01, capturing the overlap. **Common mistake:** assuming fixed-window is enough without testing edge cases. In production, boundary bursts can exceed your limit by 2x.',
+  },
+  {
+    q: 'How does this work across 10 API servers?',
+    a: 'Independent local rate limiters on each server don\'t coordinate, so limits multiply silently. With 10 servers, if each allows 100 req/min per user, a single user can make 1,000 req/min across all servers — no single server rejected them. For distributed systems, you need shared state: a central Redis instance with atomic commands like `INCR` and expiring keys, or a Lua script for multi-step atomicity. The trade-off: each request now incurs a network hop to Redis, adding latency and becoming a bottleneck. Approximate schemes (like local token buckets that sync asynchronously with a central counter) reduce that cost but lose exactness — a user might briefly exceed the global limit before local caches sync. **Rule of thumb:** for APIs under 100k req/sec, Redis is fast enough; beyond that, consider approximate or datacenter-local schemes.',
+  },
+  {
+    q: 'What should a rate-limited client actually receive?',
+    a: 'Rate-limited clients must receive `429 Too Many Requests` with clear headers: `Retry-After` (in seconds), and optionally `X-RateLimit-Remaining` (quota left). This lets well-behaved clients exponentially backoff cleanly. Silent rejections or generic 500 errors confuse clients into thinking the service crashed, triggering aggressive retry loops — exactly the traffic overload you\'re defending against. For example, if a client fires 1,000 requests and all silently timeout, they\'ll retry with exponential backoff or aggressive retry logic, compounding the problem. The 429 response is explicit: you\'re saying "slow down, try again in N seconds." Client libraries (like JavaScript `axios` or Python `requests`) recognize 429 and implement automatic backoff, converting a rate-limit breach into a pause rather than a cascade. **Common mistake:** returning 400 or 500 instead of 429; clients treat those as bugs, not rate limits.',
+  },
+]
 
 export default function RateLimiterVisualizer() {
   const [algo, setAlgo] = useState<Algo>('token-bucket')
@@ -316,7 +335,7 @@ export default function RateLimiterVisualizer() {
         </div>
       </div>
 
-      <CodeBlock examples={CODE_EXAMPLES} />
+      <CodeTabs doubts={DOUBTS} examples={CODE_EXAMPLES} />
     </div>
   )
 }

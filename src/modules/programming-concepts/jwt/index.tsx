@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import CodeBlock from '@/components/shared/CodeBlock'
+import CodeTabs from '@/components/shared/CodeTabs'
 
 const TOKENS = {
   valid: {
@@ -117,6 +117,25 @@ const CLAIM_DOCS: Record<string, string> = {
 }
 
 const formatTimestamp = (unix: number) => new Date(unix * 1000).toISOString().replace('T', ' ').slice(0, 19) + ' UTC'
+
+const DOUBTS = [
+  {
+    q: 'Is a JWT encrypted?',
+    a: 'No — JWTs are **signed**, not encrypted. The header and payload are merely base64url-encoded, so anyone holding the token can decode and read them instantly — they\'re visible in browser DevTools. The signature ensures tamper-proof-ness: you can verify the token hasn\'t been modified, but you cannot hide its contents.\n\nThe key consequence: never store passwords, credit card numbers, or sensitive personally identifiable information (PII) inside claims. Treat JWT payloads as public data. When Alice\'s browser decodes the token, her `role`, user ID, and custom claims are readable on her machine.\n\nIf you truly need secrecy — encrypting the payload itself — you need JWE (JSON Web Encryption), which wraps the JWT in an additional encryption layer. JWE is more complex and usually unnecessary; JWTs are designed for **authentication** (proving identity) and stateless bearer tokens, not data confidentiality.\n\n**Rule of thumb:** Use JWTs for stateless auth and non-sensitive claims; use JWE only if the payload contains secrets.',
+  },
+  {
+    q: 'How can the server trust a token it never stored?',
+    a: 'The signature — it\'s the entire foundation of JWT trust. The server signs the header+payload using a symmetric key (HMAC-SHA256) or its private key (RSA/ECDSA) when issuing the token. Every time a client sends that token back, the server re-verifies: it recomputes the signature using the same header and payload data, then checks if the result matches the signature on the token.\n\nIf even a single character in the payload changes — say an attacker edits the `role` claim from `user` to `admin` — the recomputed signature will be completely different. Verification fails instantly, and the server rejects the request. No database lookup, no session table required.\n\nExample: Alice\'s token contains `role: user`. An attacker intercepts it and manually changes the base64 payload to `role: admin`. When the server re-verifies, it hashes the tampered payload, but the signature doesn\'t match what HMAC-SHA256 would produce. The math proves forgery.\n\nThis is the superpower of statelessness: the server trusts the cryptographic math, not a session table. Horizontal scaling becomes trivial because every server can verify independently.',
+  },
+  {
+    q: 'How do you log someone out if JWTs cannot be revoked?',
+    a: 'You mostly cannot — short-lived access tokens are the pragmatic solution. Instead of indefinite tokens, issue access tokens with a short expiry (5–15 minutes) paired with a longer-lived refresh token stored server-side in an `HttpOnly` cookie.\n\nWhen a user logs out, you revoke the refresh token in your database. On the client, the access token is lost (stored in memory, not persistent). The next time it expires naturally, the client tries to use the refresh token to get a new access token — but the server rejects it because it\'s been revoked. Boom: user is logged out.\n\nThis hybrid approach avoids the pure-statelessness contradiction. The refresh token reintroduces a small amount of server-side state, but it\'s lighter than full session management: you maintain only a blacklist or denylist, checked during refresh, not on every request.\n\nFor instant bans (compromised account), you\'d check a denylist on every API request, which quietly reintroduces statefulness on every call. It\'s a trade-off: true statelessness sacrifices revocation; real-world systems usually add state for security.\n\n**Common mistake:** Using long-lived access tokens and hoping to revoke them — it won\'t work without a per-request denylist check.',
+  },
+  {
+    q: 'Where do I store it in the browser — localStorage or cookie?',
+    a: 'localStorage is vulnerable to XSS (cross-site scripting): if an attacker injects malicious JavaScript into your page, `localStorage.getItem("token")` exposes the token instantly. Cookies have a built-in defense: the `HttpOnly` flag prevents JavaScript from reading them, blocking XSS theft completely.\n\nHowever, `HttpOnly` cookies open a CSRF (cross-site request forgery) attack vector: a malicious site can trick a user\'s browser into sending the token automatically on a cross-origin request. You must defend with `SameSite` attributes (`Strict` or `Lax`) and additional token-based CSRF checks.\n\nA hardened pattern: store a long-lived refresh token in an `HttpOnly`, `Secure`, `SameSite=Strict` cookie (not readable by JavaScript). Keep short-lived access tokens (5–15 minute expiry) in memory — a plain JavaScript variable. Refresh tokens are revocable server-side; access tokens die on page reload, mitigating XSS impact since there\'s nothing to steal.\n\nExample: on login, send `Set-Cookie: refresh_token=xyz;HttpOnly;Secure;SameSite=Strict`. JavaScript holds the access token in a `let` variable, never localStorage. No token in DOM, no XSS theft.\n\n**Rule of thumb:** `HttpOnly` cookie for refresh token, memory-held short-lived access token for API calls.',
+  },
+]
 
 export default function JWTVisualizer() {
   const [tokenKey, setTokenKey] = useState<'valid' | 'expired'>('valid')
@@ -257,7 +276,7 @@ export default function JWTVisualizer() {
         </div>
       </div>
 
-      <CodeBlock examples={CODE_EXAMPLES} />
+      <CodeTabs doubts={DOUBTS} examples={CODE_EXAMPLES} />
     </div>
   )
 }

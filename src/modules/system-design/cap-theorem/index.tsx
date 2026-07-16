@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import DoubtsBlock from '@/components/shared/DoubtsBlock'
 
 type CAPChoice = 'CP' | 'AP' | 'CA'
 
@@ -46,6 +47,25 @@ const VERTICES = {
   A: { x: 500, y: 340, label: 'A\nAvailability' },
   P: { x: 100, y: 340, label: 'P\nPartition\nTolerance' },
 }
+
+const DOUBTS = [
+  {
+    q: 'Why can I not just have all three?',
+    a: 'Partitions are inevitable — they will split your network regardless of intentions. When replicas are stranded on separate sides, you face an unavoidable forced choice: you cannot guarantee both consistency and availability simultaneously. For example, consider a two-datacenter Kafka setup where the west-east link fails. The west cluster must choose: accept writes locally (staying available but risking stale reads) or reject all requests (staying consistent but becoming unavailable). CAP theorem codifies this dilemma — real systems choose CP (MongoDB default: stop accepting writes if quorum is lost) or AP (Cassandra: both sides keep writing and reconcile later). The "P" for partition tolerance is non-negotiable because partitions happen; the real engineering choice is always between C and A.\n**Rule of thumb:** during a real partition, you cannot have your cake and eat it too.',
+  },
+  {
+    q: 'What does "choosing availability" look like concretely?',
+    a: 'Choosing availability means the system continues answering client requests during a partition, even though some answers are stale. For example, DNS during a split: root nameservers on both sides of the partition keep responding with the last-known IP they cached, even though the actual service may have moved. Conflicting writes (the same item updated on both sides) are reconciled later using strategies like last-write-wins, CRDTs, or application-specific merge logic. Shopping carts exemplify this: if the network partitions, both sides accept additions to your cart, you see slightly different totals on different devices, and once the partition heals, a merge strategy picks the final state. **Common mistake:** assuming eventual consistency means "close to instant" — clients actually see divergence until the system explicitly reconciles.',
+  },
+  {
+    q: 'Is the C in CAP the same as the C in ACID?',
+    a: 'No — they are completely different concepts despite sharing the letter "C". CAP consistency (linearizability) means every read always observes the most recent write across the entire system; all nodes agree on state instantly. For example, in Redis Cluster, a read from any node should return the same value unless a write just occurred. ACID consistency, by contrast, means database transactions maintain application-level invariants: if a foreign key constraint exists, no transaction can violate it; if a trigger updates related rows, it does so atomically. Same letter, entirely unrelated semantics. **Rule of thumb:** CAP consistency is about replication and visibility across nodes, while ACID consistency is about transaction integrity and rule enforcement within a single database.',
+  },
+  {
+    q: 'What is PACELC?',
+    a: 'PACELC extends CAP by addressing what happens when the network is healthy. It states: if a partition occurs, choose between Availability and Consistency; **else** (on a healthy network), choose between Latency and Consistency. For example, even when your Postgres cluster is fully connected, achieving instant consistency across all replicas requires synchronous replication — every write must wait for acknowledgment from all replicas, which adds latency. Most production systems default to eventual consistency because low latency is often more valuable than immediate consistency: DynamoDB, Cassandra, and MongoDB all accept this trade-off by default. **Common mistake:** assuming CAP choices only matter during failures — in reality, healthy networks also force you to pick, and most teams optimize for speed over sync guarantees.',
+  },
+]
 
 export default function CAPTheoremVisualizer() {
   const [selected, setSelected] = useState<CAPChoice>('CP')
@@ -155,6 +175,8 @@ export default function CAPTheoremVisualizer() {
           </div>
         </div>
       </div>
+
+      <DoubtsBlock doubts={DOUBTS} />
     </div>
   )
 }

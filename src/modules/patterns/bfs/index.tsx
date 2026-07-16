@@ -2,7 +2,7 @@ import React from 'react'
 import { useSteps } from '@/hooks/useSteps'
 import StepControls from '@/components/shared/StepControls'
 import ComplexityBadge from '@/components/shared/ComplexityBadge'
-import CodeBlock from '@/components/shared/CodeBlock'
+import CodeTabs from '@/components/shared/CodeTabs'
 
 interface Step { visited: number[]; current: number | null; queue: number[]; level: number; levelNodes: number[][]; message: string }
 
@@ -140,6 +140,21 @@ public List<List<Integer>> bfs(TreeNode root) {
   },
 ]
 
+const DOUBTS = [
+  {
+    q: 'Why does BFS find the shortest path but DFS does not?',
+    a: 'BFS explores in distance layers — every node 1 step away, then 2, then 3 — so the FIRST time you touch a node is provably via a minimum-step route. DFS commits to one deep path and may reach the target the long way around.\n\nConsider a graph where node 1 is reachable two ways: 5 → 10 → 15 → 1 (3 edges) and 5 → 8 → 1 (2 edges). DFS might discover the first path and stop; BFS explores all nodes at distance 1, then distance 2, guaranteeing it finds the 2-edge path first. The FIFO queue ensures nodes at distance d are processed completely before distance d+1. This property makes BFS the standard for shortest paths in unweighted graphs, mazes, social networks, and web crawlers.\n\n**Rule of thumb:** If you need the shortest path in an unweighted graph, BFS is correct; DFS is not.',
+  },
+  {
+    q: 'Mark visited when enqueuing or when dequeuing?',
+    a: "When ENQUEUING. Marking on dequeue lets the same node be queued many times through different neighbours before it is first processed — results look correct, but the queue blows up exponentially on dense graphs.\n\nSuppose node 3 has 5 neighbours, and each has node 3 as a neighbour. If you mark on dequeue, node 3 gets enqueued 5 times before it's processed once, then enqueued again through other paths. In a dense graph with 100 nodes and 4000 edges, the queue might grow to thousands of entries with many duplicates. Marking on enqueue prevents this: once `visited.add(node)` occurs, subsequent paths to that node are skipped immediately with `if (!visited.has(nb))`. This keeps queue size O(V) instead of exponential.\n\n**Common mistake:** Forgetting to mark visited when enqueuing, causing TLE (timeout) on dense graphs.",
+  },
+  {
+    q: 'How do I know which level I am on?',
+    a: 'Snapshot the queue size at the start of each layer: process exactly that many nodes, then increment depth. That turns BFS into a "minimum moves" counter — word ladders, rotting oranges, knight moves.\n\nAt depth 0, the queue has 1 node (the start). Save `const levelSize = queue.length`, then process exactly that many nodes. As you dequeue them, their neighbors join the queue for the next level. Increment depth, repeat. For a word ladder from "cat" to "dog", depth tells you the minimum number of single-letter changes: cat → bat (depth 1) → bag → big → dig → dog (depth 3). The same pattern solves "rotting oranges" (minimum days to rot all fruit) and "knight moves" (minimum moves to reach a target square). Without tracking depth, BFS still finds reachable nodes but loses distance information.\n\n**Rule of thumb:** Snapshot `queue.length` at the start of each level to track distance/depth in BFS.',
+  },
+]
+
 export default function BFSPatternVisualizer() {
   const steps = bfsLevelSteps()
   const ctrl = useSteps(steps.length)
@@ -234,7 +249,7 @@ export default function BFSPatternVisualizer() {
       </div>
 
       <StepControls ctrl={ctrl} />
-      <CodeBlock examples={CODE_EXAMPLES} />
+      <CodeTabs doubts={DOUBTS} examples={CODE_EXAMPLES} />
     </div>
   )
 }

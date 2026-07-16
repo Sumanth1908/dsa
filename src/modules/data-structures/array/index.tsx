@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import { useSteps } from '@/hooks/useSteps'
 import StepControls from '@/components/shared/StepControls'
 import ComplexityBadge from '@/components/shared/ComplexityBadge'
-import CodeBlock from '@/components/shared/CodeBlock'
+import CodeTabs from '@/components/shared/CodeTabs'
 
 type Operation = 'search' | 'insert' | 'delete'
 
@@ -152,6 +152,21 @@ public void remove(ArrayList<Integer> list,
                    int index) {
     list.remove(index);
 }`,
+  },
+]
+
+const DOUBTS = [
+  {
+    q: 'If arrays are O(1) access, why is inserting at the front O(n)?',
+    a: 'Array access and insertion are fundamentally different operations. Access jumps straight to the target location using arithmetic: `base_address + index * element_size` — just one multiplication and a memory read, regardless of array size, so it\'s O(1). Insertion, however, requires making room: inserting at index 0 means every existing element must shift one position right, creating a cascade of n writes. A tiny array might absorb this quickly, but with 1 million elements, you\'re moving 1 million values in memory—each a separate write operation. The array\'s superpower (random access) and its weakness (middle insertion) stem from the same root: fixed, contiguous memory layout. You pay for direct address calculation with the cost of rearrangement. This is why insertion at the tail (append) is different: append typically hits the pre-allocated spare capacity and costs O(1) until reallocation. **Rule of thumb:** prefer arrays for read-heavy or tail-append workloads; use linked lists for frequent middle insertions.',
+  },
+  {
+    q: 'How can appending be O(1) if the array can fill up?',
+    a: 'Dynamic arrays (JavaScript arrays, Python lists, Java ArrayLists) use a clever trick: they pre-allocate spare capacity beyond what they currently hold. When you append and there\'s spare room, the operation costs O(1)—just write to the next free slot. When the array fills up, the next append triggers reallocation: the runtime allocates roughly 2x the current capacity and copies all existing elements to the new block. That single append costs O(n), but it purchases n more cheap appends before the next reallocation. Amortized analysis spreads that O(n) cost across all those future O(1) appends, yielding O(1) per append on average. For example, Java\'s ArrayList starts with capacity 10; when you push the 11th element, it grows to capacity 15 (1.5x), copying all 10 old elements. The 12th through 15th appends are free. **Common mistake:** assuming every append is O(1)—one in a million is O(n), but the average remains constant.',
+  },
+  {
+    q: 'Array vs linked list — when does the array actually lose?',
+    a: 'Arrays rarely lose to linked lists in practice, thanks to cache locality: contiguous memory means the CPU prefetches adjacent elements into its cache, making sequential scans extremely fast. Linked lists suffer from pointer-chasing: following each `next` reference causes cache misses. Linked lists win only in narrow scenarios: when you already hold a reference to a node and need frequent insertions or deletions at that exact position, without needing random access. The classic case is an LRU (Least Recently Used) cache\'s recency doubly-linked list—when you access an item, you remove its node from its current position and relink it to the head, all O(1) because you hold the node reference. In contrast, an array-based LRU would need O(n) to find and shift elements. Another niche: if your array is massive (gigabytes) and you frequently insert/delete from the middle while RAM is tight, linked lists avoid copying huge memory blocks. For most applications—game engines, databases, web frameworks—arrays dominate. **Rule of thumb:** start with arrays; switch to linked lists only when profiling proves middle-insertion dominates and cache misses don\'t kill you.',
   },
 ]
 
@@ -307,7 +322,7 @@ export default function ArrayVisualizer() {
       </div>
 
       <StepControls ctrl={ctrl} />
-      <CodeBlock examples={CODE_EXAMPLES} />
+      <CodeTabs doubts={DOUBTS} examples={CODE_EXAMPLES} />
     </div>
   )
 }

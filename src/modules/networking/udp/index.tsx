@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import CodeBlock from '@/components/shared/CodeBlock'
+import CodeTabs from '@/components/shared/CodeTabs'
 
 const COMPARISONS = [
   { aspect: 'Connection', tcp: 'Connection-oriented (handshake required)', udp: 'Connectionless (fire and forget)' },
@@ -10,6 +10,21 @@ const COMPARISONS = [
   { aspect: 'Flow Control', tcp: 'Yes — window sizing prevents overwhelming receiver', udp: 'No — sender can overwhelm the receiver' },
   { aspect: 'Use Cases', tcp: 'HTTP, SMTP, SSH, FTP, file transfer', udp: 'DNS, gaming, video streaming, VoIP' },
   { aspect: 'Error Checking', tcp: 'Checksums + retransmission on error', udp: 'Checksums only — no retransmission' },
+]
+
+const DOUBTS = [
+  {
+    q: 'If UDP can drop packets, why would anyone choose it?',
+    a: 'When a LATE packet is worse than a LOST one. A three-frames-old position update in a multiplayer game is garbage — retransmitting it (TCP\'s reflex) only adds delay stacked behind fresh data, freezing the entire experience. Games and live video streams skip stale frames rather than wait; audio calls simply drop the delayed sample. DNS queries work perfectly over UDP because a lookup is a single request-response pair: if no reply arrives in 500ms, the client sends again. Modern HTTP/3 and QUIC run on top of UDP but implement their own reliability layer, combining UDP\'s speed with TCP-like guarantees. This hybrid approach dominates modern APIs and video platforms because it avoids TCP\'s head-of-line blocking (one lost packet halts the entire stream) while keeping the protocol lightweight.',
+  },
+  {
+    q: 'Does "unreliable" mean it usually fails?',
+    a: 'No — on healthy networks the vast majority of datagrams arrive intact. Unreliable simply means no automatic GUARANTEE: no acknowledgement packets, no automatic retransmission, no ordering resequencing. The application layer must decide how to handle loss. Consider the 2024 Olympics streaming to millions: if 1 in 10,000 packets vanishes, TCP retransmits it, but by then you\'re watching a 200ms delay while waiting for that one byte from a frame you\'ll never see again. UDP just skips it and plays the next fresh frame. Your browser or media player implements its own reliability checks — maybe Reed-Solomon error correction, maybe just accept the skip. This is why video platforms build custom protocols on UDP: they handle losses intelligently instead of freezing. **Common mistake:** treating "unreliable" as "broken" — UDP fails silently but consistently, while TCP\'s guarantee comes at a high latency cost.',
+  },
+  {
+    q: 'Why exactly is UDP faster?',
+    a: 'UDP eliminates four major TCP overheads. First, no three-way handshake (SYN, SYN-ACK, ACK): you send a packet immediately, no setup. Second, no acknowledgement traffic: TCP sends an ACK for every segment, doubling round-trip messages. Third, no head-of-line blocking: if one byte in a TCP stream is lost, the entire connection stalls until that byte is retransmitted; UDP packets are independent, so packet #3 loss does not block packet #4. Fourth, UDP uses an 8-byte header (source port, destination port, length, checksum) versus TCP\'s 20–60 bytes. In practice, a DNS query gets a reply in under 1ms over UDP because it is one packet each way; over TCP with handshake overhead, you\'d add 2–3 round trips before data even flows. This matters at scale: imagine billions of DNS queries daily. **Rule of thumb:** every promise TCP makes—guarantee, order, flow control—costs milliseconds; UDP trades those promises for raw speed.',
+  },
 ]
 
 export default function UDPVsTCPVisualizer() {
@@ -155,7 +170,7 @@ export default function UDPVsTCPVisualizer() {
         </div>
       </div>
 
-      <CodeBlock examples={[
+      <CodeTabs doubts={DOUBTS} examples={[
         {
           lang: 'javascript' as const, label: 'JavaScript (dgram)',
           code: `const dgram = require('dgram')

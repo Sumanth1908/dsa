@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { Check, Copy } from 'lucide-react'
 
-interface CodeExample {
+export interface CodeExample {
   lang: 'javascript' | 'python' | 'java'
   label: string
   code: string

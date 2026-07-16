@@ -2,7 +2,7 @@ import React from 'react'
 import { useSteps } from '@/hooks/useSteps'
 import StepControls from '@/components/shared/StepControls'
 import ComplexityBadge from '@/components/shared/ComplexityBadge'
-import CodeBlock from '@/components/shared/CodeBlock'
+import CodeTabs from '@/components/shared/CodeTabs'
 
 interface Step { visited: number[]; current: number | null; callStack: number[]; message: string }
 
@@ -149,6 +149,21 @@ public void dfsIterative(TreeNode root) {
   },
 ]
 
+const DOUBTS = [
+  {
+    q: 'Preorder, inorder, postorder — how do I pick?',
+    a: 'The choice depends on WHEN you process the node relative to its children. Ask: does the node\'s work depend on the children\'s results? Use preorder when you process the node FIRST — useful for copying or serializing a tree before touching children (e.g., creating a fresh node). Use inorder (node between left/right children) to get sorted output from a binary search tree: visit left subtree, process node (which is between smaller and larger values), then right. Use postorder when you process the node LAST — essential for tasks where the node needs the children\'s answers (tree height: max(left_height, right_height) + 1), or deletion (delete children first, then remove the node). **Rule of thumb:** ask "does my work depend on children?" — if yes, postorder; if the node\'s value must be visited in order, inorder; otherwise, preorder.',
+  },
+  {
+    q: 'When must I convert recursion to an explicit stack?',
+    a: 'Recursion fails on deep inputs because the CPU\'s call stack has a finite size — roughly 10,000 frames for JavaScript (higher in compiled languages). A skewed tree (where every node has only one child) or a graph with a very long path exhausts this space and crashes with a stack overflow. The iterative version trades the elegance of natural recursion for an explicit stack array (a regular data structure on the heap), which can grow much larger. For example, processing a linked list of 100,000 nodes requires iterative DFS — the recursive version crashes after ~10,000 nodes. Recursive solutions are fine when input depth is guaranteed shallow, but for production systems handling arbitrary user input, iterative DFS is the safety play. **Common pattern:** BFS and DFS both have iterative versions; prefer iterative when depth is unknown.',
+  },
+  {
+    q: 'Is backtracking just DFS?',
+    a: 'Backtracking is DFS applied to a **choice tree** (a tree you build as you explore, not a static input tree). It combines DFS traversal with **state management**: as you recurse deeper, you make a choice (add a candidate), explore all possibilities from that state, then undo the choice on the way back (backtrack). Plain DFS visits nodes in a pre-built graph; backtracking constructs candidates dynamically. For example, solving N-Queens uses backtracking: at each row, you try placing a queen in each column (choose), recursively place queens in remaining rows (explore), then remove the queen if no valid solution emerges (unchoose). This prunes invalid branches early — if a queen placement creates a conflict, backtrack immediately without exploring deeper. **Common mistake:** confusing DFS on a graph with backtracking — backtracking requires reverting mutable state on the call stack; DFS doesn\'t.',
+  },
+]
+
 export default function DFSPatternVisualizer() {
   const steps = dfsSteps()
   const ctrl = useSteps(steps.length)
@@ -239,7 +254,7 @@ export default function DFSPatternVisualizer() {
       </div>
 
       <StepControls ctrl={ctrl} />
-      <CodeBlock examples={CODE_EXAMPLES} />
+      <CodeTabs doubts={DOUBTS} examples={CODE_EXAMPLES} />
     </div>
   )
 }

@@ -1,7 +1,7 @@
 import React from 'react'
 import { useSteps } from '@/hooks/useSteps'
 import StepControls from '@/components/shared/StepControls'
-import CodeBlock from '@/components/shared/CodeBlock'
+import CodeTabs from '@/components/shared/CodeTabs'
 
 interface Step {
   phase: 'define' | 'apply' | 'call' | 'enter-wrapper' | 'call-original' | 'original-runs' | 'original-returns' | 'exit-wrapper' | 'done'
@@ -193,6 +193,25 @@ public class UserService {
   },
 ]
 
+const DOUBTS = [
+  {
+    q: 'When does decorator code actually run?',
+    a: 'Decorator code runs at **definition time**, not call time. The moment Python encounters `@log_time` above `def fetch_user()`, it immediately calls `log_time(fetch_user)` and rebinds the name `fetch_user` to whatever the decorator returns (usually the wrapper). This substitution happens once, during module import or class definition—before any code calls `fetch_user()`. The wrapper function itself runs every time you call the decorated function. This two-level execution is crucial: if your decorator has side effects (like registering a global callback or opening a file), those fire at import time, potentially surprising you if you only expected them during function calls. **Rule of thumb:** decorators execute definition-time code once; wrappers execute call-time code repeatedly.',
+  },
+  {
+    q: 'Why does a decorator WITH arguments need three nested functions?',
+    a: 'A parameterized decorator like `@retry(times=3)` requires three nested functions because of the call chain: `retry(times=3)` must first return a decorator function, which then receives the function being decorated, which finally returns the wrapper. The outer function (`retry`) is a factory—it takes parameters and builds a decorator. The middle function is the actual decorator that matches the `@syntax`—it receives the target function. The innermost function is the wrapper that runs each time the decorated function is called. Without this nesting, you cannot both parameterize the decorator AND access the target function. For example: `@retry(times=3)` calls `retry(times=3)` (factory → returns decorator), which is applied to `get_user` (decorator receives it → returns wrapper), and `get_user(id)` calls the wrapper. **Common mistake:** forgetting that parameterized decorators need an extra layer; writing `@retry` instead of `@retry()` binds the factory itself, not a decorator.',
+  },
+  {
+    q: 'What does functools.wraps actually fix?',
+    a: '`functools.wraps` copies the original function\'s metadata onto the wrapper so introspection tools and debuggers see the correct identity. Without it, `f.__name__` becomes `\'wrapper\'`, docstrings vanish, and debugging becomes confusing—stack traces show `wrapper()` instead of the actual function name. When you inspect `help(decorated_function)`, it shows the wrapper\'s generic docstring rather than the original\'s. `@functools.wraps(original_func)` copies `__name__`, `__doc__`, `__module__`, `__qualname__`, `__annotations__`, and `__dict__` from the original onto the wrapper before the wrapper is returned. This is especially important in testing frameworks and API documentation tools that rely on function names and docstrings. **Rule of thumb:** always use `@functools.wraps` on wrapper functions—it costs nothing and prevents subtle debugging headaches. **Common mistake:** omitting it, then spending hours wondering why your stack traces show `\'wrapper\'` instead of your function\'s real name.',
+  },
+  {
+    q: 'Is @decorator different from writing f = deco(f)?',
+    a: 'No—the `@` syntax is pure syntactic sugar for the assignment `f = deco(f)`. When Python sees `@timer` above `def fetch()`, it is literally equivalent to writing `fetch = timer(fetch)` on the line after the function body. This demystifies stacking: `@cache` over `@retry` over `def get_data()` expands to `get_data = cache(retry(get_data))`. The bottom decorator (`@retry`) applies first (innermost call), wrapping the original function, then the top decorator (`@cache`) wraps that result. This inside-out order surprises many people but follows function composition rules: compose(cache, retry, get_data) applies right-to-left. You can even omit the `@` syntax and write the assignment explicitly—both forms are identical. Understanding this equivalence helps reason about decorator order and behavior. **Rule of thumb:** decorators are just function wrappers; the `@` syntax is just shorthand for rebinding a name to a function call.',
+  },
+]
+
 export default function PyDecoratorsVisualizer() {
   const steps = decoratorSteps()
   const ctrl = useSteps(steps.length)
@@ -308,7 +327,7 @@ export default function PyDecoratorsVisualizer() {
       </div>
 
       <StepControls ctrl={ctrl} />
-      <CodeBlock examples={CODE_EXAMPLES} />
+      <CodeTabs doubts={DOUBTS} examples={CODE_EXAMPLES} />
     </div>
   )
 }

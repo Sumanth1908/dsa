@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react'
-import CodeBlock from '@/components/shared/CodeBlock'
+import CodeTabs from '@/components/shared/CodeTabs'
 
 interface Message {
   id: number
@@ -247,6 +247,25 @@ public class SmartHomeController {
 
 const formatTs = () => new Date().toLocaleTimeString()
 
+const DOUBTS = [
+  {
+    q: 'Pub-sub vs message queue?',
+    a: 'The fundamental difference lies in message distribution: a queue uses competing consumers where each message routes to exactly one worker, enabling job distribution across a team. In contrast, pub-sub delivers its OWN independent copy to every subscriber — a single "order placed" event independently reaches the email service, analytics platform, and inventory system all at once. These models serve different needs: queues parallelize work, while pub-sub broadcasts events. Kafka-style systems elegantly provide both — within a consumer group, workers compete like a queue, but different consumer groups each receive all messages like pub-sub. Understanding this duality is essential for choosing the right broker.\n\n**Rule of thumb:** if you need one event processed by exactly one worker → queue; if you need the same event driving multiple independent actions → pub-sub.',
+  },
+  {
+    q: 'Does the publisher know who is listening?',
+    a: 'No — and that isolation is the entire point of pub-sub. A publisher fires events at a named TOPIC without knowing or caring who listens; the broker automatically fans out to everyone subscribed to that topic. New consumers can appear and start subscribing without any code change to the publisher or even its knowledge. This decoupling is powerful, but it comes with a real price: no one is directly accountable for whether a message was actually HANDLED — if a subscriber crashes, the event silently vanishes. That is why production pub-sub systems demand external monitoring: topic lag metrics, dead-letter queues, and consumer group status checks ensure nothing silently disappears.\n\n**Common mistake:** assuming fire-and-forget means set-and-forget — you still need strong observability.',
+  },
+  {
+    q: 'A subscriber was down for an hour — are its events gone?',
+    a: 'The answer depends entirely on whether your system uses durable subscriptions or ephemeral fan-out. Kafka-style systems persist messages on disk with retention policies: an absent subscriber resumes from its last acknowledged offset, replaying every message it missed. A subscriber offline for an hour will receive all events that arrived during that hour on reconnection. By contrast, classic Redis pub/sub operates as ephemeral fan-out: messages exist only in memory, and any subscriber that was offline simply misses them entirely — there is no replay, no catch-up, the message is gone. This fundamental choice determines your architecture: Kafka enables true event sourcing and audit trails, while Redis suits live dashboards where old events do not matter. Know which mode your system uses before building on it.\n\n**Rule of thumb:** persistence requires infrastructure (disk, offsets, retention); fire-and-forget requires acceptance of loss.',
+  },
+  {
+    q: 'What ordering can I rely on?',
+    a: 'Ordering guarantees in pub-sub systems are much weaker than beginners assume. Most systems (Kafka, Redis) guarantee order only within a partition or for a single key — messages with the same key always appear in the same order to all subscribers, but messages on different keys can arrive out of sequence. There is never a total ordering guarantee across an entire topic. This forces consumers to be defensive: either build idempotent handlers that tolerate reordered events, or embed sequence numbers or precise timestamps in each event and let downstream systems reconcile based on that metadata. A common pattern is using event timestamps plus distributed tracing IDs so dependent events can detect and handle causal violations. Ignore ordering at your peril — many production bugs stem from assuming messages arrive in topic publication order.\n\n**Common mistake:** testing with a single partition or key, then deploying to multi-partition reality where ordering breaks.',
+  },
+]
+
 export default function PubSubVisualizer() {
   const [messages, setMessages] = useState<Message[]>([])
   const [animatingIds, setAnimatingIds] = useState<Set<number>>(new Set())
@@ -469,7 +488,7 @@ export default function PubSubVisualizer() {
         )}
       </div>
 
-      <CodeBlock examples={CODE_EXAMPLES} />
+      <CodeTabs doubts={DOUBTS} examples={CODE_EXAMPLES} />
     </div>
   )
 }

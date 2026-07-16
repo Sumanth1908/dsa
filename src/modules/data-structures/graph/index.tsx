@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import { useSteps } from '@/hooks/useSteps'
 import StepControls from '@/components/shared/StepControls'
 import ComplexityBadge from '@/components/shared/ComplexityBadge'
-import CodeBlock from '@/components/shared/CodeBlock'
+import CodeTabs from '@/components/shared/CodeTabs'
 
 interface GraphNode { id: number; label: string; x: number; y: number }
 interface GraphEdge { from: number; to: number }
@@ -184,6 +184,21 @@ public void dfs(String node, Set<String> visited) {
   },
 ]
 
+const DOUBTS = [
+  {
+    q: 'Adjacency list vs adjacency matrix — how do I pick?',
+    a: 'Adjacency list and matrix represent the same graph differently, each excelling in different scenarios. Use **adjacency list** (O(V + E) memory) when your graph is sparse — most real-world graphs are. With a list, you iterate only over actual edges, not empty cells, making traversals like BFS/DFS blazingly fast. For example, a social network of 1 billion people with ~50 friends each uses O(1B + 50B) = O(51B) space with a list, but O(1B²) = O(10^18) with a matrix — impossible. Use **adjacency matrix** (O(V²) memory) only when your graph is dense or you need O(1) edge lookups constantly, like dense game maps or flight-route networks with many interconnections. **Rule of thumb:** if edges are much fewer than V², reach for the list.',
+  },
+  {
+    q: 'Why does every graph traversal need a visited set when trees do not?',
+    a: 'Graphs can contain cycles, but trees cannot — and this is the critical difference between them. Without a visited set, an algorithm exploring a cyclic graph enters an infinite loop and never terminates. For instance, consider nodes A → B → C → A: a BFS without `visited` would dequeue A, enqueue B, then dequeue B, enqueue C, then dequeue C, enqueue A again — and now A is back in the queue, causing the algorithm to repeat forever. Trees avoid this fundamental issue because there\'s only one path from the root to any given node; you never encounter a node twice unless you deliberately backtrack into its parent, which a proper traversal naturally avoids. **Common mistake:** assuming a simple tree-traversal algorithm works on graphs — it doesn\'t. Always maintain a `visited` Set to track which nodes you\'ve seen.',
+  },
+  {
+    q: 'BFS or DFS — which do I reach for?',
+    a: 'Use BFS for shortest-path queries on unweighted graphs; use DFS for exploration, cycle detection, and backtracking. BFS explores layer-by-layer (breadth-first), guaranteeing the shortest path because it finds all nodes at distance k before any at distance k+1 — imagine searching a family tree: you check all siblings before checking cousins. DFS, by contrast, goes as deep as possible before backtracking, making it ideal for topological sorting (ordering dependency graphs) and detecting cycles in directed graphs. Memory behavior differs sharply: BFS maintains a whole frontier (queue of unvisited neighbors), growing large on wide graphs; DFS uses a call stack and explores one path at a time, requiring less RAM but more recursion depth. **Rule of thumb:** shortest path → BFS; exploring structure or cycles → DFS.',
+  },
+]
+
 export default function GraphVisualizer() {
   const [mode, setMode] = useState<'bfs' | 'dfs'>('bfs')
   const steps = mode === 'bfs' ? bfsSteps(0) : dfsSteps(0)
@@ -295,7 +310,7 @@ export default function GraphVisualizer() {
       </div>
 
       <StepControls ctrl={ctrl} />
-      <CodeBlock examples={CODE_EXAMPLES} />
+      <CodeTabs doubts={DOUBTS} examples={CODE_EXAMPLES} />
     </div>
   )
 }

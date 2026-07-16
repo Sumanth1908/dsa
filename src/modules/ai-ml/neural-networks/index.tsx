@@ -1,7 +1,7 @@
 import React from 'react'
 import { useSteps } from '@/hooks/useSteps'
 import StepControls from '@/components/shared/StepControls'
-import CodeBlock from '@/components/shared/CodeBlock'
+import CodeTabs from '@/components/shared/CodeTabs'
 
 // Email: "WIN $500 NOW!!! Click here: bit.ly/prize  — from unknown sender"
 const INPUTS = [
@@ -94,6 +94,25 @@ const SVG_H = 300
 const inputY = (i: number) => 40 + i * (SVG_H - 80) / 3
 const hiddenY = (i: number) => 30 + i * (SVG_H - 60) / 4
 const outputY = (i: number) => SVG_H / 2 - 30 + i * 60
+
+const DOUBTS = [
+  {
+    q: 'Why do we need activation functions at all?',
+    a: 'Because without them, depth is an illusion — a stack of purely linear layers collapses into a single linear layer, no matter how many you add. Matrix algebra guarantees it: `W2 @ (W1 @ x + b1) + b2` simplifies to `(W2 @ W1) @ x + (W2 @ b1 + b2)`, which is just one matrix and one bias again. A 100-layer linear network has exactly the same expressive power as 1-layer linear regression: straight-line decision boundaries only.\nThe classic counterexample is XOR. Points (0,0) and (1,1) are class 0; (0,1) and (1,0) are class 1. No single straight line separates them — but a tiny 2-neuron hidden layer with ReLU solves it easily, because the nonlinearity lets the network bend space.\n- Linear layer alone: can only rotate, scale, and shift the input space.\n- Nonlinearity between layers: lets each layer fold the space, so later layers see a warped version in which the classes become separable.\n- Depth + nonlinearity: composes many small bends into arbitrarily complex decision surfaces — this is what the universal approximation theorem is really about.\n**Rule of thumb:** every hidden layer gets a nonlinearity after it; the only place you routinely skip one is the final output layer.',
+  },
+  {
+    q: 'What is backpropagation actually computing?',
+    a: 'The gradient of the loss with respect to EVERY weight and bias in the network — computed in one backward sweep that costs roughly the same as one forward pass. It does NOT update the weights; that is the optimizer\'s job afterwards.\nThe trick is the chain rule plus reuse. The loss depends on a layer-1 weight only through everything downstream of it, so its derivative is a long product of local derivatives. Backprop walks from the output backwards, computes each layer\'s local piece once, and passes the accumulated gradient upstream — classic dynamic programming. Computing a million partial derivatives independently would cost a million forward passes; backprop gets all of them for the price of about one.\nIn PyTorch the split is explicit:\n- `loss.backward()` — backprop: fills every parameter\'s `.grad` field with the gradient of the loss for that parameter.\n- `optimizer.step()` — gradient descent: nudges each weight against its gradient, effectively `w -= lr * w.grad`.\n- `optimizer.zero_grad()` — clears the gradients so the next batch starts fresh.\nEach gradient answers one question: if I nudge this weight up a tiny bit, does the error rise or fall, and how steeply?\n**Interview tip:** backprop is the gradient COMPUTATION; gradient descent is the UPDATE rule. Conflating the two is the most common mix-up.',
+  },
+  {
+    q: 'Weights vs biases, parameters vs hyperparameters?',
+    a: 'Weights and biases are the numbers training LEARNS; hyperparameters are the knobs YOU set before training starts. A neuron computes `w·x + b`: each weight scales how much one input matters, and the bias shifts the threshold at which the neuron fires. Without a bias, every neuron\'s decision boundary is forced to pass through the origin — the bias is what lets it slide to wherever the data needs it.\nConcretely, the spam classifier above has 4 inputs feeding 5 hidden neurons: that is 4×5 = 20 weights plus 5 biases, then 5×2 + 2 for the output layer — 37 parameters total, every one adjusted by backprop. GPT-3 has 175 billion of these; the mechanism is identical, just bigger matrices.\nHyperparameters never receive gradients. The usual suspects:\n- Learning rate (e.g. `0.001`) — step size per update; too high and training diverges, too low and it crawls.\n- Architecture — number of layers, neurons per layer, choice of activation.\n- Batch size and epochs — how much data per update, and how many passes over the dataset.\nYou tune hyperparameters by experiment — grid search, or watching a validation-loss curve — not by gradient descent.\n**Rule of thumb:** if backprop updates it, it\'s a parameter; if you\'d put it in a config file, it\'s a hyperparameter.',
+  },
+  {
+    q: 'Why ReLU everywhere instead of sigmoid?',
+    a: 'Because sigmoid strangles gradients in deep networks and ReLU doesn\'t — and ReLU is nearly free to compute. Sigmoid squashes everything into (0, 1), and its derivative peaks at just 0.25 (at input 0), dropping toward 0 for large positive or negative inputs. Backprop multiplies these slopes layer by layer, so ten sigmoid layers give at best 0.25^10 ≈ 0.000001 — the gradient reaching layer 1 is effectively zero, and the early layers simply stop learning. That is the vanishing gradient problem, and it is a big part of why deep networks were nearly untrainable before ReLU became standard around 2011.\nReLU is just `max(0, x)`: slope exactly 1 for any positive input, so gradients pass through unattenuated no matter how deep the stack. It is also a single comparison, versus sigmoid\'s `exp()` call.\n- ReLU\'s downside: a neuron whose pre-activation goes permanently negative outputs 0 with 0 gradient forever — the "dying ReLU" problem. Leaky ReLU (`max(0.01x, x)`) fixes it.\n- Sigmoid still earns its place at the OUTPUT of a binary classifier, where you genuinely want a probability between 0 and 1.\n- Modern large models like GPT and BERT use GELU — a smooth ReLU relative.\n**Common mistake:** swapping the final-layer sigmoid/softmax for ReLU. Hidden layers want ReLU; the output activation is dictated by what the prediction means.',
+  },
+]
 
 export default function NeuralNetworksVisualizer() {
   const steps = nnSteps()
@@ -237,7 +256,7 @@ export default function NeuralNetworksVisualizer() {
       </div>
 
       <StepControls ctrl={ctrl} />
-      <CodeBlock examples={CODE_EXAMPLES} />
+      <CodeTabs doubts={DOUBTS} examples={CODE_EXAMPLES} />
     </div>
   )
 }

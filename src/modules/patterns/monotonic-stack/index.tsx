@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 import { useSteps } from '@/hooks/useSteps'
 import StepControls from '@/components/shared/StepControls'
 import ComplexityBadge from '@/components/shared/ComplexityBadge'
-import CodeBlock from '@/components/shared/CodeBlock'
+import CodeTabs from '@/components/shared/CodeTabs'
 
 type Problem = 'next-greater' | 'daily-temperatures' | 'largest-rectangle'
 
@@ -271,6 +271,21 @@ const BAR_PRESETS = {
   'largest-rectangle':  [2, 1, 5, 6, 3, 4, 7, 2],
 }
 
+const DOUBTS = [
+  {
+    q: 'Popping elements feels like losing information — why is it safe?',
+    a: 'A popped element is never actually lost — you\'ve already recorded its answer. Think of it this way: when you pop `arr[j]` because the current `arr[i]` is larger, you set `result[j] = arr[i]`. That\'s irreversible progress.\nIn the "next greater element" problem, once a taller value arrives, anything shorter behind it in the stack can NEVER be anyone\'s answer again because the taller one blocks all future lookups. For example, if you have prices `[5, 8, 3]` and then see `11`, you pop both `8` and `5` because `11` is larger than both. After they\'re popped, their "next greater" is recorded (`8→11`, `5→11`), and they\'re no longer candidates for anything else on the right. A pop is proof of irrelevance, not loss of data. Every element you pop gets exactly one answer recorded before it leaves the stack.',
+  },
+  {
+    q: 'Increasing or decreasing stack — how do I choose?',
+    a: 'The choice depends on what you\'re hunting for. If you need the next GREATER element, maintain a DECREASING stack of values — when a new element is larger than the top, pop (you\'ve found the answer). If you need the next SMALLER element, maintain an INCREASING stack — pop when the new element is smaller. The mnemonic: the stack always holds candidates still WAITING for their answer, ordered in whatever way lets them stay waiting longest. For instance, in "daily temperatures" with temps `[65, 72, 68]`, you maintain decreasing order: push 65, push 72 (72 > 65, so pop 65), push 68 (68 < 72, so don\'t pop yet). The decreasing invariant means any future warmer day will immediately find waiting candidates. Keep the monotone order that matches your hunt direction — increasing for smaller, decreasing for greater.',
+  },
+  {
+    q: 'A while nested inside a for — why is this O(n)?',
+    a: 'The amortized O(n) claim holds because each index is pushed exactly once and popped at most once. Over the entire algorithm, you make at most 2n stack operations (n pushes + n pops), so the nested loop is misleading. The inner while loop doesn\'t run arbitrarily often — it only "spends" from a budget the outer loop deposits. Think of it like a credit system: each new element (pushed in the for loop) gives you one "pop credit." The while loop burns credits by popping elements that violate the monotone invariant. Since you only ever have n credits total, the while loop cannot pop more than n times across the entire run. For example, in `[5, 8, 3, 11]`, element 11 pops three items (5, 8, 3), but those three pops are "paid for" by the three credits from pushing 5, 8, and 3 earlier. **Rule of thumb:** nested loops on stacks are O(n) amortized, not O(n²), because each element has a one-time push and one-time pop budget.',
+  },
+]
+
 export default function MonotonicStackVisualizer() {
   const [problem, setProblem] = useState<Problem>('next-greater')
 
@@ -419,7 +434,7 @@ export default function MonotonicStackVisualizer() {
       </div>
 
       <StepControls ctrl={ctrl} />
-      <CodeBlock examples={CODE_EXAMPLES} />
+      <CodeTabs doubts={DOUBTS} examples={CODE_EXAMPLES} />
     </div>
   )
 }

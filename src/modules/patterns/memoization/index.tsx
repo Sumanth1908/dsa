@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 import { useSteps } from '@/hooks/useSteps'
 import StepControls from '@/components/shared/StepControls'
 import ComplexityBadge from '@/components/shared/ComplexityBadge'
-import CodeBlock from '@/components/shared/CodeBlock'
+import CodeTabs from '@/components/shared/CodeTabs'
 
 type Problem = 'fibonacci' | 'coin-change'
 
@@ -214,6 +214,21 @@ const ACTION_STYLE: Record<string, string> = {
   try:       'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400',
 }
 
+const DOUBTS = [
+  {
+    q: 'How is memoization different from "caching"?',
+    a: 'Memoization is caching, but specialized to pure functions where output depends only on input — there\'s a fundamental difference. With HTTP caching, the server might update and your cached response goes stale. With memoization, the function is pure: `fib(5)` will always return `5`. The cache key is the arguments, the value is the return result, and entries never go stale because the function\'s behaviour is immutable. This is why memoization is safe to bolt on mechanically to any pure function — you don\'t need invalidation logic, eviction strategies, or cache-busting. Unlike distributed caches (Redis, memcached), which deal with consistency headaches, a memo dict in your function stays locally correct forever. **Common mistake:** caching the result of an impure function like `random()` or `getCurrentTime()` — those need fresh computation every call.',
+  },
+  {
+    q: 'Why does fib(50) go from minutes to instant?',
+    a: 'Naive recursive Fibonacci has exponential complexity — about 2^n calls — because it recomputes the same subproblems over and over. `fib(5)` appears twice in the tree of `fib(7)`, and `fib(4)` appears three times. This explosion compounds: the call tree doubles at every level. Memoization dedups this by computing each distinct input exactly once and caching the result. On a repeat call, `memo[5]` is a dictionary lookup — O(1) instead of recalculating the entire subtree. This collapses 2^n calls down to n: suddenly `fib(50)` — which would take minutes — runs instantly. The algorithm stays the same recursive structure; only the cache prevents redundant work. **Key insight:** overlapping subproblems are the problem memoization solves — without them, a cache helps little.',
+  },
+  {
+    q: 'What breaks memoization?',
+    a: 'Three pitfalls break memoization. First, impure functions: if your function calls `random()`, reads system time, or does I/O, the result changes each invocation. Caching `random()` means you get the same number forever, which is wrong. Second, mutable cache keys: if you cache with a list as a key and later mutate that list, the cache becomes inconsistent (some languages like Python don\'t even allow mutable keys). Third, unbounded caches in long-running services: a memo dict keeps growing, consuming memory indefinitely. Real services use eviction policies — like `lru_cache(maxsize=...)` in Python or TTL-based expiry in Redis — to bound memory. **Rule of thumb:** memoization works only for pure, deterministic functions with immutable arguments, and you must bound the cache size in production.',
+  },
+]
+
 export default function MemoizationVisualizer() {
   const [problem, setProblem] = useState<Problem>('fibonacci')
   const [fibN, setFibN] = useState(9)
@@ -366,7 +381,7 @@ export default function MemoizationVisualizer() {
       </div>
 
       <StepControls ctrl={ctrl} />
-      <CodeBlock examples={CODE_EXAMPLES} />
+      <CodeTabs doubts={DOUBTS} examples={CODE_EXAMPLES} />
     </div>
   )
 }

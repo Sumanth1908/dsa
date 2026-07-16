@@ -1,7 +1,7 @@
 import React from 'react'
 import { useSteps } from '@/hooks/useSteps'
 import StepControls from '@/components/shared/StepControls'
-import CodeBlock from '@/components/shared/CodeBlock'
+import CodeTabs from '@/components/shared/CodeTabs'
 
 interface Step {
   requestAt: 'client' | 'edge-ny' | 'origin' | null
@@ -88,6 +88,25 @@ cf.create_invalidation(
         'CallerReference': str(time.time())
     }
 )`,
+  },
+]
+
+const DOUBTS = [
+  {
+    q: 'How does my request find the "nearest" edge server?',
+    a: 'Two mechanisms work together. First, DNS: when you request cdn.example.com, the CDN\'s authoritative resolver detects your resolver\'s geolocation (from its IP) and answers with the closest edge server\'s IP address. This is fast and deterministic — a New York query gets NY edge IP, a Tokyo query gets Tokyo. The second mechanism is **anycast**: many CDN edges advertise the same IP address (say 1.2.3.4), and BGP routing on the internet itself naturally sends your packet to the nearest one. Most CDNs use DNS for initial steering because it\'s easier to tune per-region load and implement fallbacks. Anycast is stateless and elegant — no lookup needed — but harder to debug. The resolver also considers current load; if one edge is congested, it might steer you to the second-closest. **Rule of thumb:** CDNs solve distance by putting logic where the network knows where you are.',
+  },
+  {
+    q: 'What happens on a cache miss at the edge?',
+    a: 'When an edge server receives a request for content not in its cache, it becomes a gateway to the origin. The edge fetches the response from your origin server (often indirectly through a regional "shield" cache — a mid-tier that sits between thousands of edges and the single origin, reducing origin load). While fetching, the edge reads the response\'s Cache-Control header and TTL: if max-age=3600, it stores a copy locally for 1 hour. Only after storing does it send the response back to the client. This matters: the first visitor in New York who requests a video pays the full origin latency (~160ms). But while that request is in-flight, any second visitor to the NY edge gets a cache HIT on the stored response (8ms). The shield cache is the secret: without it, every edge would hammer the origin independently. With it, a single regional shield serves dozens of edge locations. **Common mistake:** forgetting Cache-Control headers on dynamic content — edges will cache it anyway per a default TTL.',
+  },
+  {
+    q: 'How do deploys avoid serving stale JS for a week?',
+    a: 'Content-addressed filenames make staleness impossible. Instead of serving app.js (same name, different content), you include a hash of the file in the name: app.3f9c2b.js. This file is cached with Cache-Control: immutable, max-age=31536000 — one year, globally, forever. When you deploy new code, the build system generates a new hash, say app.a1b2c3d4.js, and the short-TTL HTML (max-age=5m) references this new URL. Browsers and CDNs see an entirely new resource and fetch it immediately, while old browser caches still serve the old app.3f9c2b.js to in-flight users. Zero downtime: requests in-flight when you deploy continue working. This is called cache busting by URL, and it\'s the only way to guarantee no stale JS. Some CDNs offer purge APIs (clear a specific URL across all edges instantly), but purge propagation is slow and imperfect — one edge might miss the invalidation. **Rule of thumb:** immutable content hashing + short-TTL pointers = atomic, zero-downtime deploys.',
+  },
+  {
+    q: 'Can a CDN help with dynamic, personalized responses?',
+    a: 'Yes — CDNs help even when responses can\'t be cached globally. First, TLS termination happens at the edge, not the origin: your client negotiates encryption with the nearest edge server (10ms round-trip), which then opens a new TLS connection to the origin. This is fast because the edge-to-origin link is a warm, optimized connection that stays open and reused across requests. Second, modern CDNs like Cloudflare and AWS CloudFront run JavaScript at the edge — Wasm code that can decide whether to cache, personalize, or serve stale data. Example: a personalized homepage with `Cache-Control: max-age=10, s-maxage=300` is cached at the edge for 5 minutes but revalidated at the origin within 10 seconds for the browser, so users see near-instant responses while content stays fresh. API responses (like a user\'s own data) use `Cache-Control: private` so edges don\'t cache, but the edge-to-origin leg is still fast. **Common mistake:** assuming CDNs only work for static files — they multiply speed for ALL traffic.',
   },
 ]
 
@@ -239,7 +258,7 @@ export default function CDNVisualizer() {
       </div>
 
       <StepControls ctrl={ctrl} />
-      <CodeBlock examples={CODE_EXAMPLES} />
+      <CodeTabs doubts={DOUBTS} examples={CODE_EXAMPLES} />
     </div>
   )
 }

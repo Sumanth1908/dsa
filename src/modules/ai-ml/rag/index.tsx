@@ -1,7 +1,7 @@
 import React from 'react'
 import { useSteps } from '@/hooks/useSteps'
 import StepControls from '@/components/shared/StepControls'
-import CodeBlock from '@/components/shared/CodeBlock'
+import CodeTabs from '@/components/shared/CodeTabs'
 
 const STAGES = ['Ingest', 'Chunk', 'Embed', 'Store', 'Query', 'Search', 'Augment', 'Generate']
 
@@ -126,6 +126,25 @@ async function buildRAG() {
 const STAGE_COLORS = [
   'bg-violet-500', 'bg-indigo-500', 'bg-blue-500', 'bg-cyan-500',
   'bg-emerald-500', 'bg-amber-500', 'bg-orange-500', 'bg-rose-500',
+]
+
+const DOUBTS = [
+  {
+    q: 'Why RAG instead of fine-tuning the model on my documents?',
+    a: "They solve different problems: fine-tuning teaches the model a STYLE or behavior, while RAG hands it FACTS at answer time. For document knowledge, RAG wins on cost, freshness, and traceability.\nThe mechanism explains why. Fine-tuning nudges billions of weights with gradient descent — facts end up smeared across the network, recall is unreliable, and the model cannot tell you where an answer came from. Worse, the knowledge is frozen at training time: change one warranty clause and you need a whole new training run. With RAG the knowledge lives in an external index, so an update means re-embedding one document. Embedding this demo's 231 chunks with a model like `text-embedding-3-small` costs well under a cent and finishes in seconds; a fine-tune job costs hours and real money every single time your docs change.\n- Fine-tune when you want tone, output format, or domain jargon baked in (e.g. always answer as terse JSON).\n- Use RAG when the model needs current, private, or citable facts.\n- Combine them in production: a fine-tuned model that consumes retrieved context is a common pattern.\n**Rule of thumb:** fine-tune the HOW, retrieve the WHAT.",
+  },
+  {
+    q: 'Why chunk documents instead of embedding whole files?',
+    a: "Because an embedding is one fixed-size point — 768 numbers in this demo — no matter how much text you feed in. Embed a 50-page manual that covers installation, warranty, AND troubleshooting and you get the average of all those topics: a vector close to none of them.\nRetrieval then degrades into finding 'vaguely related documents'. A query like 'how do I reset my password?' scores a mediocre ~0.6 against every whole manual instead of 0.94 against the one paragraph that actually answers it. Chunks of a few hundred tokens keep roughly one idea per vector, so similarity search can land on the exact passage. There is also a hard practical limit: whatever you retrieve must fit into the prompt next to the question, and models pay less attention to facts buried in the middle of a huge context (the 'lost in the middle' effect).\n- Too big: multiple topics per vector, diluted similarity scores.\n- Too small: a chunk like 'click the button' loses the context of WHICH button on WHICH screen.\n- Overlap of 10-20% (`chunk_overlap=20` in the code above) stops sentences being cut mid-thought at chunk boundaries.\n**Rule of thumb:** a chunk should read like a self-contained answer — usually 200-500 tokens.",
+  },
+  {
+    q: 'Does RAG eliminate hallucinations?',
+    a: "No — it reduces them substantially but cannot eliminate them, because generation is still probabilistic next-token prediction. The retrieved context is a strong hint the model usually follows, not a hard constraint it must obey.\nSeveral failure modes survive retrieval:\n- Retrieval misses: if the right chunk never makes it into the prompt, the model falls back on its training-data priors and confidently improvises.\n- Blending: the model merges your context with what it 'remembers' — e.g. citing your product name but a competitor's warranty terms.\n- Ignoring instructions: even told to answer only from context, a chatty model may embellish around the edges.\n- Garbage in: if the chunk itself is outdated or wrong, the answer is faithfully wrong.\nMitigations stack. Use hybrid keyword+vector search plus a reranker so better chunks arrive; add an explicit system instruction like `Answer only from the provided context; if it is not there, say you don't know`; apply a similarity threshold (this demo discards anything below 0.75) so junk never reaches the prompt; and return citations so a human can spot-check which chunk grounded each claim.\n**Common mistake:** blaming the LLM for a wrong answer without logging the retrieved chunks — in most real incidents retrieval delivered junk and the model just worked with what it got.",
+  },
+  {
+    q: 'Retrieval returns junk — where do I look first?',
+    a: "Debug in a fixed order: chunking, then query-document mismatch, then the embedding model itself. Start by printing the top-k retrieved chunks for 10 real user queries — most teams are shocked by what they actually see.\n- Chunking first: chunks split mid-sentence, 2,000-token monsters mixing five topics, or 20-token fragments with no surrounding context all poison retrieval before anything else matters. Fix sizes and overlap, and split on headings and paragraphs rather than raw character counts.\n- Query-document mismatch next: questions do not look like prose answers. 'I can't log in' shares almost no vocabulary — and only moderate embedding similarity — with 'click Forgot Password on the login page'. Hybrid search (BM25 keyword + vector, results merged) catches exact terms like error codes and product names that embeddings blur over; a cross-encoder reranker (e.g. Cohere Rerank) then re-scores the top ~50 candidates down to a sharp top 3.\n- Embedding model last: only after the above, swap in a stronger model (check the MTEB leaderboard) and re-index everything.\nRetrieval quality caps the whole pipeline — if the right chunk is not in the top-k, no amount of prompt engineering downstream can recover it.\n**Interview tip:** mention measuring recall@k on a small labeled eval set — it turns 'retrieval feels bad' into a number you can actually improve.",
+  },
 ]
 
 export default function RAGVisualizer() {
@@ -287,7 +306,7 @@ export default function RAGVisualizer() {
       </div>
 
       <StepControls ctrl={ctrl} />
-      <CodeBlock examples={CODE_EXAMPLES} />
+      <CodeTabs doubts={DOUBTS} examples={CODE_EXAMPLES} />
     </div>
   )
 }

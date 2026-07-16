@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import { useSteps } from '@/hooks/useSteps'
 import StepControls from '@/components/shared/StepControls'
 import ComplexityBadge from '@/components/shared/ComplexityBadge'
-import CodeBlock from '@/components/shared/CodeBlock'
+import CodeTabs from '@/components/shared/CodeTabs'
 
 interface TrieNodeData {
   char: string
@@ -256,6 +256,21 @@ class Trie:
   },
 ]
 
+const DOUBTS = [
+  {
+    q: 'Why a trie when a hash set already gives O(1) word lookup?',
+    a: 'Hash sets only answer exact-match queries ("is word X present?"), but tries answer prefix queries that hashing cannot. For example, typing "ca" into autocomplete needs all words starting with that prefix instantly — car, cat, care. In a hash set, these strings would scatter across unrelated buckets based on their full-string hash, forcing a complete table scan. A trie instead groups all words sharing the "ca" prefix under one subtree, so you find all matches by walking one single path. This makes prefix retrieval O(m) where m is the prefix length, not O(n) where n is your vocabulary size. **Rule of thumb:** use a hash set for exact-match-only problems, and a trie whenever you need autocomplete, spell-checking, or any prefix operation.',
+  },
+  {
+    q: 'How does the trie know "car" is a word but "ca" is just a prefix?',
+    a: 'Each node in a trie carries an `isEnd` boolean flag that marks whether the path from root to that node forms a complete word. For example, in a trie containing both "car" and "care", the nodes form a chain: root → c → a → r → e. The node reached by c → a → r has `isEnd = true` (word "car"), and the node reached by c → a → r → e also has `isEnd = true` (word "care"). Without this flag, you couldn\'t distinguish "car" (a complete word) from "ca" (just an intermediate prefix node). This design keeps prefix matching cheap: you walk to the target prefix node in O(m) time, then return all descendants to find matching words. **Key insight:** the flag separates complete dictionary words from shared prefix paths.',
+  },
+  {
+    q: 'What is the memory catch?',
+    a: 'A trie\'s memory cost comes from storing children pointers on every node: in English you might have up to 26 pointers per node (one per letter) even if a node only has 2 actual children. With millions of nodes in a large dictionary, most become nearly empty and waste space. For example, a naive trie of 1M words uses O(N·m) nodes but allocates 26 slots per node, most unused. Mitigations include: (1) replacing the array with a hash map, storing only the children that exist — O(alphabet size) per node worst case instead of always 26; (2) radix trees, which collapse chains of single-child nodes into single edges (so b → a → t becomes "bat" on one edge), reducing memory by 50% or more for sparse vocabularies. **Trade-off:** array children are O(1) lookup but waste space; hash-map children save memory but cost O(log k) per lookup.',
+  },
+]
+
 export default function TrieVisualizer() {
   const [mode, setMode] = useState<Mode>('word')
   const [query, setQuery] = useState('care')
@@ -406,7 +421,7 @@ export default function TrieVisualizer() {
       </div>
 
       <StepControls ctrl={ctrl} />
-      <CodeBlock examples={CODE_EXAMPLES} />
+      <CodeTabs doubts={DOUBTS} examples={CODE_EXAMPLES} />
     </div>
   )
 }

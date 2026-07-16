@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import { useSteps } from '@/hooks/useSteps'
 import StepControls from '@/components/shared/StepControls'
 import ComplexityBadge from '@/components/shared/ComplexityBadge'
-import CodeBlock from '@/components/shared/CodeBlock'
+import CodeTabs from '@/components/shared/CodeTabs'
 
 interface Step { heap: number[]; highlight: number[]; swapping: [number, number] | null; message: string }
 
@@ -156,6 +156,21 @@ int max = maxHeap.poll(); // → 20`,
 
 const INITIAL_HEAP = [1, 4, 3, 7, 8, 9, 10]
 
+const DOUBTS = [
+  {
+    q: 'Is a heap sorted?',
+    a: 'No — a heap is not sorted, though it feels like it should be. Only the heap property holds: every parent is better than both its children, but siblings have zero enforced order. The underlying array will appear jumbled: `[1, 4, 3, 7, 8, 9, 10]` is a valid min-heap, yet 4 < 3 and 8 < 9. This "just enough structure" is the genius: you pay O(1) for peek and O(log n) for insert/extract, versus sorted\'s O(n) insertion cost. If you fully sorted every insertion, you\'d lose the speed advantage entirely. The heap sits between chaos and order—structured just enough to find the extremum instantly, but loose enough to avoid expensive rearrangement. **Common mistake:** thinking you can run `.sort()` on a heap array—you can\'t; it\'s not a sorted list.',
+  },
+  {
+    q: 'Why is peek O(1) but extract O(log n)?',
+    a: 'Peeking is instant because the extremum always sits at the root—one array access: `heap[0]`. Extracting is expensive because removing the root leaves a hole that must be filled. To avoid rebuilding the whole tree, the heap strategy is: move the last element to the root, then "sink down" by swapping with the better child, level by level, until the heap property is restored. In a tree of height `log n`, this sinking can take up to `log n` swaps. For example, extracting from `[1, 4, 3, 7, 8, 9, 10]` moves 10 to the root, creates a min-heap violation, then sinks: 10 ↔ 4, then 10 ↔ 8. Each swap moves one level deeper. **Rule of thumb:** peek the priority queue before extracting if you only need the value and don\'t need to remove it.',
+  },
+  {
+    q: 'Why is building a heap from an array O(n), not O(n log n)?',
+    a: 'You might think: n insertions × O(log n) per insert = O(n log n). But the bottom-up heapify algorithm is smarter. It processes nodes in reverse order (from the last non-leaf backward to root), sifting each down. The key insight: half the nodes are leaves and need zero sift-down work, a quarter are one level up and sink one step at most, and so on. The sum of all sift costs is proportional to `n/2 · 1 + n/4 · 2 + n/8 · 3 + ...`, which converges to exactly `2n` via a geometric series. In practice, building `heapq.heapify([3, 1, 4, 1, 5, 9])` is much faster than pushing six times. This is why you can batch-load a heap for free, then use it. **Rule of thumb:** use `heapify(array)` on existing lists; only use `push` when adding items one at a time to a growing heap.',
+  },
+]
+
 export default function HeapVisualizer() {
   const [mode, setMode] = useState<'insert' | 'extract'>('insert')
   const [isMin, setIsMin] = useState(true)
@@ -288,7 +303,7 @@ export default function HeapVisualizer() {
       </div>
 
       <StepControls ctrl={ctrl} />
-      <CodeBlock examples={CODE_EXAMPLES} />
+      <CodeTabs doubts={DOUBTS} examples={CODE_EXAMPLES} />
     </div>
   )
 }

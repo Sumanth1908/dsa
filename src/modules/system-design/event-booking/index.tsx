@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import CodeBlock from '@/components/shared/CodeBlock'
+import CodeTabs from '@/components/shared/CodeTabs'
 
 type Resource = 'events' | 'bookings' | 'users'
 type RaceTab = 'problem' | 'solution'
@@ -220,6 +220,25 @@ const RACE_STEPS_SOLUTION = [
   { who: '✓', action: 'Bob gets 409 "Sold out". No double booking.', state: 'Correct', color: 'text-emerald-600 dark:text-emerald-400' },
 ]
 
+const DOUBTS = [
+  {
+    q: 'Two users click the last seat at the same instant — what actually prevents double-booking?',
+    a: 'The database layer prevents double-booking, not application code. Three mechanisms exist: `SELECT ... FOR UPDATE` (pessimistic row-level locking that blocks concurrent writers until the transaction commits), an optimistic version column (the second writer detects a version mismatch and retries), or a UNIQUE constraint on `(event_id, seat_number)` so the second insert simply fails with a constraint violation. Application-level "check then book" logic always loses the race — between your read of available seats and your insert, another transaction can slip in. Always defer the final seat reservation to the database with one of these patterns. **Rule of thumb:** single-server? SELECT FOR UPDATE. Multi-region? Optimistic locking with retries. Zero risk? UNIQUE constraint on natural keys.',
+  },
+  {
+    q: 'Why hold seats with a TTL before payment?',
+    a: 'Payment processing takes minutes, so without a hold, the entire checkout flow becomes one giant race window where another user can grab the seat. A short-term reservation — either a Redis key with an expiry TTL or a `held_until` timestamp column in the database — blocks rival users from booking the same seat while your transaction completes. If the user abandons the cart or fails to pay, the hold auto-expires (Redis TTL fires or a cleanup job rolls back `held_until` records), freeing the seat for others. Example: hold for 10 minutes. If payment confirms in 7 minutes, commit the booking and release the hold. If payment fails or times out, the hold expires automatically. **Common mistake:** forgetting to release holds on payment success.',
+  },
+  {
+    q: 'Payment succeeded but the booking write failed — now what?',
+    a: 'Payment succeeded, but the booking database write failed — now you have a payment record with no corresponding booking. This is the distributed transaction problem. Make booking confirmation idempotent by tagging each attempt with a unique idempotency key; if the same request arrives twice, return the old result instead of double-charging. Use an outbox pattern: record the booking intent locally before calling the payment API, then retry the payment-to-booking reconciliation loop until success. If reconciliation truly fails after retries, issue a refund as the compensating action. Example: Stripe webhook confirms a charge, but your booking table INSERT fails — log the intent, then have a background job repeatedly reconcile payments to bookings. **Rule of thumb:** assume every system step can fail and crash. Build recovery into your design, not as an afterthought.',
+  },
+  {
+    q: 'How do you survive 100k people rushing 1,000 tickets?',
+    a: 'Never allow all 100,000 concurrent users to hit your database simultaneously. Instead, implement three layers of protection: a virtual waiting room that admits users in controlled batches (Ticketmaster uses this for big sales), caching for browse and search pages so they don\'t hit the database, and aggressive rate limiting to block automated bots and scalpers. Behind these gates, your booking core only handles thousands of contenders, not millions. Example: release tickets at 10 AM; your queue admits 1,000 users at a time, each user gets 5 minutes to complete checkout, then the next batch flows in. Without this funnel, database connection pools overflow, query timeouts spike, and the entire platform goes down. **Rule of thumb:** load-shedding upstream saves your core from melting.',
+  },
+]
+
 export default function EventBookingViz() {
   const [resource, setResource] = useState<Resource>('events')
   const [raceTab, setRaceTab] = useState<RaceTab>('problem')
@@ -330,7 +349,7 @@ export default function EventBookingViz() {
         )}
       </div>
 
-      <CodeBlock examples={CODE_EXAMPLES} />
+      <CodeTabs doubts={DOUBTS} examples={CODE_EXAMPLES} />
     </div>
   )
 }

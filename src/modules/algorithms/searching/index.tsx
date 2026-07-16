@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 import { useSteps } from '@/hooks/useSteps'
 import StepControls from '@/components/shared/StepControls'
 import ComplexityBadge from '@/components/shared/ComplexityBadge'
-import CodeBlock from '@/components/shared/CodeBlock'
+import CodeTabs from '@/components/shared/CodeTabs'
 
 interface Step {
   array: number[]
@@ -104,6 +104,21 @@ int idx = Arrays.binarySearch(arr, target);`,
 
 const ARRAY = [11, 22, 33, 44, 55, 66, 77, 88, 99]
 
+const DOUBTS = [
+  {
+    q: 'Why must the array be sorted?',
+    a: "Because the inference that powers binary search — `target > arr[mid]`, therefore the target must live in the right half — is only valid when order is guaranteed. Sorting is what turns one comparison into a proof about the n/2 elements you never looked at; on unsorted data the discarded half might contain the target.\nWatch it fail concretely. Search for `1` in the unsorted array `[9, 3, 7, 1, 5]`. The middle element is `7`, and since `1 < 7` the algorithm throws away the right half — but `1` actually lives at index 3, inside the half just discarded. The search silently returns not-found for an element that is present.\nWhat this means in practice:\n- Searching once in unsorted data? A plain linear scan is O(n), cheaper than the O(n log n) sort you would need first.\n- Searching many times? Sort once, then every lookup is O(log n) — about 30 comparisons finds anything among a billion sorted items.\n- Data changing constantly? Use a structure that stays sorted for you: a B-tree index in Postgres, or Java's `TreeMap`.\n**Rule of thumb:** sorting is the price of admission — pay it once, and every lookup afterwards is nearly free.",
+  },
+  {
+    q: 'Why write `mid = low + (high - low) / 2`?',
+    a: "Purely to dodge integer overflow. In fixed-width integer languages (Java, C++, C#), `low + high` can exceed the maximum int when both are large, producing a garbage negative number; `low + (high - low) / 2` computes the same midpoint but never builds a sum bigger than `high` itself.\nSee it with real numbers. Java's int maxes out at 2,147,483,647. Searching an array of ~1.5 billion elements, you can legitimately reach `low = 1_200_000_000` and `high = 1_600_000_000`. Their sum is 2.8 billion — past the max — so it wraps negative, and `(low + high) / 2` yields a negative index: instant `ArrayIndexOutOfBoundsException`. This exact bug sat in the JDK's own `Arrays.binarySearch` for about nine years until Joshua Bloch fixed it in 2006 and wrote the famous post 'Nearly All Binary Searches and Mergesorts are Broken'.\nLanguage by language:\n- Java / C++ / C#: use the subtraction form, or Java's `(low + high) >>> 1` — the unsigned shift reinterprets the wrapped bits as a large positive number.\n- Python: ints grow without bound, so `(low + high) // 2` is always safe; the subtraction form is pure habit.\n- JavaScript: numbers are 64-bit floats, exact up to 2^53, so real array indices never get close — but `(low + high) >> 1` coerces to 32 bits and reintroduces the bug for huge virtual ranges.\n**Interview tip:** writing the subtraction form unprompted quietly signals you know the classic overflow bug — be ready to tell the JDK story if asked why.",
+  },
+  {
+    q: 'My binary search loops forever or misses by one — the usual cause?',
+    a: "Almost always mixed inclusive/exclusive conventions: the loop condition assumes one definition of the search range while the `mid` updates assume another, and the disagreement shows up as an infinite loop or an off-by-one miss.\nThe classic infinite loop: `while (low < high)` combined with `low = mid`. Once `low` and `high` are adjacent, `mid = (low + high) / 2` rounds down to `low`, so `low = mid` makes no progress — the loop spins forever on the same two indices. Every update must shrink the range: exclude `mid` after testing it (`low = mid + 1` / `high = mid - 1`), or round toward the half you keep.\nThe fix is discipline, not cleverness — pick ONE invariant and make every line agree with it:\n- Closed range `[low, high]`: loop `while (low <= high)`, update `low = mid + 1` and `high = mid - 1`. The range provably shrinks every iteration.\n- Half-open range `[low, high)`: loop `while (low < high)`, update `low = mid + 1` and `high = mid`. Common in C++/STL-style code.\n- Never mix the two styles in one function — that is where the bugs live.\nThen trace a 2-element array by hand, and for first/last-occurrence variants test on duplicates like `[2, 2, 2]` — nearly every off-by-one reveals itself at n = 2.\n**Rule of thumb:** if you cannot state the loop invariant in one sentence, your `+1`s are guesses.",
+  },
+]
+
 export default function BinarySearchVisualizer() {
   const [target, setTarget] = useState(55)
   const steps = binarySearchSteps(ARRAY, target)
@@ -182,7 +197,7 @@ export default function BinarySearchVisualizer() {
       </div>
 
       <StepControls ctrl={ctrl} />
-      <CodeBlock examples={CODE_EXAMPLES} />
+      <CodeTabs doubts={DOUBTS} examples={CODE_EXAMPLES} />
     </div>
   )
 }

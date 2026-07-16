@@ -1,7 +1,7 @@
 import React from 'react'
 import { useSteps } from '@/hooks/useSteps'
 import StepControls from '@/components/shared/StepControls'
-import CodeBlock from '@/components/shared/CodeBlock'
+import CodeTabs from '@/components/shared/CodeTabs'
 
 interface Packet { from: 'client' | 'server'; label: string; flags: string; color: string; detail: string }
 interface Step { phase: 'handshake' | 'data' | 'teardown'; packets: Packet[]; clientState: string; serverState: string; message: string; activePacket: number | null }
@@ -65,6 +65,21 @@ const STATE_COLOR: Record<string, string> = {
   CLOSE_WAIT: 'bg-rose-100 dark:bg-rose-950 text-rose-700 dark:text-rose-300',
   LAST_ACK: 'bg-orange-100 dark:bg-orange-950 text-orange-700 dark:text-orange-300',
 }
+
+const DOUBTS = [
+  {
+    q: 'Why three messages in the handshake — would two not do?',
+    a: 'The three-way handshake ensures both sides pick AND acknowledge each other\'s starting sequence numbers. SYN lets the client send its Initial Sequence Number (ISN, e.g., 100); SYN-ACK lets the server pick its own ISN (e.g., 300) and acknowledge the client\'s; the final ACK confirms the server\'s. If you stopped at two packets, the server\'s ISN would never be confirmed — the client couldn\'t be sure the server actually received and processed its own ISN. This matters because TCP uses sequence numbers to detect gaps, reorder packets, and confirm which byte you\'re acknowledging. **Rule of thumb:** every ISN must cross the wire AND be acknowledged by the other side.',
+  },
+  {
+    q: 'What does "reliable" promise — and NOT promise?',
+    a: 'TCP promises bytes arrive in order with no loss or corruption, but NOT speed, message boundaries, or secrecy. **What TCP guarantees:** bytes arrive in the order sent (via sequence numbers), lost packets are retransmitted until they succeed, bit corruption is detected and dropped, and duplicate packets are discarded. **What TCP does NOT promise:** speed or latency (no time bounds), message boundaries (TCP is a byte stream — a 100-byte message you send might arrive as two 50-byte reads, or merged with the next message), or secrecy (that\'s TLS\'s job). For example, if you `socket.write(\'hello\')` and `socket.write(\'world\')`, the receiver might read `\'hellowor\'` and `\'ld\'` instead. **Common mistake:** treating TCP like a message protocol instead of a continuous byte stream.',
+  },
+  {
+    q: 'Why does closing take FOUR packets plus a TIME_WAIT?',
+    a: 'TCP closing is 4-way because each direction closes independently — you can send FIN while still receiving data from the other side. Client sends FIN to signal "I\'m done sending"; server ACKs it but may still have buffered data to send. Once the server finishes, it sends its own FIN; client ACKs that. Then TIME_WAIT lingers 2×MSL (Max Segment Lifetime, roughly 4 minutes) so stray retransmitted packets from the old connection die off before the TCP tuple {client_ip:port, server_ip:port} is reused for a new connection. Without TIME_WAIT, a delayed retransmission from the old connection could be mistaken as legitimate data in a new connection with the same addresses. **Rule of thumb:** full-duplex protocol = independent closes in each direction.',
+  },
+]
 
 export default function TCPVisualizer() {
   const steps = tcpSteps()
@@ -201,7 +216,7 @@ export default function TCPVisualizer() {
 
       <StepControls ctrl={ctrl} />
 
-      <CodeBlock examples={[
+      <CodeTabs doubts={DOUBTS} examples={[
         {
           lang: 'javascript' as const, label: 'JavaScript (net module)',
           code: `const net = require('net')

@@ -1,6 +1,22 @@
 import React from 'react'
 import { Link } from 'react-router-dom'
 import ComplexityBadge from '@/components/shared/ComplexityBadge'
+import DoubtsBlock from '@/components/shared/DoubtsBlock'
+
+const DOUBTS = [
+  {
+    q: 'Tree vs binary tree vs BST — what does each add?',
+    a: 'A tree is any hierarchy where each node can have any number of children. A binary tree caps that at two children per node. A BST (binary search tree) adds one crucial ordering rule: for every node, all values in the left subtree are smaller, all values in the right subtree are larger. Each is a stricter variant of the previous.\n\nWhy does this ordering matter? It enables fast lookup. Searching for value 15 in a BST: if your current node holds 20, you know 15 must be in the left subtree—skip the right entirely. This binary elimination at each step gives you O(log n) search, insert, and delete. Without the ordering rule, a plain binary tree offers no such shortcut; you might traverse O(n) nodes.\n\nReal example: Java\'s TreeMap and Python\'s SortedDict both use red-black BSTs internally. A plain binary tree couldn\'t provide the fast lookups these collections promise.\n\n**Rule of thumb:** more constraints = faster guarantees.',
+  },
+  {
+    q: 'Height vs depth — which grows from where?',
+    a: 'Depth and height are inverses that meet in the middle: depth counts DOWN from the root (root starts at 0), while height counts UP from the leaves (each leaf is height 0). A node\'s depth is how many edges separate it from the root—the root\'s depth is always 0. A node\'s height is the longest path from that node down to any leaf below it. The tree\'s overall height is the root\'s height.\n\nWhy distinguish? They measure different things. Depth answers "how far are you from the top?"—useful for level-based iteration, depth limits in recursion, or checking constraints like "diameter < 10". Height answers "how tall is the subtree rooted here?"—useful for balance checking (AVL trees verify |leftHeight - rightHeight| ≤ 1 at every node), or computing aggregate values in tree DP.\n\nExample: in a 4-level tree, the root has depth 0 and height 3; a leaf at the bottom has depth 3 and height 0.\n\n**Common mistake:** confusing which direction is which—remember "depth DOWN, height UP".',
+  },
+  {
+    q: 'Why does everyone obsess over "balanced" trees?',
+    a: 'Every performance guarantee trees offer—O(log n) search, insert, delete—depends on one critical assumption: the tree\'s height must be about log n. A tree doesn\'t enforce this automatically.\n\nInsert sorted data (like 1, 2, 3, 4...) into a naive BST and watch what happens: each new node becomes the right child of the previous one, forming a chain. Height becomes n (the linked-list shape), and all operations collapse to O(n). You\'ve lost every advantage trees offer. This is why AVL trees (self-balancing via rotation after each insert) and red-black trees (color rules + rotations) exist—they guarantee height stays O(log n) no matter what sequence of inserts and deletes you throw at them.\n\nExample: inserting 1, 2, 3 into an unbalanced BST gives you a right-skewed chain (height 3, terrible); an AVL tree restructures itself to height 2 (balanced).\n\n**Takeaway:** balance isn\'t optional—it\'s the entire point of advanced tree structures.',
+  },
+]
 
 export default function TreeOverview() {
   return (
@@ -167,6 +183,8 @@ export default function TreeOverview() {
           <li>• <strong>Serialize / deserialize</strong> — preorder DFS with null markers fully encodes a tree; used in distributed systems and databases</li>
         </ul>
       </div>
+
+      <DoubtsBlock doubts={DOUBTS} />
     </div>
   )
 }

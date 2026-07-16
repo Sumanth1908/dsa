@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { useSteps } from '@/hooks/useSteps'
 import StepControls from '@/components/shared/StepControls'
-import CodeBlock from '@/components/shared/CodeBlock'
+import CodeTabs from '@/components/shared/CodeTabs'
 
 type Pattern = 'strategy' | 'observer' | 'command'
 
@@ -203,6 +203,39 @@ const PATTERN_META: Record<Pattern, { title: string; intent: string }> = {
   command: { title: 'Command', intent: 'Turn an action into an object so it can be queued, logged, and undone' },
 }
 
+const DOUBTS: Record<string, { q: string; a: string }[]> = {
+  strategy: [
+    {
+      q: 'Strategy vs State — the diagrams look identical?',
+      a: 'Ask WHO drives the change. Strategy: the CLIENT picks the algorithm, and it typically stays fixed for the interaction. State: the object TRANSITIONS ITSELF as events happen — states know about other states; strategies are strangers to each other. Example: a Checkout is Strategy — you set the payment method at the top and it stays for the whole transaction. A MediaPlayer in a music app is State — it transitions from stopped → playing → paused → finished autonomously as you press buttons and songs end. State\'s transitions are internal knowledge; Strategy\'s algorithms have no dependency on each other. **Rule of thumb:** if objects ask "who picked this?", it is Strategy; if they ask "what should I become next?", it is State.',
+    },
+    {
+      q: 'Is Strategy obsolete when I can just pass a function?',
+      a: 'A lambda often IS the strategy in modern languages. Reach for the full pattern when strategies carry their own state or configuration, need several related methods, or deserve named, discoverable, independently testable classes. Example: if you need one sorting rule, `users.sort((a, b) -> a.age - b.age)` is perfect. But if you have complex payment flows, each one maintaining transaction logs, retry counts, and fraud checks, a full `CreditCardPayment` class makes sense. Three criteria: does the strategy have internal state? Does it have multiple methods? Should it be unit-tested and reused across the codebase? If any are yes, a class wins. **Common mistake:** using a lambda when the logic grows, forcing refactors later.',
+    },
+  ],
+  observer: [
+    {
+      q: 'Observer vs pub-sub — same pattern?',
+      a: 'Nearly — minus the middleman. Observers subscribe DIRECTLY to the subject: in-process references, usually synchronous. Pub-sub inserts a broker so publisher and subscriber never know each other — enabling different processes, async delivery, and durability. Example: in our StockTicker, the Dashboard calls `ticker.subscribe(this)` directly — tight coupling, but instant. Kafka or RabbitMQ are pub-sub brokers: a service publishes price updates to a topic, completely unaware of consumers; subscribers pull from that topic on their own schedule, even hours later. Brokers decouple in space (different servers) and time (async). **Rule of thumb:** Observer for in-app event wiring; pub-sub for distributed systems.',
+    },
+    {
+      q: 'What bugs bite Observer users the most?',
+      a: 'Forgotten unsubscribes — the subject keeps "dead" listeners reachable, leaking memory and firing zombie updates — and cascade storms where one notification triggers others. Example: a Dashboard subscribes to a StockTicker but the user closes the tab without calling unsubscribe. The ticker\'s observer list still holds a reference, the Dashboard remains in memory, and each `setPrice()` fires on a ghost object. In reentrant cascades, one observer\'s update changes the subject\'s state, triggering another round of notifications. Prevention: always unsubscribe on component teardown (useEffect cleanup in React), keep handlers synchronous and non-blocking, and consider weak references. **Common mistake:** storing long-lived observers without cleanup in SPAs.',
+    },
+  ],
+  command: [
+    {
+      q: 'Why wrap a method call in an object — what does that buy?',
+      a: 'Once a call is DATA (an `execute()` plus its parameters), you can queue it, log it, retry it, schedule it, and reverse it with `undo()`. That is the backbone of editor undo stacks, job queues, and transactional task systems. Example: in our Editor, `new InsertText(doc, "Hello")` is a self-contained object holding both the action (insert) and its data ("Hello"). You can push it onto a queue, persist it to disk, replay it for redo, or send it over a network. Job queues in Celery or Sidekiq use this exact pattern: a task becomes a serializable object that workers pick up and execute later. **Rule of thumb:** if your action needs to exist independent of the caller — logged, retried, scheduled, or undone — Command is your answer.',
+    },
+    {
+      q: 'How does undo actually work with Command?',
+      a: 'Each command captures what it needs to reverse itself (previous value, position). Executed commands go on a stack; undo pops and calls `undo()`, redo re-executes. When the state is too big to capture inline, pair with Memento snapshots. Example: `InsertText` stores the text to reverse (delete that many chars). `DeleteText` would store what was deleted (to re-insert). But if you are editing a huge Photoshop canvas with millions of pixels, capturing each undo state is expensive — pair Command with Memento: before executing, snap a full image state; undo restores that snapshot. Redo works by replaying commands forward. **Common mistake:** forgetting that undo must be EXACT — an InsertText that doesn\'t remove EXACTLY what was inserted will corrupt the undo chain.',
+    },
+  ],
+}
+
 export default function BehavioralPatternsViz() {
   const [pattern, setPattern] = useState<Pattern>('strategy')
 
@@ -368,7 +401,7 @@ export default function BehavioralPatternsViz() {
       </div>
 
       <StepControls ctrl={ctrl} />
-      <CodeBlock examples={[{ lang: 'java', label: `Java — ${PATTERN_META[pattern].title}`, code: JAVA_CODE[pattern] }]} />
+      <CodeTabs doubts={DOUBTS[pattern]} examples={[{ lang: 'java', label: `Java — ${PATTERN_META[pattern].title}`, code: JAVA_CODE[pattern] }]} />
     </div>
   )
 }

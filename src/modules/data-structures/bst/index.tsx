@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import { useSteps } from '@/hooks/useSteps'
 import StepControls from '@/components/shared/StepControls'
 import ComplexityBadge from '@/components/shared/ComplexityBadge'
-import CodeBlock from '@/components/shared/CodeBlock'
+import CodeTabs from '@/components/shared/CodeTabs'
 
 interface TreeNode {
   val: number
@@ -208,6 +208,21 @@ const CODE_EXAMPLES = [
   },
 ]
 
+const DOUBTS = [
+  {
+    q: 'How does a BST degrade to O(n), and what prevents it?',
+    a: "A BST degrades to O(n) when insertions arrive in sorted order, forcing all nodes into a single right branch — essentially a linked list. Insert 1, 2, 3, 4, 5 sequentially: 1 becomes root, 2 goes right, 3 goes right-right, and so on, with height = n. Each search then requires O(n) comparisons. Self-balancing trees (AVL, red-black) prevent this by automatically rotating subtrees after each insert/delete to maintain height O(log n). For example, Java's `TreeMap` uses red-black trees, so inserting 1–100 in sorted order still yields O(log n) search. Without balancing, you get linked-list performance.\n**Common mistake:** Assuming a basic BST maintains O(log n) in all cases — production code should always use TreeMap, TreeSet, or similar self-balancing implementations.",
+  },
+  {
+    q: 'Why does in-order traversal produce sorted output?',
+    a: "The BST invariant (left < node < right) holds at every level, so in-order traversal visits values in ascending order. When you recurse left, all smaller values appear first; then the node itself; then the right subtree's larger values. For example, in-order on a BST with root 50, left subtree [30], right subtree [70] yields [30, 50, 70] — perfectly sorted. This is why validating a BST is solved by checking that the in-order sequence is strictly increasing: if the sequence skips or repeats, the BST property is violated somewhere. Every database index and Java `TreeMap` relies on this property.\n**Rule of thumb:** In-order traversal is the only traversal that produces sorted output; use it when you need a BST's values in ascending order.",
+  },
+  {
+    q: 'When would I pick a BST over a hash map\'s O(1)?',
+    a: "Choose a BST when you need both O(log n) search and sorted order or range operations — hash maps cannot do either. Range queries (\"all users aged 20-30\"), min/max, floor/ceiling, predecessor/successor all require a sorted structure; a hash map scatters keys and cannot answer \"what's the smallest key greater than 25?\" Range queries on large datasets are O(n) in hash maps but O(k + log n) in a BST (where k is the result size). For example, a database index on timestamps uses a B-tree (BST variant) to answer \"get all orders from Jan 1–15\" in milliseconds; a hash table would scan everything. Java's `TreeMap` and Python's `sortedcontainers` are built exactly for this.\n**Common scenario:** Leaderboards, range filters, and interval problems all need BSTs.",
+  },
+]
+
 export default function TreeVisualizer() {
   const [traversal, setTraversal] = useState<Traversal>('inorder')
   const [insertVal, setInsertVal] = useState(45)
@@ -332,7 +347,7 @@ export default function TreeVisualizer() {
       </div>
 
       <StepControls ctrl={ctrl} />
-      <CodeBlock examples={CODE_EXAMPLES} />
+      <CodeTabs doubts={DOUBTS} examples={CODE_EXAMPLES} />
     </div>
   )
 }

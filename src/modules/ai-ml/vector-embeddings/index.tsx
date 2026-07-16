@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import CodeBlock from '@/components/shared/CodeBlock'
+import CodeTabs from '@/components/shared/CodeTabs'
 
 const CLUSTERS = {
   auth: { label: 'Account / Auth', color: '#6366f1', bg: 'bg-indigo-100 dark:bg-indigo-950', text: 'text-indigo-700 dark:text-indigo-300', border: 'border-indigo-300 dark:border-indigo-700' },
@@ -76,6 +76,25 @@ const vecs = await Promise.all(docs.map(embed))
 const query = await embed("I can't log in")
 const scores = vecs.map(v => cosineSim(query, v))
 console.log(scores) // [0.91, 0.07, 0.05]`,
+  },
+]
+
+const DOUBTS = [
+  {
+    q: 'What does a single dimension of an embedding mean?',
+    a: 'Nothing human-readable. Each of the hundreds of axes is a learned latent feature, and no single one maps to a concept like "royalty" or "weather" — the meaning lives in the geometry of the whole vector, i.e. which other vectors it lands near.\nHere is why. During training, the model is free to represent information any way that minimizes its loss. Gradient descent smears concepts across many dimensions, and the coordinate system itself is arbitrary: you could rotate the entire 768-dim space (multiply every vector by the same rotation matrix) and every cosine similarity would stay exactly the same, yet every individual dimension would now hold completely different numbers. So `vector[42] = 0.73` carries no stable meaning on its own.\n- What IS meaningful: distances and angles between vectors — "forgot my password" being 0.91 cosine-similar to "account recovery".\n- What is NOT: reading one coordinate, comparing dimension 42 across two sentences, or hand-editing a dimension to "add" a concept.\n- The famous `king - man + woman ≈ queen` result works on whole-vector arithmetic, not on any single interpretable axis.\n**Common mistake:** trying to debug retrieval by inspecting raw vector values — always debug via similarity scores against known reference texts instead.',
+  },
+  {
+    q: 'Cosine similarity vs Euclidean distance — which one?',
+    a: 'For text embeddings, use cosine similarity — and in practice it usually does not matter, because most text embedding models normalize their outputs to unit length, and on unit vectors cosine and Euclidean produce identical rankings.\nThe conceptual difference: cosine measures the ANGLE between two vectors (semantic direction) and ignores their length; Euclidean measures straight-line distance, which mixes direction with magnitude. In raw (unnormalized) spaces, magnitude often correlates with things you do not want in a relevance score — like document length or word frequency — so a long document could look "far" from a short query even when they mean the same thing. Cosine strips that out.\n- On unit vectors the two are mathematically locked together: `euclidean² = 2 - 2·cosine`, so sorting by one sorts by the other.\n- Libraries like `sentence-transformers` normalize by default (`normalize_embeddings=True`), and OpenAI\'s `text-embedding-3` vectors come pre-normalized — which also means raw dot product equals cosine there, and dot product is the cheapest to compute.\n- Vector databases (Pinecone, pgvector, Qdrant) let you pick the metric per index; pick it once at index creation and never mix metrics between indexing and querying.\n**Rule of thumb:** default to cosine for text; only reach for Euclidean or inner product when your model\'s docs explicitly say the magnitude carries signal.',
+  },
+  {
+    q: 'Can I compare embeddings from two different models?',
+    a: 'No — never. Each model defines its own private coordinate system, so a vector produced by model A is meaningless noise inside model B\'s space, even if both output the same number of dimensions.\nThe reason: an embedding space is just whatever arrangement of vectors happened to minimize that model\'s training loss. Two models trained on different data, architectures, or even just different random seeds converge to completely different (and mutually rotated, scaled, warped) geometries. Dimension 12 in `all-MiniLM-L6-v2` has zero relationship to dimension 12 in `text-embedding-3-small`. Comparing across them is like comparing GPS coordinates from Earth against coordinates from a map of Mars — both are pairs of numbers, but they describe different worlds.\nPractical consequences:\n- Upgrading or switching embedding models means re-embedding the ENTIRE corpus — every stored vector — before any query with the new model makes sense.\n- Store the model name and version alongside your index (e.g. a `model: "text-embedding-3-small"` field) so a mismatch is detectable instead of silently returning garbage results.\n- Plan for this operationally: 10M documents at ~500 tokens each is a real re-embedding bill and hours of batch work, so teams often run old and new indexes side by side during migration.\n**Common mistake:** a RAG pipeline that embeds documents with one model at ingest time and queries with another — it throws no error, it just quietly retrieves nonsense.',
+  },
+  {
+    q: 'How is "nearest of 100 million vectors" fast?',
+    a: 'Because it is not exact. Vector databases use ANN — approximate nearest neighbour — indexes that examine only a tiny fraction of the vectors and accept roughly 95-99% recall in exchange for orders-of-magnitude speedups. That trade IS the entire vector-database business.\nDo the naive math first: exact search means computing cosine similarity against all 100M vectors — at 768 dims that is ~77 billion multiply-adds per query, hundreds of milliseconds to seconds even on good hardware. ANN indexes like HNSW (Hierarchical Navigable Small World, the default in Qdrant, Weaviate, pgvector, and Redis) instead build a layered graph of shortcuts: the top layer has a handful of long-range links, lower layers get denser. A query greedily hops toward its target — like flying to the right country, then the right city, then walking to the door — touching maybe a few thousand vectors instead of 100 million, giving O(log n)-ish behavior.\n- Recall is tunable: raising HNSW\'s `ef_search` parameter checks more candidates — higher recall, higher latency.\n- Other families: IVF partitions vectors into clusters and searches only the nearest few; product quantization compresses vectors so more fit in RAM.\n- "Approximate" means occasionally missing the true #1 neighbor and returning the #2 or #3 — usually harmless in RAG, since you retrieve top-k anyway.\n**Interview tip:** if asked how vector search scales, name the exact-search cost first, then HNSW and the recall-vs-latency knob — that one sentence shows you understand the trade, not just the tool.',
   },
 ]
 
@@ -211,7 +230,7 @@ export default function VectorEmbeddingsVisualizer() {
         </div>
       </div>
 
-      <CodeBlock examples={CODE_EXAMPLES} />
+      <CodeTabs doubts={DOUBTS} examples={CODE_EXAMPLES} />
     </div>
   )
 }

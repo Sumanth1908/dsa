@@ -1,7 +1,7 @@
 import React from 'react'
 import { useSteps } from '@/hooks/useSteps'
 import StepControls from '@/components/shared/StepControls'
-import CodeBlock from '@/components/shared/CodeBlock'
+import CodeTabs from '@/components/shared/CodeTabs'
 
 interface StackFrame { fn: string; status: 'running' | 'waiting' | 'done' }
 interface Step {
@@ -127,6 +127,25 @@ const STATUS_COLOR: Record<string, string> = {
   done: 'bg-emerald-500 text-white',
 }
 
+const DOUBTS = [
+  {
+    q: 'If JavaScript is single-threaded, how does fetch() not block?',
+    a: 'The JS thread hands the network work off to the browser (or libuv in Node), which executes it on separate threads. Your JavaScript code never blocks because the I/O happens outside the event loop entirely — when the response arrives, a callback is queued and the event loop runs it once the call stack empties.\n\nHere\'s the flow: you call `fetch(url)` → browser starts the HTTP request on a background thread → JS execution continues immediately → seconds later, the response arrives → browser moves the callback into the task queue → event loop picks it up and runs it. This is why Node.js can handle thousands of concurrent requests with a single-threaded JavaScript engine — the heavy I/O (network, disk) is delegated. **Common mistake:** thinking `await fetch()` pauses the thread; it actually suspends only that function and lets the event loop run everything else.',
+  },
+  {
+    q: 'Why does a Promise .then() run before setTimeout(..., 0)?',
+    a: 'Promise callbacks go to the microtask queue, which the event loop drains completely before touching the task queue. The priority is strict: all code on the call stack runs first, then all microtasks, then one macrotask, then all new microtasks again.\n\nExample: `Promise.resolve().then(() => console.log(\'P\')); setTimeout(() => console.log(\'T\'), 0)` prints `P` then `T`, even though the timeout is 0ms. Why? After the call stack empties, the event loop sees the Promise callback waiting in the microtask queue and runs it immediately — the setTimeout callback can\'t run until the microtask queue is completely drained. This matters in production: many operations (Promises, MutationObserver, queueMicrotask) go to microtasks, so they will always run before any setTimeout. **Rule of thumb:** use microtasks for work that depends on the current DOM state; use macrotasks for work that should give the browser time to render.',
+  },
+  {
+    q: 'Does await block the thread?',
+    a: 'No — `await` only pauses that one async function, not the entire thread. Control returns to the event loop, which continues running other code, callbacks, and timers. When the awaited promise settles, the rest of the async function is scheduled as a microtask and waits its turn in the event loop queue.\n\nExample: if an async function calls `await fetch(url)` inside a loop, the fetch happens in the background and the function pauses at that line. But the event loop doesn\'t stop — it can process click handlers, other microtasks, and timers. Once the fetch resolves, the code after the `await` re-enters the microtask queue. This is the opposite of a blocking call like `fetch(url)` without `await` — that would freeze the entire program. **Rule of thumb:** `await` is non-blocking by design; it\'s the syntax that makes Promises readable, not a cause of delays.',
+  },
+  {
+    q: 'Is async/await faster than .then() chains?',
+    a: '`async/await` and `.then()` chains have identical performance because they both use the same Promise machinery under the hood. `await` is purely syntactic sugar — the compiler transforms it to `.then()` calls. There is no performance benefit or cost to choosing one over the other.\n\nExample: `const data = await fetch(url)` is compiled to `fetch(url).then(data => ...)` at runtime. Both execute at the same speed, both use microtasks, both follow the same event loop rules. The difference is readability: `async/await` looks like synchronous code, making complex promise chains easier to follow and less prone to nesting errors. For a single operation, either is fine; for five chained operations, `async/await` is far clearer. **Rule of thumb:** choose `async/await` for readability and maintainability, not performance — they are identical in speed.',
+  },
+]
+
 export default function EventLoopVisualizer() {
   const steps = eventLoopSteps()
   const ctrl = useSteps(steps.length)
@@ -241,7 +260,7 @@ export default function EventLoopVisualizer() {
       </div>
 
       <StepControls ctrl={ctrl} />
-      <CodeBlock examples={CODE_EXAMPLES} />
+      <CodeTabs examples={CODE_EXAMPLES} doubts={DOUBTS} />
     </div>
   )
 }

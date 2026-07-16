@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import CodeBlock from '@/components/shared/CodeBlock'
+import CodeTabs from '@/components/shared/CodeTabs'
 
 interface Layer {
   number: number
@@ -194,6 +194,25 @@ while (true) {
   },
 ]
 
+const DOUBTS = [
+  {
+    q: 'Do real networks actually run all 7 layers?',
+    a: "Real production networks don't literally implement all 7 layers in strict order — they follow the TCP/IP model, which merges them into 4: Link, Internet, Transport, and Application. Session and Presentation functions blur into the Application layer: HTTPS handles encryption (presentation) alongside HTTP logic (application). OSI survives not as implementation but as VOCABULARY — when engineers say \"L4 load balancer\" or \"layer-2 switch\", they use OSI terms to point at specific network functions. It's a shared mental map, not the terrain. Think of anatomy: doctors discuss \"thoracic\" regions using textbook names, but the body doesn't execute by chapter.\n**Rule of thumb:** OSI is less about what networks do and more about naming the functions that matter when you troubleshoot or optimize.",
+  },
+  {
+    q: 'Switches vs routers — which layer, and why care?',
+    a: 'Switches forward by MAC address within one network (L2); routers forward by IP between networks (L3). This single distinction explains massive real-world behavior: when a switch receives a broadcast (like ARP "who has 192.168.1.1?"), it floods it to every port. A router receives that same packet and blocks it at the subnet boundary — only one copy crosses. VLANs (Virtual LANs) are an L2 concept: they partition a physical switch into isolated broadcast domains. Subnets are L3: they partition an IP network. You can have multiple VLANs sharing one subnet (messy!) or one VLAN spanning subnets (also messy!), but the core distinction stays: L2 is about neighbors on a wire, L3 is about destinations across the globe.\n**Common mistake:** Treating routers and switches as interchangeable — they see fundamentally different address spaces.',
+  },
+  {
+    q: 'Where do TLS and HTTP actually sit?',
+    a: "HTTP is application (L7). TLS wedges between TCP and HTTP — call it L5/L6-ish. The honest answer is that the slots get fuzzy above L4. In practice: TCP (L4) opens a connection, TLS (L5/L6-ish) encrypts the stream, then HTTP (L7) sends requests over that encrypted channel. A browser's `fetch()` call touches all three: you see only L7, but your OS and TLS libraries handle L4-L6 invisibly. The deeper lesson: OSI's boxes get harder to respect the higher you climb. Below L4, layers are well-separated by the kernel. Above L4, they blur because applications rarely care about the old boundaries — they just grab a socket and layer protocol on top of protocol.\n**Rule of thumb:** Below L4 is the kernel's job; above L4 is your code's problem.",
+  },
+  {
+    q: 'What does "encapsulation" mean going down the stack?',
+    a: "Encapsulation is nesting — each layer wraps the previous layer’s data inside its own header, like Russian dolls. HTTP bytes become a TCP segment (L4 header + HTTP data), which becomes an IP packet (L3 header + TCP segment), which becomes an Ethernet frame (L2 header + IP packet). The names literally encode the layer: \"segment\" is the L4 wrapper, \"packet\" is the L3 wrapper, \"frame\" is the L2 wrapper. At the receiver, peeling reverses: the Ethernet card strips the frame header and passes the IP packet up to the network layer. The network layer removes the IP header and hands the TCP segment to the transport layer. TCP strips its header and gives the application the original HTTP bytes. This is why a packet sniffer like `tcpdump` shows nested headers — each layer’s tool reveals that layer’s view.\n**Rule of thumb:** The data grows bigger going down the stack because of headers, and shrinks going up as each layer discards its wrapper.",
+  },
+]
+
 export default function OSIModelVisualizer() {
   const [activeLayer, setActiveLayer] = useState<number | null>(null)
   const [journeyStep, setJourneyStep] = useState<number | null>(null)
@@ -381,7 +400,7 @@ export default function OSIModelVisualizer() {
         )}
       </div>
 
-      <CodeBlock examples={CODE_EXAMPLES} />
+      <CodeTabs doubts={DOUBTS} examples={CODE_EXAMPLES} />
     </div>
   )
 }

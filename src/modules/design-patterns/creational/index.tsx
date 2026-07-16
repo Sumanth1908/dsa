@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { useSteps } from '@/hooks/useSteps'
 import StepControls from '@/components/shared/StepControls'
-import CodeBlock from '@/components/shared/CodeBlock'
+import CodeTabs from '@/components/shared/CodeTabs'
 
 type Pattern = 'singleton' | 'factory' | 'builder'
 
@@ -235,6 +235,39 @@ const PATTERN_META: Record<Pattern, { title: string; intent: string }> = {
   builder: { title: 'Builder', intent: 'Assemble a complex immutable object step by step instead of a constructor with a mile of parameters' },
 }
 
+const DOUBTS: Record<string, { q: string; a: string }[]> = {
+  singleton: [
+    {
+      q: 'Why is Singleton called an anti-pattern?',
+      a: 'It is global mutable state in disguise — hidden dependencies everywhere, impossible to substitute in tests, and a lifetime you cannot control. When you call `DatabaseConnection.getInstance()` deep inside a service layer, that service is secretly bound to a global object, and swapping a mock for testing becomes painful. The modern stance: create ONE instance at your composition root — e.g., in a Guice/Spring @Singleton-annotated bean or a factory function — and inject it where needed. This makes dependencies visible, testability simple, and failure easier to reason about. **Rule of thumb:** if you can count the callers who need it, pass it as an argument instead of reaching for a static accessor.',
+    },
+    {
+      q: 'Why is lazy initialization tricky with threads?',
+      a: 'Two threads can pass the `if (instance == null)` check simultaneously and construct two instances. Between the null check and the actual construction, a race window opens: Thread-A sees null, Thread-B sees null, and both race to create. The JVM\'s visibility guarantees are weak, so both may end up with a built object. Fixes: eager initialization (create it at class load time), double-checked locking with a `volatile` field (Java now guarantees volatile writes flush globally), or the static holder class idiom where the JVM itself ensures lazy, thread-safe initialization. **Common mistake:** using `synchronized` on the instance check alone — you still need the second check inside the lock. The `volatile` keyword prevents reordering and half-built visibility.',
+    },
+  ],
+  factory: [
+    {
+      q: 'Factory Method vs Abstract Factory — the actual difference?',
+      a: 'Factory Method creates ONE product type through an overridable method that subclasses can specialize. You override `createNotification()` in each service subclass (EmailService, SmsService) and the base class calls it polymorphically. Abstract Factory bundles SEVERAL related factory methods into a single object that creates a coordinated FAMILY of products — think of a UI toolkit\'s `Button`, `Menu`, and `Dialog` all being created by the same factory for a consistent theme. If you switch to a dark theme factory, every component updates together. Factory Method is inheritance-based and single-type; Abstract Factory is composition-based and multi-type. Real example: Java\'s `DocumentBuilderFactory` creates different XML parsers (Xerces, Saxon) through factory methods, ensuring all components speak the same XML dialect.',
+    },
+    {
+      q: 'Is a factory not just `new` with extra steps?',
+      a: 'The point is where the decision lives. Callers depend on the interface; the choice of concrete class sits in ONE place. Instead of scattering `new EmailNotification()` and `new SmsNotification()` across your codebase, the factory method or factory class owns that switch statement. When you swap implementations — say, replacing an in-memory NotificationFactory with a service-registry-backed one — you change one method, not fifty call sites. You can add caching (return the same Notification instance), pooling (reuse a object pool), or dynamic registration (look up types in a registry at runtime) without the caller knowing. This is the Open/Closed Principle: open for extension (new notification types), closed for modification (client code stays stable). Real example: Spring\'s `BeanFactory` — you ask for a bean by interface; Spring\'s factory owns the decision of which implementation to instantiate and how.',
+    },
+  ],
+  builder: [
+    {
+      q: 'When do I need Builder instead of constructor arguments?',
+      a: 'When construction has many optional parameters — `new Pizza(true, false, null, true)` is unreadable and error-prone — or must happen in validated steps, Builder shines. The constructor becomes a nightmare: which boolean was cheese? Was the second one mushrooms or pepperoni? Builder replaces this with named methods: `pizza.cheese(true).mushrooms(true).validate()` — each step is self-documenting. The builder accumulates state mutably, then `build()` validates the whole object at once (e.g., checking that timeout > 0) and returns an immutable HttpRequest. This forces validation into one place and ensures the final product is always valid. Trade-off: you write more code, but call sites become readable and arguments cannot be swapped. Real systems like Spring\'s `RestTemplate` and Google\'s Protocol Buffers use this heavily.',
+    },
+    {
+      q: 'Do languages with named or default arguments still need Builder?',
+      a: 'Far less — Python\'s `Pizza(cheese=True)` named arguments or JavaScript\'s options object `{ cheese: true, mushrooms: true }` covers the readability half. You avoid the positional-argument confusion, and the syntax is familiar. However, Builder still earns its keep in statically typed languages for staged construction where you must call methods in an order (e.g., set URL before timeout), for producing immutable products that prevent postconstruction tampering, and for fluent APIs that guide the caller step by step (autocomplete helps, too). TypeScript/Java IDEs autocomplete the builder chain, making the API self-teaching. Also, Builder decouples the construction logic from the class itself — you can swap builders without changing the class. Real example: Java\'s `HttpRequest.newBuilder()` in Java 11 uses Builder even though Java lacks named arguments, because it produces an immutable request and ensures validation happens once.',
+    },
+  ],
+}
+
 export default function CreationalPatternsViz() {
   const [pattern, setPattern] = useState<Pattern>('singleton')
 
@@ -426,7 +459,7 @@ export default function CreationalPatternsViz() {
       </div>
 
       <StepControls ctrl={ctrl} />
-      <CodeBlock examples={[{ lang: 'java', label: `Java — ${PATTERN_META[pattern].title}`, code: JAVA_CODE[pattern] }]} />
+      <CodeTabs doubts={DOUBTS[pattern]} examples={[{ lang: 'java', label: `Java — ${PATTERN_META[pattern].title}`, code: JAVA_CODE[pattern] }]} />
     </div>
   )
 }

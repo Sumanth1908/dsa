@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { useSteps } from '@/hooks/useSteps'
 import StepControls from '@/components/shared/StepControls'
-import CodeBlock from '@/components/shared/CodeBlock'
+import CodeTabs from '@/components/shared/CodeTabs'
 
 interface BaseStep {
   message: string
@@ -924,6 +924,89 @@ Jedis jedis = new Jedis("localhost");
   ],
 }
 
+const DOUBTS: Record<string, { q: string; a: string }[]> = {
+  mutex: [
+    {
+      q: 'Mutex vs binary semaphore — are they not the same thing?',
+      a: 'A mutex has an OWNER — only the thread that locked it may unlock it. A binary semaphore is just a 0/1 counter that ANY thread may signal, even one that never acquired it.\n\nOwnership is the key difference. Because a mutex knows who holds it, it can enforce strict rules: if you call `unlock()` without holding the lock, the library throws an error. It can also implement priority inheritance, where a high-priority thread waiting on the lock temporarily boosts the current holder\'s priority — preventing priority inversion in real-time systems. Reentrant variants (like Java\'s `ReentrantLock`) use the owner field to let the same thread re-acquire the lock without deadlock; semaphores cannot do this.\n\nA semaphore with N=1 **can** synchronize, but lacking ownership, nothing stops a random waiter from releasing it or a careless release from happening twice — bugs that a mutex\'s ownership prevents. **Rule of thumb:** use a mutex when you need exclusive access to one resource; use a semaphore when you have N **identical** resources.',
+    },
+    {
+      q: 'What happens to a thread that requests a locked mutex?',
+      a: 'When a thread requests a locked mutex, it blocks — the OS kernel puts it to sleep and removes it from the CPU. Once the lock is released, the kernel wakes the thread and returns to user code.\n\nThis context switch costs microseconds but saves energy: the CPU core freed by the sleeping thread can do real work. In a single-threaded system or if all threads are blocked, the CPU goes idle. Compare this to a spinlock, which never sleeps — a waiting thread spins in a tight loop (`while (locked) {}`), burning a full CPU core to retry acquiring the lock maybe billions of times per second.\n\nContext-switch cost is why spinlocks only make sense when the critical section is **very** short (nanoseconds). For longer critical sections — file I/O, network calls, database queries — blocking is far cheaper: you pay one context switch to sleep, and one to wake, but the CPU isn\'t wasted on futile retries. **Common mistake:** using a blocking mutex in a sub-microsecond critical section, where the context-switch overhead dwarfs the actual work.',
+    },
+  ],
+  semaphore: [
+    {
+      q: 'When do I want a COUNTING semaphore instead of a mutex?',
+      a: 'When there are N identical resources to be shared, a counting semaphore is the natural fit: database connection pools, rate-limited API requests, bounded work queues, or file-descriptor limits. The idea is straightforward: initialize the semaphore to N, and each `acquire()` decrements the permit count, each `release()` increments it.\n\nWhen the count hits zero, the next `acquire()` blocks until someone calls `release()`. For example, a `Semaphore(3)` controlling a database pool of 3 connections: the first three threads grab a permit and run queries in parallel, the fourth blocks at `acquire()`, and when any earlier thread releases, the fourth thread proceeds.\n\nThe key difference from a mutex: a mutex allows **one** thread, a semaphore allows **up to N**. If N=1, a semaphore acts like a binary (yes/no) state and is sometimes mistaken for a mutex — but it lacks ownership, so any thread can release it. **Rule of thumb:** semaphore when you have a fixed pool of identical resources; mutex when you need single exclusive access with ownership guarantees.',
+    },
+    {
+      q: 'Can a semaphore initialized to 1 replace a mutex?',
+      a: 'A semaphore initialized to 1 can synchronize, but it is not a replacement for a mutex because it lacks ownership. Any thread can call `release()`, even a thread that never called `acquire()`, or one that called it multiple times and should have been rejected.\n\nConsider a naive implementation: `Semaphore(1)` protecting a shared counter. Thread A acquires, increments the counter, releases. Thread B (which was never supposed to hold it) can call release() anyway, decrementing the count again. The counter is now unprotected against a third thread. This is a whole class of subtle race conditions and impossible-to-debug errors.\n\nA mutex, by contrast, records the **owner** — the thread that holds it — and refuses to `unlock()` unless called by that same thread. Attempting `unlock()` from the wrong thread throws an error immediately, catching the bug at development time instead of in production. **Common mistake:** using `Semaphore(1)` for mutual exclusion to avoid library overhead, then discovering ownership bugs that cost far more to debug.',
+    },
+  ],
+  rwlock: [
+    {
+      q: 'Readers do not conflict — why does a plain mutex block them anyway?',
+      a: 'A mutex cannot distinguish reads from writes, so it serializes every access: if one thread is reading a shared variable and another wants to read the same variable, the second must wait. This is overly conservative: reads never conflict with other reads — a thousand threads can read the same config file simultaneously without corruption.\n\nA read-write lock splits the lock into two paths: `acquireRead()` and `acquireWrite()`. Multiple threads can hold read locks together (`r.readLock().lock()` in Java), but a write lock demands exclusivity — a writer waits until all readers release, and no reader may enter while a writer is active. Example: a web server\'s configuration cache. A thousand threads read the config; one administrator updates it. The read-write lock lets all 1000 readers proceed in parallel, blocks new readers once the admin starts writing, and blocks the admin until all existing readers finish.\n\n**Rule of thumb:** read-write lock when reads vastly outnumber writes; plain mutex for balanced or write-heavy access.',
+    },
+    {
+      q: 'When does a read-write lock perform WORSE than a mutex?',
+      a: 'A read-write lock performs **worse** than a mutex under write-heavy load because its bookkeeping is more complex and the asymmetry hurts. Example: a database being updated constantly. The read-write lock must track reader count, writer count, and wake-up conditions — every read and write operation is slower than a simple mutex acquire/release.\n\nFurther, writers suffer starvation in some implementations: if readers keep arriving, the writer waits indefinitely while readers keep acquiring and releasing. Conversely, some implementations starve readers once a writer arrives, preventing reader fairness. A mutex avoids this complexity: everyone just queues in FIFO order.\n\nThe read-write lock breaks even only when reads vastly outnumber writes — say 99:1. If it\'s 60:40 reads to writes, the extra bookkeeping and potential starvation often make a plain mutex faster and simpler. **Rule of thumb:** it pays when reads greatly outnumber writes; otherwise reach for a mutex or, if fairness matters, a queue-based lock that enforces strict ordering.',
+    },
+  ],
+  reentrant: [
+    {
+      q: 'What actually breaks without reentrancy?',
+      a: 'If a thread holds a lock and calls a function that tries to acquire the same lock, a non-reentrant lock causes the thread to deadlock against itself — it waits on a lock it already owns, which can never be released because the thread that would release it is blocked.\n\nA reentrant lock solves this by keeping an **owner** and a **hold count**. The first `acquire()` by thread A sets the owner to A and the count to 1. A second `acquire()` by A checks the owner, sees it\'s already A, and simply increments the count to 2 — no blocking. When A calls `unlock()`, the count drops to 1; on the second `unlock()`, it drops to 0 and the lock is truly free.\n\nExample: a method `outer()` acquires a lock, then calls `inner()` which tries to acquire the **same** lock. Without reentrancy, `inner()` deadlocks; with reentrancy (e.g., Java\'s `ReentrantLock`), `inner()` immediately succeeds. **Common use:** recursive functions that protect shared state — each level of recursion re-acquires the lock, and it frees only when the outermost call releases.',
+    },
+    {
+      q: 'Why not make every lock reentrant, then?',
+      a: 'Every reentrant lock operation has a cost: the library must check the owner ID and update the hold count, which is slower than a simple binary locked/unlocked state. On hot paths (millions of acquisitions per second), this overhead compounds — a non-reentrant lock might be 10-20% faster in contention-free scenarios.\n\nMore importantly, reentrant locks can hide design issues. If you frequently need to re-acquire a lock within nested function calls, that\'s often a sign your locking boundaries are unclear — one large function might be better than five nested ones that each re-grab the lock. The lock is trying to tell you that your decomposition doesn\'t match your concurrency model.\n\nThe pattern can also tempt you to hold a lock across large swaths of code, since re-entering is "free" (it looks free, though the bookkeeping cost is real). This makes deadlock analysis harder and can encourage over-holding. **Best practice:** use a non-reentrant lock (simpler, faster) by default; only switch to reentrant when you have a clear recursive pattern (e.g., a tree traversal that updates shared state at each node).',
+    },
+  ],
+  spinlock: [
+    {
+      q: 'Busy-waiting sounds wasteful — why do spinlocks exist?',
+      a: 'A context switch — saving CPU state, switching to kernel, switching back to user code — costs roughly 1-10 microseconds depending on the OS and CPU. If the critical section lasts only 100 nanoseconds, blocking is 10-100 times more expensive than the actual work. In that case, spinning — retrying the lock in a tight `while` loop — is faster: the waiting thread burns a core but regains the lock the **instant** it\'s released, with near-zero latency.\n\nExample: a kernel allocator protecting a free-list. The critical section is 10-50 nanoseconds (just manipulating a linked list). Spinning saves the two context switches that would dominate the cost. Spinlocks are common in operating-system kernels, real-time systems, and ultra-low-latency trading systems where microseconds matter.\n\nExample library: Linux uses spinlocks extensively in the scheduler and memory allocator. A multicore CPU can afford to waste one core spinning if it means 500 nanoseconds of lock-free work instead of 5 microseconds of context switching. **Rule of thumb:** spin only for critical sections shorter than a context switch (~1-10µs).',
+    },
+    {
+      q: 'When is a spinlock the wrong choice?',
+      a: 'A spinlock is the **wrong** choice in several cases. First, long critical sections: if the lock is held for milliseconds (e.g., a file read inside the critical section), spinning wastes a full CPU core for no benefit — you should sleep instead. Second, single-core systems: spinlock waiting **prevents the lock holder from running**, because both threads are on the same core and the waiter never yields. The waiter spins forever while the holder is starved, never getting CPU time to release the lock — deadlock.\n\nThird, any blocking operation: if code holding the lock calls `sleep()`, `I/O()`, or `mutex.lock()` (another lock), the waiter spins uselessly — the lock holder is off the CPU anyway, so the waiter won\'t regain the lock until the holder wakes up, defeats the purpose of spinning.\n\nExample: a spinlock protecting a `write()` to disk is a disaster — the holder blocks on I/O (milliseconds), while the waiter spins burning a core with zero chance of progress. **Common mistake:** using a spinlock in high-level application code instead of a blocking mutex, forgetting that you only have a few cores, not thousands.',
+    },
+  ],
+  optimistic: [
+    {
+      q: 'How can optimistic locking work without taking a lock?',
+      a: 'Optimistic locking assumes conflicts are rare and worth retrying for. Read the row (e.g., `SELECT * FROM account WHERE id=1`), note its version field (e.g., `version=5`), do your work, then write with a version check: `UPDATE account SET balance=$1, version=version+1 WHERE id=1 AND version=5`. If another thread committed first, the `version` column is no longer 5, so zero rows match — the update fails, you detect the conflict, reload the row, and retry.\n\nNo thread ever blocks waiting for a lock. The database works independently, applying updates, and conflicting attempts simply fail and retry. This is fast when conflicts are rare (e.g., updating different rows, or updating the same row once per day). Example: editing a Google Doc — thousands of edits per second on different lines, rare actual conflicts; optimistic concurrency is ideal.\n\n**Price:** if conflicts are common (e.g., a single hot row updated thousands of times per second), retries dominate — you waste work re-reading and re-computing. **Rule of thumb:** optimistic for rare conflicts (internet apps, CMS); pessimistic for frequent conflicts.',
+    },
+    {
+      q: 'Optimistic vs pessimistic — how do I choose?',
+      a: 'Choose between optimistic and pessimistic locking based on contention and retry cost. Low contention (rare conflicts): optimistic wins. You skip the overhead of acquiring locks — no blocking, no context switches, no priority inversion. If a conflict happens once per million updates, the one retry is worth it. Example: a REST API updating different database rows per request; conflicts are nearly impossible, optimistic is fast.\n\nHigh contention (frequent conflicts) or expensive retries: pessimistic blocking wins. If a conflict causes a long transaction to restart (losing minutes of work), or if you have side effects (emailed a notification, charged a card) that can\'t be retried, better to lock upfront and serialize. Example: a financial system coordinating across 10 tables with side effects; locking is safer and faster than retrying chaotic conflicts. Also: pessimistic is simpler — one lock acquisition, no retry loop, no version checking.\n\n**Rule of thumb:** optimistic when the dataset is large and conflicts are rare; pessimistic when critical sections are small and contention is predictable, or when retries have high cost.',
+    },
+  ],
+  deadlock: [
+    {
+      q: 'What four conditions must ALL hold for deadlock?',
+      a: 'Four conditions must ALL be true for deadlock to occur: (1) mutual exclusion — a lock can only be held by one thread, (2) hold-and-wait — a thread holds one lock while waiting for another, (3) no preemption — you can\'t forcibly take a lock from another thread, and (4) circular wait — a cycle of threads, each waiting for a lock the next one holds.\n\nBreak any single one and deadlock is impossible. The easiest fix: break circular wait by acquiring locks in a **fixed global order**. Example: if you always acquire Lock1 before Lock2, every thread does the same — a thread holding Lock1 waits for Lock2, but the thread holding Lock2 **wants** Lock1 and must acquire it before Lock2, so Lock1 is released before Lock2 is needed. No cycle.\n\nAlternative fixes: make locks preemptible (Java\'s `ReentrantLock` with `tryLock(timeout)`), release locks before acquiring new ones (hold-and-wait), or use a single lock for everything (mutual exclusion only — slow). **Standard approach:** consistent lock ordering by resource ID — always sort by ID and acquire in order.',
+    },
+    {
+      q: 'How is livelock different from deadlock?',
+      a: 'Deadlock and livelock both prevent progress, but they manifest differently. Deadlocked threads are **frozen** — they are blocked on a lock and will never wake up (unless someone kills the process). You see them stuck in `gdb` at the lock-acquisition call.\n\nLivelocked threads are **busy** — they are spinning on the CPU, retrying operations, backing off, then colliding again, like two people in a hallway who both step left, then both step right, perpetually. Example: two threads repeatedly trying to acquire two locks (`tryLock()` in a loop with random backoff), both failing due to the other\'s temporary hold, retrying forever. CPU usage is 100%, but no real work gets done — progress is zero.\n\nLivelock is insidious: system monitoring sees "CPU at 100%," so it looks healthy, but the threads are making no progress. Deadlock at least makes the hang obvious — no CPU usage, threads blocked. **Escape:** introduce asymmetry (e.g., `tryLock()` with **deterministic** backoff based on thread ID, not random) so one thread eventually wins, or just use blocking locks with timeout and error handling.',
+    },
+  ],
+  distributed: [
+    {
+      q: 'Why is a normal mutex not enough across servers?',
+      a: 'A normal in-process mutex (Java\'s `ReentrantLock`, Python\'s `threading.Lock`) lives in one process\'s memory — another process on a different machine cannot see it. If Server A holds a mutex in its heap and Server B holds a separate instance of the same class, they are not synchronized; both can enter their "critical section" simultaneously, corrupting the shared resource (a database row, a file, a queue).\n\nTo synchronize across processes or machines, the lock must live in shared external state: a dedicated lock service like Redis, ZooKeeper, or etcd. All servers read/write the same lock state. Example: two hotel receptionists (Server A, Server B) must not both sell the last penthouse night. They check a shared Redis key (`penthouse:locked`); the first to set it owns the lock, the second waits.\n\nThe lock is now a shared resource itself — clients must agree on how to read it, write it, check expiry, etc. This is harder to get right than an in-process mutex. **Rule of thumb:** single-machine application = in-process mutex; distributed system = Redis or ZooKeeper lock.',
+    },
+    {
+      q: 'Why do distributed locks need a TTL, and what does it break?',
+      a: 'Distributed locks need a time-to-live (TTL) because the holder might crash without releasing. If Server A acquires a lock in Redis and then crashes, no one will ever `DEL` the key — the lock is stuck forever, blocking all future access. With a TTL (e.g., `SET NX PX 30000`, expiring in 30 seconds), the key auto-deletes and the lock becomes available again.\n\nThe trade-off: a slow-but-alive holder can lose the lock mid-work. Server A acquires the lock, is very slow (paused by garbage collection, network latency), and the 30-second TTL expires. Server B acquires the same lock and starts modifying the resource. Server A wakes up and continues modifying with stale state — both are modifying simultaneously, corrupting data.\n\nThe fix: fencing tokens. Each lock holder gets a monotonically incrementing token (e.g., 1, 2, 3). Server A\'s write says "here\'s my data, token=1"; Server B\'s later write says "token=2". Downstream storage (database, file system) rejects A\'s token=1 as stale, accepting only B\'s token=2. **Architecture:** TTL ensures progress, fencing tokens ensure correctness even when TTL is imperfect.',
+    },
+  ],
+}
+
 export default function LockingPatternsVisualizer() {
   const [patternId, setPatternId] = useState(PATTERNS[0].id)
   const pattern = PATTERNS.find(p => p.id === patternId)!
@@ -1017,7 +1100,7 @@ export default function LockingPatternsVisualizer() {
       </div>
 
       <StepControls ctrl={ctrl} />
-      <CodeBlock examples={CODE_EXAMPLES[pattern.id]} />
+      <CodeTabs doubts={DOUBTS[pattern.id]} examples={CODE_EXAMPLES[pattern.id]} />
     </div>
   )
 }

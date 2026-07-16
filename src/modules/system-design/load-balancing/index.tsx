@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react'
+import DoubtsBlock from '@/components/shared/DoubtsBlock'
 
 interface Server { id: number; label: string; x: number; y: number; requests: number; active: boolean }
 interface Request { id: number; from: { x: number; y: number }; to: { x: number; y: number }; progress: number; serverId: number; color: string }
@@ -10,6 +11,25 @@ const INITIAL_SERVERS: Server[] = [
   { id: 0, label: 'Server A', x: 500, y: 80,  requests: 0, active: true },
   { id: 1, label: 'Server B', x: 500, y: 200, requests: 0, active: true },
   { id: 2, label: 'Server C', x: 500, y: 320, requests: 0, active: true },
+]
+
+const DOUBTS = [
+  {
+    q: 'Round robin vs least-connections — when does RR go wrong?',
+    a: 'Round-robin breaks when requests have vastly different costs — it assumes every request takes equal time. Imagine a supermarket greeter rotating customers fairly: one server gets five 30-second returns in a row, another handles a 50ms checkout then sits idle. The greeter didn\'t account for what kind of work each cashier received, only the rotation. Least-connections instead routes to whichever server has the fewest active TCP connections, treating connection count as a real-time proxy for load.\n\nThis works better for variable-duration requests. But it still fails if short requests open connections faster than they close, or if idle pooled connections stay open despite no active work.\n\n- Round-robin: simple, fair in count, but load-blind.\n- Least-connections: aware of real workload, but heuristic-based.\n\n**Rule of thumb:** use least-connections when request times vary significantly; round-robin only for uniform costs.',
+  },
+  {
+    q: 'L4 vs L7 load balancing?',
+    a: 'L4 (Transport layer) balances raw TCP connections at the network protocol level, while L7 (Application layer) understands HTTP and makes routing decisions based on request content. L4 is extremely fast and simple—it just moves bytes between client and server without reading payloads—but can\'t differentiate requests. L7 can route `/api` requests to a different server pool than static `/images` requests, terminate TLS encryption, retry failed idempotent requests, or run canary deployments by sending 5% of traffic to a new version.\n\nThe trade-off is simple: L4 gives you raw throughput and sub-millisecond latency; L7 gives you intelligent routing and observability but adds latency (needs to parse HTTP headers). Most systems default to L7 today unless pushing extreme throughput (e.g., packet-forwarding appliances, or high-frequency trading gateways) where L4\'s speed wins.\n\n**Common mistake:** Assuming L7 is always better—it adds latency and CPU cost.',
+  },
+  {
+    q: 'How does the LB know a server died?',
+    a: 'A load balancer detects dead servers through health checks: active probes (periodic HTTP requests to `/healthz` every 3–5 seconds, ejecting after N consecutive failures and re-admitting after M consecutive passes) and passive signals (watching for 5xx errors or timeout spikes in real traffic). Active checks are deterministic and fast; passive ones react to real-world behavior.\n\nThe subtle design question is: what should "healthy" actually mean? A server with the process running but a crashed database connection pool will answer `/healthz: OK` yet fail every real request. So do you check just process-level health, or do you verify that critical dependencies (database, cache, message queue) are reachable too? Real-world systems often layer this: quick process checks every 5 seconds, and deeper dependency checks every 30 seconds.\n\n**Rule of thumb:** Health checks should test the path a real request takes—don\'t just ping the process.',
+  },
+  {
+    q: 'Why are sticky sessions discouraged?',
+    a: 'Sticky sessions (routing the same user always to the same server) create brittle systems because they turn individual servers into state holders. If server B crashes, all users pinned to it are logged out. If some users stay logged in for hours while others check out quickly, load skews dramatically—the long-session server gets fewer new requests but more concurrent connections, making load-balancing decisions unreliable. Worst of all, when you scale down and remove a server, its pinned sessions are orphaned.\n\nThe solution is to externalize session state: store sessions in Redis (fast, shared, automatic expiry) or encode them in stateless tokens like JWTs. Now any server can serve any user by reading their session state from Redis or decoding their JWT—a server crash only affects that moment\'s requests, not persistent state.\n\n- Sticky sessions: couples users to servers, fragile and hard to scale.\n- Externalized state (Redis/JWT): stateless servers, resilient.\n\n**Rule of thumb:** Sessions belong in a data store, not on the server.',
+  },
 ]
 
 export default function LoadBalancingVisualizer() {
@@ -205,6 +225,8 @@ export default function LoadBalancingVisualizer() {
           })}
         </div>
       </div>
+
+      <DoubtsBlock doubts={DOUBTS} />
     </div>
   )
 }

@@ -41,12 +41,14 @@ title + description
 amber/colored context panel  ← explains the "why"
 viz-container                ← interactive SVG or DOM animation
 StepControls
-CodeBlock (JS / Python / Java tabs)
+CodeTabs                     ← "Code | Common Doubts" tab pair
 ```
 
 ### Shared components (`src/components/shared/`)
 
 - **`CodeBlock`** — multi-language tab switcher with custom syntax highlighting (regex-based `SyntaxLine`, no Prism). Renders with `display: table` + `min-w-max` for correct horizontal scroll.
+- **`CodeTabs`** — "`{ } Code` | 🤔 Common Doubts (n)" segmented tabs wrapping `CodeBlock` and `DoubtsBlock`. Every module with code uses this: `<CodeTabs examples={CODE_EXAMPLES} doubts={DOUBTS} />`. Modules define a local `DOUBTS` array of `{q, a}` — keep appending real points of confusion over time. Variant-keyed modules (sorting, locking-patterns, design-patterns) use `Record<string, {q, a}[]>` and pass e.g. `doubts={DOUBTS[pattern]}`.
+- **`DoubtsBlock`** — violet accordion of `{q, a}` doubts; answers render `` `backticks` `` as inline code and `\n` as paragraph breaks. Used standalone (with its own header) on pages without code, e.g. tree overview, CAP theorem.
 - **`StepControls`** — play/pause/step with speed control and keyboard shortcuts.
 - **`SectionIndex`** — generic section landing page, derives the section from the URL.
 - **`ModuleNav`** — prev/next learning-path footer; rendered once in `Layout`, shows itself only on module pages (path matches a registry subcategory).

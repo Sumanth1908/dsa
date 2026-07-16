@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { useSteps } from '@/hooks/useSteps'
 import StepControls from '@/components/shared/StepControls'
+import DoubtsBlock from '@/components/shared/DoubtsBlock'
 
 interface CacheNode { key: string; value: string; freq: number }
 interface Step { cache: CacheNode[]; highlight: string | null; evicted: string | null; hit: boolean | null; message: string; dbHit: boolean }
@@ -58,6 +59,25 @@ const OPS: { type: 'get' | 'put'; key: string; val?: string }[] = [
   { type: 'get', key: 'E' },
   { type: 'put', key: 'E', val: 'Elderberry' },
   { type: 'get', key: 'C' },
+]
+
+const DOUBTS = [
+  {
+    q: 'Cache-aside vs write-through vs write-back?',
+    a: 'Cache-aside: the application reads the cache first; on a miss, it fetches from the database and manually populates the cache — this is the simplest and most common pattern. Write-through: every write passes through the cache into the backing database synchronously, keeping reads always fresh but incurring extra latency from waiting for both the cache and database operations. Write-back (or write-behind): the cache absorbs writes immediately and returns to the caller, then asynchronously flushes to the database, delivering the fastest write response times, but a process crash before flushing causes loss of unflushed changes. Each pattern trades latency against durability and consistency. **Rule of thumb:** cache-aside dominates read-heavy workloads, write-through suits consistency-critical systems, write-back powers high-throughput scenarios that tolerate temporary loss.',
+  },
+  {
+    q: 'Why is cache invalidation famously hard?',
+    a: 'The cache and backing store inevitably drift apart whenever either one changes — a property called the "consistency problem." Every strategy — TTL expiration, invalidate-on-write signals, event-driven purges — trades staleness (stale reads) against complexity and operational cost. In practice, edge cases always remain: a forgotten write path that bypasses the invalidation logic, a race condition where a cache entry is invalidated but immediately repopulated before new data arrives, or a distributed system where invalidation messages fail to reach all replicas. There is no free correct answer — only chosen trade-offs between staleness tolerance, latency, and system complexity. **Common mistake:** teams believe they can engineer away the problem entirely; the truth is you manage stale data, never eliminate it.',
+  },
+  {
+    q: 'What is a cache stampede, and the standard defenses?',
+    a: 'A cache stampede (also called "thundering herd") occurs when a hot cache key expires and thousands of concurrent requests simultaneously detect the miss and hammer the backend database together, overwhelming it. Classic example: a frequently-accessed user session key expires; suddenly 10,000 web requests all fetch the same missing session from the database at once. Standard defenses include: acquiring a per-key write lock so exactly ONE request recomputes the value while others wait or serve stale data; using jittered TTLs so hot keys expire at different times rather than in lockstep; and early probabilistic refresh, where a background worker refreshes hot keys before they expire. Redis and Memcached deployments commonly combine these: lock contention is serialized but brief, jitter spreads load, and refresh maintains availability. **Rule of thumb:** whenever a key is accessed 100+ times per second, apply at least two defenses.',
+  },
+  {
+    q: 'Why is LRU the default eviction policy?',
+    a: 'LRU (Least Recently Used) became the default because it rests on the assumption that recent access predicts future access — an assumption borne out across most real-world workloads (web caches, CDNs, CPUs all validate this empirically). Operationally, LRU achieves O(1) get and put operations using a hashmap paired with a doubly-linked list: the map does O(1) lookups; the linked list maintains recency order. LFU (Least Frequently Used) resists one-off sequential scans better — a single full-table scan won\'t evict your hot keys — but is costlier to maintain and slow to forget keys that were once hot but are now cold. Redis offers both via configuration: LRU is the default and typically sufficient, while LFU suits read patterns where frequency matters more than recency. **Common mistake:** assuming LRU is universally optimal; some workloads (time-series, batch analytics) need different policies.',
+  },
 ]
 
 export default function CachingVisualizer() {
@@ -194,6 +214,8 @@ export default function CachingVisualizer() {
       </div>
 
       <StepControls ctrl={ctrl} />
+
+      <DoubtsBlock doubts={DOUBTS} />
     </div>
   )
 }

@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import { useSteps } from '@/hooks/useSteps'
 import StepControls from '@/components/shared/StepControls'
 import ComplexityBadge from '@/components/shared/ComplexityBadge'
-import CodeBlock from '@/components/shared/CodeBlock'
+import CodeTabs from '@/components/shared/CodeTabs'
 
 interface Step {
   stack: number[]
@@ -117,6 +117,21 @@ public class Stack<T> {
 ]
 
 const INITIAL_STACK = [3, 7, 12, 5]
+
+const DOUBTS = [
+  {
+    q: 'Is "the call stack" the same stack as this data structure?',
+    a: 'Yes — they are literally the same data structure. Every function call pushes a **stack frame** containing local variables and the return address onto the call stack. When the function returns, that frame pops off and execution resumes from the saved return address. Infinite recursion never returns, so frames keep piling up: `function f() { return f(); }` pushes frame after frame until memory is exhausted. That\'s why you get a "stack overflow" error — the OS has limits, typically around 10,000 frames depending on the system. Tail-call optimization in languages like Scheme matters because it reuses the current frame instead of pushing a new one, letting deep recursions avoid overflow. **Rule of thumb:** the call stack is just a regular stack data structure — it\'s LIFO, limited in size, and shared by all functions running in your program.',
+  },
+  {
+    q: 'How do I recognize "this is a stack problem"?',
+    a: 'Listen for the phrase **"the most recent X that has not been handled yet."** That\'s the LIFO signal. Matching brackets is the canonical example: push each `(` or `[` onto a stack; when you encounter a `)`, pop and verify it matches. You care about the **most recent unmatched opener**. Undo/Redo works the same way — each action is pushed; undo pops and reverses the most recent one. Backtracking in graph or tree traversal is LIFO: explore the most recent choice point first, which backtracks to the last branch. Expression parsing uses the same idea: operators go on a stack, and when you see a lower-precedence operator, you pop (evaluate) all higher-precedence ones first. **The pattern works because deferred work resolves in reverse order** — perfect for problems where "latest" matters most. **Common mistake:** thinking stacks are just arrays; they\'re not — the constraint that you can only touch the top is the entire point.',
+  },
+  {
+    q: 'Any recursion can become an explicit stack — why bother converting?',
+    a: 'Recursion **is** a stack — specifically, the call stack — just implicit and size-limited to roughly 10,000 frames on most systems. Converting to an explicit stack sidesteps two problems: (1) **stack overflow** on deep inputs, and (2) inability to pause and resume during traversal. For example, a recursive `traverse(node.left); visit(node); traverse(node.right)` on a 1-million-node tree might exceed the call-stack limit. An iterative version pushes nodes onto an explicit stack, pops one, visits it, and pushes its children — you control the flow completely. This is how Python\'s `.itertools`, C++ iterators, and database query engines implement lazy evaluation: they need to pause when `.next()` is called and resume later. Explicit stacks also let you cache state between iterations, skip branches efficiently, or even serialize the stack for checkpointing. **Rule of thumb:** when recursion feels risky or you need pause/resume, convert to an explicit stack — it\'s the same algorithm, just written iteratively.',
+  },
+]
 
 export default function StackVisualizer() {
   const [op, setOp] = useState<'push' | 'pop' | 'peek'>('push')
@@ -239,7 +254,7 @@ export default function StackVisualizer() {
       </div>
 
       <StepControls ctrl={ctrl} />
-      <CodeBlock examples={CODE_EXAMPLES} />
+      <CodeTabs doubts={DOUBTS} examples={CODE_EXAMPLES} />
     </div>
   )
 }

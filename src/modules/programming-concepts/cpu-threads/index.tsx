@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import CodeBlock from '@/components/shared/CodeBlock'
+import CodeTabs from '@/components/shared/CodeTabs'
 
 const CODE_EXAMPLES = [
   {
@@ -78,6 +78,21 @@ const SCENARIOS: Scenario[] = [
 
 const CORES = 4
 const TASKS_PER_CORE = 4
+
+const DOUBTS = [
+  {
+    q: 'I/O-bound vs CPU-bound — why is that the first question?',
+    a: 'It decides the fix. CPU-bound and I/O-bound workloads need fundamentally different concurrency strategies, and choosing wrong wastes resources or leaves performance on the table.\n\nFor CPU-bound work (like image blur), your threads spend 100% of time doing actual math — there is no waiting. Adding more threads than cores just wastes CPU cycles on context switching; a pool sized to core count (e.g., 4 threads on a 4-core machine) is optimal. The ForkJoinPool in Java defaults to Runtime.getRuntime().availableProcessors().\n\nFor I/O-bound work (like downloading 100 images), threads spend ~95% of time stalled on network. A single thread can juggle dozens of I/O requests while waiting. You can either use dozens of OS threads, or skip threads entirely with async/await — one thread fires 100 requests and the runtime switches when one blocks.\n\n**Rule of thumb:** CPU-bound = pool size = core count; I/O-bound = as many threads (or async) as concurrent requests.',
+  },
+  {
+    q: 'What does a context switch actually cost?',
+    a: 'The direct cost — saving and restoring CPU registers — is just microseconds, but the real villain is cache pollution. When the CPU switches to a new thread, the L1/L2/L3 caches still contain data from the previous thread, which is now useless. The new thread encounters a cascade of cache misses while warming up its working set.\n\nA modern CPU might context-switch thousands of times per second under load. If each switch loses 5-20% throughput to cache cold-ness, thousands of switches silently drain double-digit percentages of your total performance — even though the register-save operation itself takes just microseconds. Example: in Python with asyncio, single-threaded async cuts context-switch overhead dramatically by keeping the same thread hot in cache.\n\n**Common mistake:** Thinking context-switch overhead is just the CPU register-save time — the real cost is the cache-miss storm that follows.',
+  },
+  {
+    q: 'The OS shows 8 CPUs on my 4-core machine — do I have 8?',
+    a: 'No — you have 4 cores, not 8. Hyper-threading (or SMT — Simultaneous Multi-Threading) gives each physical core two hardware thread slots that share the same execution units: ALU, caches, memory pipeline. Both threads run, but they compete for the same silicon.\n\nWhen one thread stalls on memory (L3 cache miss costing 200+ cycles), the other thread can execute instructions during that wait, improving overall throughput. But if both threads are CPU-bound, they fight for the same resources, and hyper-threading nets only 20-30% extra throughput compared to pure sequential work on one thread.\n\nExample: an Intel i7 with 4 physical cores reports 8 logical CPUs in Task Manager, but intensive work should be parallelized to 4 threads, not 8.\n\n**Rule of thumb:** size CPU-bound thread pools by PHYSICAL core count. Note that Java\'s `Runtime.getRuntime().availableProcessors()` returns LOGICAL CPUs (8 on this machine), so consider halving it for pure compute workloads.',
+  },
+]
 
 export default function CPUThreadsVisualizer() {
   const [scene, setScene] = useState<'io' | 'cpu'>('io')
@@ -223,7 +238,7 @@ export default function CPUThreadsVisualizer() {
         </div>
       </div>
 
-      <CodeBlock examples={CODE_EXAMPLES} />
+      <CodeTabs doubts={DOUBTS} examples={CODE_EXAMPLES} />
     </div>
   )
 }

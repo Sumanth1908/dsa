@@ -1,7 +1,7 @@
 import React from 'react'
 import { useSteps } from '@/hooks/useSteps'
 import StepControls from '@/components/shared/StepControls'
-import CodeBlock from '@/components/shared/CodeBlock'
+import CodeTabs from '@/components/shared/CodeTabs'
 
 interface Step {
   mode: 'sync' | 'async' | 'thread'
@@ -129,6 +129,21 @@ t1.start(); t2.start();`,
   },
 ]
 
+const DOUBTS = [
+  {
+    q: 'Concurrency vs parallelism — the actual difference?',
+    a: 'Concurrency is STRUCTURE: the program is organized as independently progressing tasks. Parallelism is EXECUTION: tasks literally run simultaneously on multiple cores.\n\nConcurrency manages multiple independent flows on one core by interleaving them—one thread in JavaScript can handle thousands of I/O operations with `await`, switching context while waiting for a network response. Parallelism runs tasks on separate cores truly in parallel, like two baristas in different kitchens. You can have one without the other: a Python `asyncio` program is concurrent but not parallel (single thread), while embarrassingly parallel batch jobs are parallel but not concurrent.\n\n- Concurrency solves I/O inefficiency by never blocking on waits.\n- Parallelism solves CPU limits by using multiple cores.\n\n**Key insight:** threading is not a substitute for async/await on I/O-bound tasks; they solve different problems.',
+  },
+  {
+    q: 'What IS a race condition, mechanically?',
+    a: '`count++` is three atomic steps: read the variable, add 1, write it back. When two threads both read 5, execute the increment, and write 6, one update vanishes—the result depends on timing luck.\n\nMechanically, suppose threads A and B both see `count = 5`. A reads, increments to 6, writes. But between A\'s read and write, B also reads 5. B then writes 6, overwriting A\'s work. The CPU doesn\'t know these operations are part of a logical unit; it executes them independently. Any unsynchronized read-modify-write on shared state (a bank balance, an array index, a counter) exhibits this race. In Python with the GIL, it still happens with list indexing: `counts[0] += 1` is not atomic despite being one line.\n\n**Common mistake:** assuming single-line operations or built-in types are thread-safe; they rarely are without synchronization.',
+  },
+  {
+    q: 'Why does doubling the threads not double the speed?',
+    a: 'Doubling threads gives far less than double speedup due to Amdahl\'s law, lock contention, and CPU scheduling overhead.\n\nAmdahl\'s law: if 10% of your work is inherently serial (setup, locks, cleanup), then no matter how many cores you add, speedup bottlenecks at 10×. Add context-switch costs (the OS saving/restoring CPU state between threads) and cache invalidation (one core\'s update flushes another\'s cache line), and the real gain shrinks. In CPython, the GIL (Global Interpreter Lock) serializes all bytecode execution across threads entirely—CPU-bound Python code cannot exploit threads at all, which is why CPU-heavy work uses multiprocessing with separate Python interpreters instead.\n\n- Limited parallelizable work caps speedup (Amdahl\'s law).\n- Locks force serialization at shared state (lock contention).\n- OS overhead and cache costs eat gains (CPython\'s GIL especially).\n\n**Rule of thumb:** profile before adding threads; measure speedup, not thread count.',
+  },
+]
+
 export default function ConcurrencyVisualizer() {
   const ctrl = useSteps(ALL_STEPS.length)
   const cur = ALL_STEPS[ctrl.step]
@@ -233,7 +248,7 @@ export default function ConcurrencyVisualizer() {
       </div>
 
       <StepControls ctrl={ctrl} />
-      <CodeBlock examples={CODE_EXAMPLES} />
+      <CodeTabs doubts={DOUBTS} examples={CODE_EXAMPLES} />
     </div>
   )
 }

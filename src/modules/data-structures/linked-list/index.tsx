@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import { useSteps } from '@/hooks/useSteps'
 import StepControls from '@/components/shared/StepControls'
 import ComplexityBadge from '@/components/shared/ComplexityBadge'
-import CodeBlock from '@/components/shared/CodeBlock'
+import CodeTabs from '@/components/shared/CodeTabs'
 
 interface Step {
   nodes: (number | null)[]
@@ -153,6 +153,21 @@ class LinkedList:
 
 const INITIAL_NODES = [10, 20, 30, 40, 50]
 
+const DOUBTS = [
+  {
+    q: 'Why can\'t I jump to index 5 like an array?',
+    a: 'Nodes live scattered across the heap, connected only by pointers. There is no formula for "where is node 5" — you must walk `head -> next -> next`, five hops.\nIn an array, accessing element at index 5 is instant: the CPU uses arithmetic (`base_address + 5 * element_size`) to compute the address in one operation. A linked list has no such formula; every node\'s memory location is random, and you find it only by following pointers from node to node.\nThis is the fundamental trade-off: you gain O(1) insertion at the head (just rewire two pointers) but sacrifice O(1) random access. **Rule of thumb:** Arrays shine when you need fast indexed lookups; linked lists win when you insert or splice frequently.',
+  },
+  {
+    q: 'What does a dummy (sentinel) head node actually solve?',
+    a: 'A dummy (sentinel) node is a placeholder node at the start—not real data, just a fixed reference point. It makes every insertion and deletion uniform: the real head becomes just another `node.next` of the dummy.\nWithout a dummy, inserting at the head requires branching: `if (!head) head = newNode; else { newNode.next = head; head = newNode; }`. With a dummy, every insertion follows the same path: `dummy.next = newNode; newNode.next = dummy.next.next`. No conditionals, no special cases. One dummy node often cuts edge-case code in half or more across an entire linked-list problem. **Common mistake:** forgetting to return `dummy.next` instead of `dummy` as your final result, since the dummy itself isn\'t part of the real list.',
+  },
+  {
+    q: 'When is a doubly linked list worth the extra pointer?',
+    a: 'A doubly-linked list stores both `next` and `prev` pointers in each node, enabling two crucial O(1) operations: deleting a node you already hold a reference to (singly-linked deletion is O(n) because you must traverse to find the predecessor), and walking backwards.\nThe canonical use case is an LRU (Least Recently Used) cache: a hash map provides O(1) lookup and hands you the node directly; the doubly-linked structure then lets you unlink and move that node to the front in O(1) and evict the least-recently-used tail in O(1). Without `prev` pointers, moving a node to the front would require O(n) traversal from the head.\n- **Downsides:** every node carries an extra 8-byte pointer (on 64-bit systems), doubling memory overhead; worse cache locality.\n**Rule of thumb:** Don\'t use doubly-linked lists by default; only when you genuinely need O(1) deletion of referenced nodes or backwards traversal.',
+  },
+]
+
 export default function LinkedListVisualizer() {
   const [op, setOp] = useState<'traverse' | 'insert' | 'delete'>('traverse')
   const [insertVal, setInsertVal] = useState(99)
@@ -285,7 +300,7 @@ export default function LinkedListVisualizer() {
       </div>
 
       <StepControls ctrl={ctrl} />
-      <CodeBlock examples={CODE_EXAMPLES} />
+      <CodeTabs doubts={DOUBTS} examples={CODE_EXAMPLES} />
     </div>
   )
 }

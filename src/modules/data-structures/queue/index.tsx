@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import { useSteps } from '@/hooks/useSteps'
 import StepControls from '@/components/shared/StepControls'
 import ComplexityBadge from '@/components/shared/ComplexityBadge'
-import CodeBlock from '@/components/shared/CodeBlock'
+import CodeTabs from '@/components/shared/CodeTabs'
 
 interface Step {
   queue: number[]
@@ -95,6 +95,21 @@ boolean empty = queue.isEmpty();`,
 ]
 
 const INITIAL_QUEUE = [11, 22, 33, 44]
+
+const DOUBTS = [
+  {
+    q: 'Why is `array.shift()` a bad dequeue?',
+    a: 'It removes index 0 and shifts every remaining element one slot left — O(n) per dequeue. When you dequeue from `[1,2,3,4]`, the array must rebuild as `[2,3,4]`, sliding everything down. For a queue of 1 million elements, every dequeue touches 1 million cells in memory. Real queues avoid this with three approaches: a linked list (each node points to the next, no shifting), a circular buffer (head/tail indices wrap around the same array), or a ring buffer with a moving head pointer. All three keep dequeue at O(1) and scale to any size. **Common mistake:** using `array.shift()` in JavaScript for BFS or task queues — it will thrash performance as the queue grows.',
+  },
+  {
+    q: 'What is a circular (ring) buffer and why do queues love it?',
+    a: 'A fixed array where head and tail indices wrap around using modulo. Instead of growing the array or shifting elements, you keep two pointers: head (front) and tail (rear). When tail reaches the end, `tail = (tail + 1) % capacity` wraps it back to index 0. Example: a 5-element circular buffer with head=2, tail=4 holds elements at indices [2, 3, 4, 0, 1], using the entire array efficiently. When you dequeue (increment head), you never touch other elements. When you enqueue and tail wraps, you reuse slots freed by earlier dequeues. This approach has three big wins: O(1) at both ends (no shifting), cache-friendly because the array is contiguous in memory, and fixed memory usage (bounded). It is how OS kernels (Linux task queues), thread pools (Java), and network drivers implement high-performance queues.',
+  },
+  {
+    q: 'Where do queues show up beyond BFS?',
+    a: 'Anywhere work arrives faster than it can be processed. When requests flood in quicker than your system can handle them, you buffer them in a queue and process in arrival order. Real examples: Linux CPU task schedulers queue ready threads waiting for CPU cores; Kafka and RabbitMQ buffer messages from publishers so consumers can catch up at their own pace; operating system print spoolers queue print jobs; web servers queue HTTP requests under load (SQS, Bull, Celery). Each example enforces FIFO fairness — whoever arrived first (enqueued first) gets processed first. This prevents starvation (late arrivals hogging resources) and makes system behavior predictable. The queue decouples producers from consumers, allowing them to run at different speeds. **Rule of thumb:** if your system has arrival, buffering, and ordered processing, a queue is probably involved.',
+  },
+]
 
 export default function QueueVisualizer() {
   const [op, setOp] = useState<'enqueue' | 'dequeue'>('enqueue')
@@ -234,7 +249,7 @@ export default function QueueVisualizer() {
       </div>
 
       <StepControls ctrl={ctrl} />
-      <CodeBlock examples={CODE_EXAMPLES} />
+      <CodeTabs doubts={DOUBTS} examples={CODE_EXAMPLES} />
     </div>
   )
 }

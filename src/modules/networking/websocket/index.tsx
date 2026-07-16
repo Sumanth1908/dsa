@@ -1,7 +1,7 @@
 import React from 'react'
 import { useSteps } from '@/hooks/useSteps'
 import StepControls from '@/components/shared/StepControls'
-import CodeBlock from '@/components/shared/CodeBlock'
+import CodeTabs from '@/components/shared/CodeTabs'
 
 interface Step {
   messages: { from: 'client' | 'server'; type: string; content: string; color: string }[]
@@ -57,6 +57,25 @@ const STATE_COLORS: Record<string, string> = {
   CLOSING: 'bg-rose-100 dark:bg-rose-950 text-rose-700 dark:text-rose-300',
   LISTENING: 'bg-blue-100 dark:bg-blue-950 text-blue-700 dark:text-blue-300',
 }
+
+const DOUBTS = [
+  {
+    q: 'Why not just poll with HTTP every second?',
+    a: 'Polling with HTTP means every check — whether new data exists or not — costs a full request/response cycle: TCP handshake, headers, TLS in production, response parsing. If you poll every second, you spend ~99 messages learning "nothing changed." Meanwhile, you still average 500 ms latency to learn about new data (half your polling interval). A WebSocket keeps ONE persistent connection open instead — when data arrives, either side sends it instantly, just a few bytes of frame overhead. Example: a chat app polling every second sends 86,400 requests per user per day; with WebSocket, you send only actual messages. **Rule of thumb:** WebSocket is worth it whenever you need latency under your polling interval.',
+  },
+  {
+    q: 'How does a WebSocket start out as HTTP?',
+    a: 'The WebSocket handshake is cleverly designed for firewall compatibility. The client sends a standard HTTP GET request with two special headers: `Upgrade: websocket` (requests protocol switch) and `Sec-WebSocket-Key` (a random Base64 string). The server checks these headers and, if willing, responds with `101 Switching Protocols` and echoes a computed hash of the key. From that moment, both sides stop speaking HTTP entirely — the same TCP socket now carries compact binary frames (2–10 bytes overhead) instead of HTTP headers. This design lets WebSocket traverse proxies and firewalls that would block raw TCP on port 8080: port 80 (HTTP) is nearly always open. Many real-world deployments add wss:// (WebSocket Secure) on port 443, riding alongside HTTPS. **Common mistake:** forgetting to send the special Upgrade headers — the server won\'t acknowledge the switch.',
+  },
+  {
+    q: 'WebSocket vs Server-Sent Events?',
+    a: 'SSE (Server-Sent Events) and WebSocket both solve the polling problem, but for different patterns. SSE is one-directional: the server pushes data to clients over a normal HTTP connection, with automatic browser-level reconnect if the connection drops. It\'s perfect for feeds, notifications, stock tickers, or dashboard updates where the server just broadcasts and clients only listen. WebSocket is bidirectional: both client and server can initiate messages at any time, so it\'s essential for chat, multiplayer games, or collaborative editing where users must exchange quick messages in both directions. Implementation-wise, SSE is simpler — just `EventSource(\'url\')`in the browser and standard HTTP streaming. WebSocket requires a framed protocol layer. **Rule of thumb:** if your use case is "server pushes to many clients" (dashboards, feeds), use SSE. If clients and servers frequently send to each other (chat, games), use WebSocket. If you\'re unsure, WebSocket is the safer choice.',
+  },
+  {
+    q: 'What is hard about scaling WebSockets?',
+    a: 'WebSocket\'s strength (persistent connections) becomes a scaling problem. Unlike HTTP, where each request is stateless and can route to any server, every WebSocket connection is STATEFUL: the client stays pinned to one specific server instance until close. This means load balancers must support connection affinity (also called sticky sessions), and each server process holds hundreds or thousands of open sockets in memory — a heavy resource cost compared to stateless HTTP. When you need to broadcast a message to users scattered across 10 servers, you can\'t just route one request and be done. Instead, you need a pub-sub backbone like Redis: Server A publishes the message to Redis; Redis delivers it to all subscribed servers; each server then pushes it to its local clients. Example: scaling a chat room from 1 server (1,000 users) to 10 servers requires adding Redis pub-sub, otherwise users on different servers won\'t see each other\'s messages. **Common mistake:** deploying WebSocket without session affinity, causing clients to reconnect mid-conversation.',
+  },
+]
 
 export default function WebSocketVisualizer() {
   const steps = wsSteps()
@@ -190,7 +209,7 @@ export default function WebSocketVisualizer() {
         </div>
       </div>
 
-      <CodeBlock examples={[
+      <CodeTabs doubts={DOUBTS} examples={[
         {
           lang: 'javascript' as const, label: 'JavaScript (ws server + native client)',
           code: `// npm install ws

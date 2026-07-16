@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 import { useSteps } from '@/hooks/useSteps'
 import StepControls from '@/components/shared/StepControls'
 import ComplexityBadge from '@/components/shared/ComplexityBadge'
-import CodeBlock from '@/components/shared/CodeBlock'
+import CodeTabs from '@/components/shared/CodeTabs'
 
 type Problem = 'top-k-largest' | 'k-closest' | 'k-frequent'
 
@@ -265,6 +265,21 @@ function getNodePos(i: number, heapSize: number) {
   return { x, y }
 }
 
+const DOUBTS = [
+  {
+    q: 'Why does "K LARGEST" use a MIN-heap?',
+    a: 'A min-heap keeps your top-k team at all times, and its root is always the weakest member—the smallest of the k largest seen so far. This is the key insight: a newcomer only needs to beat the root to enter the team. When a new number arrives that\'s larger than the root, you evict the root, insert the newcomer, and heapify-down, which takes O(log k). The root acts as a gatekeeper. For example, if you\'re tracking the top 3 largest scores from [42, 7, 89, 23, 156, 31, 74], your heap starts with [7, 23, 42]. When 156 arrives, it beats the root (7), so you replace it with 156 and rebalance. **Rule of thumb:** min-heap for k largest; max-heap for k smallest—counter-intuitive but provably efficient.',
+  },
+  {
+    q: 'Heap vs just sorting — when does each win?',
+    a: 'Sorting every element costs O(n log n) and gives you all elements in order, but you only need k. A size-k heap costs O(n log k) instead—dramatically better when k is tiny compared to n (finding the top 10 songs from a million tracks). The heap also streams naturally: you process data one item at a time and never store more than k elements in memory. This matters for real-world scenarios like real-time ad auctions or sensor data that arrive continuously and never fit in RAM. Quicksort all million? Storage nightmare and you\'ve wasted computation on elements you never needed. With a heap, your memory use stays flat at O(k) regardless of input size. **Common mistake:** overthinking and sorting anyway when you only need top-k. **Rule of thumb:** heap when k << n and/or data streams.',
+  },
+  {
+    q: 'When are quickselect or bucket sort better?',
+    a: 'Quickselect achieves average O(n) time when your entire dataset fits in memory and you don\'t need streaming behavior or a sorted result. It picks a random pivot and partitions around it, narrowing the search space until you land on the kth element. Bucket sort excels at top-k frequent problems: because element counts are bounded by n, you can create n frequency buckets and iterate through them in O(n) time total. For example, if you have [1,1,1,2,2,3,3,3,3] and need the top 2 frequent, bucket by frequency: bucket[1] has {2}, bucket[3] has {3}, then scan backwards to collect answers. Neither strategy works well if your data streams in or is too large to hold; for those cases, the heap stays superior. **Common mistake:** assuming bucket sort applies to unsorted arrays; it works for counts only.',
+  },
+]
+
 export default function TopKElementsVisualizer() {
   const [problem, setProblem] = useState<Problem>('top-k-largest')
   const [k, setK] = useState(3)
@@ -437,7 +452,7 @@ export default function TopKElementsVisualizer() {
       </div>
 
       <StepControls ctrl={ctrl} />
-      <CodeBlock examples={CODE_EXAMPLES} />
+      <CodeTabs doubts={DOUBTS} examples={CODE_EXAMPLES} />
     </div>
   )
 }
