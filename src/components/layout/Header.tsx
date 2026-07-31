@@ -1,17 +1,29 @@
 import React from 'react'
 import { useLocation, Link } from 'react-router-dom'
-import { Sun, Moon } from 'lucide-react'
+import { Menu, Sun, Moon } from 'lucide-react'
 import { useTheme } from '@/contexts/ThemeContext'
 import { registry } from '@/registry'
 
-export default function Header() {
+interface HeaderProps {
+  onOpenSidebar: () => void
+}
+
+export default function Header({ onOpenSidebar }: HeaderProps) {
   const { theme, toggle } = useTheme()
   const location = useLocation()
 
   const crumbs = buildCrumbs(location.pathname)
 
   return (
-    <header className="flex items-center gap-4 h-14 px-6 border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900">
+    <header className="flex items-center gap-3 md:gap-4 h-14 px-4 md:px-6 border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900">
+      <button
+        onClick={onOpenSidebar}
+        className="md:hidden flex-shrink-0 p-2 -ml-2 rounded-lg text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+        aria-label="Open sidebar"
+      >
+        <Menu size={20} />
+      </button>
+
       {/* Breadcrumbs */}
       <nav className="flex items-center gap-1.5 text-sm flex-1 min-w-0">
         <Link to="/" className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors flex-shrink-0">
