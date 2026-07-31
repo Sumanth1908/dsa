@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import MemoryTip from '@/components/shared/MemoryTip'
 import { useSteps } from '@/hooks/useSteps'
 import StepControls from '@/components/shared/StepControls'
 import CodeTabs from '@/components/shared/CodeTabs'
@@ -533,6 +534,8 @@ export default function JavaStreamsVisualizer() {
             at a time.
           </p>
         </div>
+
+        <MemoryTip>Build with intermediate operations, run with a terminal operation.</MemoryTip>
 
         <div className="bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800 rounded-xl p-4">
           <h3 className="font-semibold text-emerald-800 dark:text-emerald-300 mb-1">The Key Idea</h3>

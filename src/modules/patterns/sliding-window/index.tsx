@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import MemoryTip from '@/components/shared/MemoryTip'
 import { useSteps } from '@/hooks/useSteps'
 import StepControls from '@/components/shared/StepControls'
 import ComplexityBadge from '@/components/shared/ComplexityBadge'
@@ -193,6 +194,8 @@ export default function SlidingWindowVisualizer() {
           The sliding window trick does it in O(n): just subtract the element that left and add the one that arrived.
         </p>
       </div>
+
+      <MemoryTip>Expand right, repair from left, record the best valid window.</MemoryTip>
 
       <div className="bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800 rounded-xl p-4">
         <h3 className="font-medium text-emerald-800 dark:text-emerald-300 mb-1">How to recognise this pattern</h3>

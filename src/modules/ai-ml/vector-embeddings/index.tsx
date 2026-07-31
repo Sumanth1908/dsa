@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import MemoryTip from '@/components/shared/MemoryTip'
 import CodeTabs from '@/components/shared/CodeTabs'
 
 const CLUSTERS = {
@@ -117,6 +118,8 @@ export default function VectorEmbeddingsVisualizer() {
           This 2D scatter plot is a t-SNE projection of that 768D space down to 2D for visualization.
         </p>
       </div>
+
+      <MemoryTip>Embeddings turn meaning into position; similar meanings become nearby points.</MemoryTip>
 
       <div className="bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800 rounded-xl p-4">
         <h3 className="font-medium text-emerald-800 dark:text-emerald-300 mb-1">Key insight</h3>

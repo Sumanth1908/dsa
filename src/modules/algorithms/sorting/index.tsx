@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react'
+import MemoryTip from '@/components/shared/MemoryTip'
 import { useSteps } from '@/hooks/useSteps'
 import StepControls from '@/components/shared/StepControls'
 import ComplexityBadge from '@/components/shared/ComplexityBadge'
@@ -481,6 +482,8 @@ export default function SortingVisualizer({ algo: propAlgo }: SortingVisualizerP
           matter enormously for 10 million.
         </p>
       </div>
+
+      <MemoryTip>Bubble swaps neighbours, insertion grows a hand, merge splits then zips, and quick partitions around a pivot.</MemoryTip>
 
       <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-xl p-4 text-sm text-amber-800 dark:text-amber-300 space-y-2">
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">

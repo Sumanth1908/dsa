@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import MemoryTip from '@/components/shared/MemoryTip'
 import { useSteps } from '@/hooks/useSteps'
 import StepControls from '@/components/shared/StepControls'
 import DoubtsBlock from '@/components/shared/DoubtsBlock'
@@ -105,6 +106,8 @@ export default function CachingVisualizer() {
           rummaging.
         </p>
       </div>
+
+      <MemoryTip>Hashmap finds it, linked list ranks its freshness.</MemoryTip>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
         <div className="bg-slate-50 dark:bg-slate-800/50 rounded-xl p-4">

@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import MemoryTip from '@/components/shared/MemoryTip'
 import CodeTabs from '@/components/shared/CodeTabs'
 
 const CODE_EXAMPLES = [
@@ -116,6 +117,8 @@ export default function CPUThreadsVisualizer() {
           The right concurrency strategy depends on which one is your bottleneck.
         </p>
       </div>
+
+      <MemoryTip>CPU-bound is limited by chefs (cores); I/O-bound is limited by waiting.</MemoryTip>
 
       <div className="bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800 rounded-xl p-4">
         <h3 className="font-medium text-emerald-800 dark:text-emerald-300 mb-1">The Golden Rule</h3>

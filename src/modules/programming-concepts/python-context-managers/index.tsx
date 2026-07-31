@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import MemoryTip from '@/components/shared/MemoryTip'
 import { useSteps } from '@/hooks/useSteps'
 import StepControls from '@/components/shared/StepControls'
 import CodeTabs from '@/components/shared/CodeTabs'
@@ -307,6 +308,8 @@ export default function PyContextManagersVisualizer() {
           With <code className="bg-amber-100 dark:bg-amber-900 px-1 rounded text-xs">with DatabaseConnection() as conn:</code>, cleanup is guaranteed by the protocol.
         </p>
       </div>
+
+      <MemoryTip>Enter, use, exit — cleanup belongs to the context, even when errors happen.</MemoryTip>
 
       <div className="bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800 rounded-xl p-4">
         <h3 className="font-medium text-emerald-800 dark:text-emerald-300 mb-1">The protocol — two dunder methods</h3>

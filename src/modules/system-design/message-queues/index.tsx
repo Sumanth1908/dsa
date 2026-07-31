@@ -1,4 +1,5 @@
 import React from 'react'
+import MemoryTip from '@/components/shared/MemoryTip'
 import { useSteps } from '@/hooks/useSteps'
 import StepControls from '@/components/shared/StepControls'
 import DoubtsBlock from '@/components/shared/DoubtsBlock'
@@ -90,6 +91,8 @@ export default function MessageQueuesVisualizer() {
           the kitchen falls behind.
         </p>
       </div>
+
+      <MemoryTip>Producers drop work off; consumers pick work up; the broker absorbs the speed difference.</MemoryTip>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
         {[

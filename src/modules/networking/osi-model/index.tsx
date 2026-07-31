@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import MemoryTip from '@/components/shared/MemoryTip'
 import CodeTabs from '@/components/shared/CodeTabs'
 
 interface Layer {
@@ -237,6 +238,8 @@ export default function OSIModelVisualizer() {
           At the destination the process reverses — each layer peels off its wrapper to hand the payload up.
         </p>
       </div>
+
+      <MemoryTip>Top to bottom, All People Seem To Need Data Processing — Application, Presentation, Session, Transport, Network, Data Link, Physical.</MemoryTip>
 
       {/* Tab switcher */}
       <div className="flex gap-2">

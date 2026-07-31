@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import MemoryTip from '@/components/shared/MemoryTip'
 import { useSteps } from '@/hooks/useSteps'
 import StepControls from '@/components/shared/StepControls'
 import ComplexityBadge from '@/components/shared/ComplexityBadge'
@@ -172,6 +173,8 @@ export default function TwoPointerVisualizer() {
           Checking every pair would be O(n²). Two pointers let you do it in one pass — if the current pair is too cheap, advance the left pointer for a pricier book; too expensive, retreat the right pointer.
         </p>
       </div>
+
+      <MemoryTip>Too small moves left up; too large moves right down.</MemoryTip>
 
       <div className="bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800 rounded-xl p-4">
         <h3 className="font-medium text-emerald-800 dark:text-emerald-300 mb-1">How to recognise this pattern</h3>

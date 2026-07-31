@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import MemoryTip from '@/components/shared/MemoryTip'
 import { useSteps } from '@/hooks/useSteps'
 import StepControls from '@/components/shared/StepControls'
 import ComplexityBadge from '@/components/shared/ComplexityBadge'
@@ -322,6 +323,8 @@ export default function MonotonicStackVisualizer() {
           <strong> Largest Rectangle:</strong> A city planner calculates the largest rectangular billboard that fits within a building skyline — a common coding interview classic.
         </p>
       </div>
+
+      <MemoryTip>Keep unresolved items in order; when that order breaks, pop and answer them.</MemoryTip>
 
       <div className="bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800 rounded-xl p-4">
         <h3 className="font-medium text-emerald-800 dark:text-emerald-300 mb-1">How the trick works</h3>

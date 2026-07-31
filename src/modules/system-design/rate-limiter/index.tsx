@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react'
+import MemoryTip from '@/components/shared/MemoryTip'
 import CodeTabs from '@/components/shared/CodeTabs'
 
 type Algo = 'token-bucket' | 'leaky-bucket' | 'fixed-window'
@@ -230,6 +231,8 @@ export default function RateLimiterVisualizer() {
           A rate limiter sits in front of your service and rejects requests that exceed the limit — returning <code className="bg-amber-100 dark:bg-amber-900 px-1 rounded">429 Too Many Requests</code>.
         </p>
       </div>
+
+      <MemoryTip>Count requests inside a time rule, then admit or reject before expensive work begins.</MemoryTip>
 
       <div className="bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800 rounded-xl p-4">
         <h3 className="font-medium text-emerald-800 dark:text-emerald-300 mb-1">How to recognise which to use</h3>

@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import MemoryTip from '@/components/shared/MemoryTip'
 import CodeTabs from '@/components/shared/CodeTabs'
 
 type Operation = 'get-product' | 'create-order' | 'authenticate'
@@ -199,6 +200,8 @@ export default function APIDesignVisualizer() {
           Most real systems use a hybrid: REST for CRUD, RPC-style for complex operations.
         </p>
       </div>
+
+      <MemoryTip>REST exposes nouns with HTTP verbs; RPC exposes verbs as operations.</MemoryTip>
 
       <div className="bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800 rounded-xl p-4">
         <h3 className="font-medium text-emerald-800 dark:text-emerald-300 mb-2">When to use which</h3>

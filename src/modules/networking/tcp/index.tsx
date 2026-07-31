@@ -1,4 +1,5 @@
 import React from 'react'
+import MemoryTip from '@/components/shared/MemoryTip'
 import { useSteps } from '@/hooks/useSteps'
 import StepControls from '@/components/shared/StepControls'
 import CodeTabs from '@/components/shared/CodeTabs'
@@ -110,6 +111,8 @@ export default function TCPVisualizer() {
           phone down — both sides say goodbye before hanging up.
         </p>
       </div>
+
+      <MemoryTip>TCP is connect, confirm, converse, close.</MemoryTip>
 
       <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-xl p-4 text-sm text-amber-800 dark:text-amber-300 space-y-2">
         <p>TCP is a <strong>reliable, ordered, connection-oriented</strong> protocol. Before any data is exchanged, both sides must agree they're ready — that's the 3-way handshake. During the handshake, each side picks a random <strong>Initial Sequence Number (ISN)</strong> and communicates it to the other. All subsequent packets include sequence numbers so the receiver can detect gaps, duplicates, and reorder out-of-order packets.</p>

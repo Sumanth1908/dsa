@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import MemoryTip from '@/components/shared/MemoryTip'
 import { Link } from 'react-router-dom'
 import { useSteps } from '@/hooks/useSteps'
 import StepControls from '@/components/shared/StepControls'
@@ -267,6 +268,8 @@ export default function TreeVisualizer() {
           and each step throws away half the remaining possibilities.
         </p>
       </div>
+
+      <MemoryTip>Smaller goes left, larger goes right — repeat the rule at every node.</MemoryTip>
 
       <div className="bg-sky-50 dark:bg-sky-950/30 border border-sky-200 dark:border-sky-800 rounded-xl p-4 text-sm text-sky-800 dark:text-sky-300 space-y-2">
         <p className="font-semibold text-sky-700 dark:text-sky-200">What is a Binary Search Tree?</p>

@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import MemoryTip from '@/components/shared/MemoryTip'
 import { useSteps } from '@/hooks/useSteps'
 import StepControls from '@/components/shared/StepControls'
 import CodeTabs from '@/components/shared/CodeTabs'
@@ -379,6 +380,8 @@ export default function MemoryModelViz() {
           slowly fills.
         </p>
       </div>
+
+      <MemoryTip>Stack follows scope; heap follows reachability.</MemoryTip>
 
       <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-xl p-4 text-sm text-amber-800 dark:text-amber-300 space-y-2">
         <p>Every program has two main memory regions. The <strong>Stack</strong> is a region managed automatically by the CPU: when a function is called, a frame is pushed (holding local variables and return address); when it returns, the frame is popped in microseconds — no GC needed. Stack is fast but small (typically 1–8 MB).</p>

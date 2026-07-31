@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import MemoryTip from '@/components/shared/MemoryTip'
 import { useSteps } from '@/hooks/useSteps'
 import StepControls from '@/components/shared/StepControls'
 import CodeTabs from '@/components/shared/CodeTabs'
@@ -274,6 +275,8 @@ export default function GamingSystemViz() {
           updates get lost on the way (UDP). This design walks all three.
         </p>
       </div>
+
+      <MemoryTip>Match fairly, decide centrally, synchronize quickly.</MemoryTip>
 
       <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-xl p-4">
         <p className="text-sm text-amber-800 dark:text-amber-300">

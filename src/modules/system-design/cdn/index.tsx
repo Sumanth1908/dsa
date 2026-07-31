@@ -1,4 +1,5 @@
 import React from 'react'
+import MemoryTip from '@/components/shared/MemoryTip'
 import { useSteps } from '@/hooks/useSteps'
 import StepControls from '@/components/shared/StepControls'
 import CodeTabs from '@/components/shared/CodeTabs'
@@ -132,6 +133,8 @@ export default function CDNVisualizer() {
           and caches at the NY edge; every subsequent user in New York gets it in <strong>8ms</strong>.
         </p>
       </div>
+
+      <MemoryTip>Move copies of content closer instead of making every user travel to the origin.</MemoryTip>
 
       <div className="bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800 rounded-xl p-4">
         <h3 className="font-medium text-emerald-800 dark:text-emerald-300 mb-1">When to use a CDN</h3>

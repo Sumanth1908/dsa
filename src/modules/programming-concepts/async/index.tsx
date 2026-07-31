@@ -1,4 +1,5 @@
 import React from 'react'
+import MemoryTip from '@/components/shared/MemoryTip'
 import { useSteps } from '@/hooks/useSteps'
 import StepControls from '@/components/shared/StepControls'
 import CodeTabs from '@/components/shared/CodeTabs'
@@ -170,6 +171,8 @@ export default function EventLoopVisualizer() {
           of hands, never idle, nothing burns.
         </p>
       </div>
+
+      <MemoryTip>Stack now, microtasks next, regular tasks after.</MemoryTip>
 
       <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-xl p-4 text-sm text-amber-800 dark:text-amber-300 space-y-2">
         <p>JavaScript is <strong>single-threaded</strong> — there is exactly one call stack, and only one function runs at a time. But a browser or Node.js can handle thousands of concurrent I/O operations. How? Not with threads — with the <strong>event loop</strong>. When you call <code className="font-mono bg-amber-100 dark:bg-amber-900 px-1 rounded">setTimeout</code> or <code className="font-mono bg-amber-100 dark:bg-amber-900 px-1 rounded">fetch()</code>, the work is handed off to a background Web API (a browser thread, or libuv in Node). The JS thread stays free to do other work. When the timer fires or the fetch resolves, a callback is placed in a queue and picked up by the event loop when the call stack is empty.</p>

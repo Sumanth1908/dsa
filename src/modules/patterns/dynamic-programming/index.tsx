@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import MemoryTip from '@/components/shared/MemoryTip'
 import { useSteps } from '@/hooks/useSteps'
 import StepControls from '@/components/shared/StepControls'
 import ComplexityBadge from '@/components/shared/ComplexityBadge'
@@ -268,6 +269,8 @@ export default function DynamicProgrammingVisualizer() {
           <strong> LIS:</strong> A stock analyst finds the longest streak of days where prices trended upward (non-consecutive allowed) — reveals the underlying growth pattern.
         </p>
       </div>
+
+      <MemoryTip>DP means define the state, write the transition, seed the base case, and choose the fill order.</MemoryTip>
 
       <div className="bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800 rounded-xl p-4">
         <h3 className="font-medium text-emerald-800 dark:text-emerald-300 mb-1">Bottom-up (tabulation) vs Top-down (memoization)</h3>

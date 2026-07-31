@@ -1,4 +1,5 @@
 import React from 'react'
+import MemoryTip from '@/components/shared/MemoryTip'
 import { useSteps } from '@/hooks/useSteps'
 import StepControls from '@/components/shared/StepControls'
 import CodeTabs from '@/components/shared/CodeTabs'
@@ -169,6 +170,8 @@ export default function RAGVisualizer() {
           The LLM answers from your docs, not from its training data.
         </p>
       </div>
+
+      <MemoryTip>Retrieve evidence first, augment the prompt second, generate the answer last.</MemoryTip>
 
       <div className="bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800 rounded-xl p-4">
         <h3 className="font-medium text-emerald-800 dark:text-emerald-300 mb-1">Why not just fine-tune?</h3>

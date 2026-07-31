@@ -1,4 +1,5 @@
 import React from 'react'
+import MemoryTip from '@/components/shared/MemoryTip'
 import { Link } from 'react-router-dom'
 import ComplexityBadge from '@/components/shared/ComplexityBadge'
 import DoubtsBlock from '@/components/shared/DoubtsBlock'
@@ -38,6 +39,8 @@ export default function TreeOverview() {
           and your family tree are all the same shape.
         </p>
       </div>
+
+      <MemoryTip>One root, many branches, no path back to a second parent.</MemoryTip>
 
       <div className="bg-sky-50 dark:bg-sky-950/30 border border-sky-200 dark:border-sky-800 rounded-xl p-4 text-sm text-sky-800 dark:text-sky-300 space-y-3">
         <p className="font-semibold text-sky-700 dark:text-sky-200">What is a Tree?</p>

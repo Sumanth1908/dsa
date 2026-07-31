@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import MemoryTip from '@/components/shared/MemoryTip'
 import { useSteps } from '@/hooks/useSteps'
 import StepControls from '@/components/shared/StepControls'
 import CodeTabs from '@/components/shared/CodeTabs'
@@ -259,6 +260,8 @@ export default function PyGeneratorsVisualizer() {
           A generator reads <em>one line at a time</em>, processes it, releases it — constant O(1) memory no matter how large the file.
         </p>
       </div>
+
+      <MemoryTip>Return finishes; yield pauses and remembers.</MemoryTip>
 
       <div className="bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800 rounded-xl p-4">
         <h3 className="font-medium text-emerald-800 dark:text-emerald-300 mb-1">When to use generators</h3>

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react'
+import MemoryTip from '@/components/shared/MemoryTip'
 import DoubtsBlock from '@/components/shared/DoubtsBlock'
 
 interface Server { id: number; label: string; x: number; y: number; requests: number; active: boolean }
@@ -122,6 +123,8 @@ export default function LoadBalancingVisualizer() {
           strategy below.
         </p>
       </div>
+
+      <MemoryTip>Distribute, detect failure, redirect.</MemoryTip>
 
       <div className="flex gap-2 flex-wrap">
         {(['round-robin', 'least-connections', 'random'] as Strategy[]).map(s => (

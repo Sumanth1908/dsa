@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import MemoryTip from '@/components/shared/MemoryTip'
 import { useSteps } from '@/hooks/useSteps'
 import StepControls from '@/components/shared/StepControls'
 import ComplexityBadge from '@/components/shared/ComplexityBadge'
@@ -153,6 +154,8 @@ export default function BinarySearchPatternVisualizer() {
           Running the full test suite on a commit is expensive. Binary search finds the first bad commit in at most <strong>{Math.ceil(Math.log2(N))} test runs</strong> instead of 20 — the exact same logic as <code className="bg-amber-100 dark:bg-amber-900 px-1 rounded text-xs">git bisect</code>.
         </p>
       </div>
+
+      <MemoryTip>Find a yes/no boundary — ask the middle and keep the half containing the first change.</MemoryTip>
 
       <div className="bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800 rounded-xl p-4">
         <h3 className="font-medium text-emerald-800 dark:text-emerald-300 mb-1">How to recognise this pattern</h3>

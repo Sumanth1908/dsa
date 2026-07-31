@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import MemoryTip from '@/components/shared/MemoryTip'
 import CodeTabs from '@/components/shared/CodeTabs'
 
 type Resource = 'events' | 'bookings' | 'users'
@@ -266,6 +267,8 @@ export default function EventBookingViz() {
           code; the timing itself was the bug. This case study designs the booking API, then fixes exactly that.
         </p>
       </div>
+
+      <MemoryTip>Checking availability is a question; reserving atomically is the guarantee.</MemoryTip>
 
       <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-xl p-4">
         <p className="text-sm text-amber-800 dark:text-amber-300">

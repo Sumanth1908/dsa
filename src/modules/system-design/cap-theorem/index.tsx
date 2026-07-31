@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import MemoryTip from '@/components/shared/MemoryTip'
 import DoubtsBlock from '@/components/shared/DoubtsBlock'
 
 type CAPChoice = 'CP' | 'AP' | 'CA'
@@ -96,6 +97,8 @@ export default function CAPTheoremVisualizer() {
           down. That, in one broken phone line, is the CAP theorem.
         </p>
       </div>
+
+      <MemoryTip>When the network splits, choose correct answers or continued answers.</MemoryTip>
 
       <div className="bg-rose-50 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-800 rounded-xl p-4 text-sm">
         <strong className="text-rose-700 dark:text-rose-400">Key insight:</strong>

@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import MemoryTip from '@/components/shared/MemoryTip'
 import CodeTabs from '@/components/shared/CodeTabs'
 
 const COMPARISONS = [
@@ -49,6 +50,8 @@ export default function UDPVsTCPVisualizer() {
           moving than freeze everything waiting for it.
         </p>
       </div>
+
+      <MemoryTip>TCP waits for correctness; UDP races for freshness.</MemoryTip>
 
       <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-xl p-4 text-sm text-amber-800 dark:text-amber-300 space-y-2">
         <p>UDP is a <strong>"fire and forget"</strong> protocol. You send a datagram and never know if it arrived. No handshake, no acknowledgement, no retransmission, no ordering guarantee. This sounds terrible — but it's exactly what you want when speed matters more than completeness. A video call dropping 1% of packets is invisible to human eyes. But TCP's retransmission of that lost packet would arrive 200ms late, causing the entire stream to freeze waiting for it — far worse than just skipping it.</p>

@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import MemoryTip from '@/components/shared/MemoryTip'
 import { useSteps } from '@/hooks/useSteps'
 import StepControls from '@/components/shared/StepControls'
 import ComplexityBadge from '@/components/shared/ComplexityBadge'
@@ -324,6 +325,8 @@ export default function TopKElementsVisualizer() {
           <br /><strong>K Most Frequent:</strong> A music streaming platform's "Trending" section shows the k songs with the most plays. Same heap trick, keyed by play count.
         </p>
       </div>
+
+      <MemoryTip>Keep only k candidates; the root is the easiest current winner to replace.</MemoryTip>
 
       <div className="bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800 rounded-xl p-4">
         <h3 className="font-medium text-emerald-800 dark:text-emerald-300 mb-1">The key insight</h3>

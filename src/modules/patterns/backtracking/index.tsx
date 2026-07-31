@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import MemoryTip from '@/components/shared/MemoryTip'
 import { useSteps } from '@/hooks/useSteps'
 import StepControls from '@/components/shared/StepControls'
 import ComplexityBadge from '@/components/shared/ComplexityBadge'
@@ -338,6 +339,8 @@ export default function BacktrackingVisualizer() {
           <strong> N-Queens:</strong> Place N queens on an N×N chess board so none threatens another — classic constraint satisfaction.
         </p>
       </div>
+
+      <MemoryTip>Choose, explore, un-choose — the undo step is what makes it backtracking.</MemoryTip>
 
       <div className="bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800 rounded-xl p-4">
         <h3 className="font-medium text-emerald-800 dark:text-emerald-300 mb-1">The template (always three steps)</h3>

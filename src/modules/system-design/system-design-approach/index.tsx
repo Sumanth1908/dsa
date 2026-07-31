@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import MemoryTip from '@/components/shared/MemoryTip'
 import DoubtsBlock from '@/components/shared/DoubtsBlock'
 
 type Phase = 'requirements' | 'scale' | 'api' | 'architecture' | 'tradeoffs'
@@ -131,6 +132,8 @@ export default function SystemDesignApproachViz() {
           framework is the architect's discipline, applied to software.
         </p>
       </div>
+
+      <MemoryTip>R-E-H-D-T — Requirements, Estimates, High-level design, Deep dives, Trade-offs.</MemoryTip>
 
       <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-xl p-4">
         <p className="text-sm text-amber-800 dark:text-amber-300">
