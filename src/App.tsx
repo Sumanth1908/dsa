@@ -75,6 +75,7 @@ const EventBookingViz = lazy(() => import('@/modules/system-design/event-booking
 const VideoProcessingViz = lazy(() => import('@/modules/system-design/video-processing'))
 const GamingSystemViz = lazy(() => import('@/modules/system-design/gaming-system'))
 const LoadBalancingViz = lazy(() => import('@/modules/system-design/load-balancing'))
+const DistributedDatabasesViz = lazy(() => import('@/modules/system-design/distributed-databases'))
 const CachingViz = lazy(() => import('@/modules/system-design/caching'))
 const MessageQueuesViz = lazy(() => import('@/modules/system-design/message-queues'))
 const PubSubViz = lazy(() => import('@/modules/system-design/pub-sub'))
@@ -198,6 +199,7 @@ export const appRoutes = [
       { path: 'system-design/video-processing', element: S(VideoProcessingViz) },
       { path: 'system-design/gaming-system', element: S(GamingSystemViz) },
       { path: 'system-design/load-balancing', element: S(LoadBalancingViz) },
+      { path: 'system-design/distributed-databases', element: S(DistributedDatabasesViz) },
       { path: 'system-design/caching', element: S(CachingViz) },
       { path: 'system-design/message-queues', element: S(MessageQueuesViz) },
       { path: 'system-design/pub-sub', element: S(PubSubViz) },

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { fireEvent, render, screen } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import HomePage from '@/modules/home/HomePage'
 import SectionIndex from '@/components/shared/SectionIndex'
@@ -8,6 +8,7 @@ import CreationalPatternsViz from '@/modules/design-patterns/creational'
 import StructuralPatternsViz from '@/modules/design-patterns/structural'
 import BehavioralPatternsViz from '@/modules/design-patterns/behavioral'
 import MonotonicStackViz from '@/modules/patterns/monotonic-stack'
+import Sidebar from '@/components/layout/Sidebar'
 
 const at = (path: string, ui: React.ReactElement) =>
   render(<MemoryRouter initialEntries={[path]}>{ui}</MemoryRouter>)
@@ -61,5 +62,11 @@ describe('page smoke tests', () => {
     render(<MonotonicStackViz />)
     expect(screen.getByRole('heading', { name: 'Monotonic Stack' })).toBeTruthy()
     expect(screen.getByRole('button', { name: 'Next step' })).toBeTruthy()
+  })
+
+  it('searches across multiple descriptive words', () => {
+    at('/', <Sidebar collapsed={false} onToggle={() => {}} />)
+    fireEvent.change(screen.getByPlaceholderText('Search topics…'), { target: { value: 'numbered access' } })
+    expect(screen.getByText('Array')).toBeTruthy()
   })
 })

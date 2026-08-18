@@ -13,25 +13,45 @@ interface SidebarProps {
 const isUnder = (pathname: string, base: string) =>
   pathname === base || pathname.startsWith(base + '/')
 
+const normalizeSearch = (value: string) =>
+  value.toLowerCase().replace(/[^a-z0-9+#.]+/g, ' ').trim()
+
+const matchesSearch = (query: string, values: Array<string | undefined>) => {
+  const queryTokens = normalizeSearch(query).split(' ').filter(Boolean)
+  if (queryTokens.length === 0) return false
+
+  const searchableText = normalizeSearch(values.filter(Boolean).join(' '))
+  const searchableTerms = searchableText.split(' ').filter(Boolean)
+
+  return queryTokens.every(token =>
+    searchableText.includes(token) ||
+    searchableTerms.some(term =>
+      token.length >= 4 &&
+      term.length >= 4 &&
+      Math.abs(token.length - term.length) <= 2 &&
+      (token.startsWith(term) || term.startsWith(token))
+    )
+  )
+}
+
 export default function Sidebar({ collapsed, onToggle, mobile = false }: SidebarProps) {
   const location = useLocation()
-  const [manuallyExpanded, setManuallyExpanded] = useState<string[]>([])
+  const [expansionOverrides, setExpansionOverrides] = useState<Record<string, boolean>>({})
   const [query, setQuery] = useState('')
 
-  const toggleSection = (id: string) => {
-    setManuallyExpanded(prev =>
-      prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]
-    )
+  const toggleSection = (id: string, isExpanded: boolean) => {
+    setExpansionOverrides(prev => ({ ...prev, [id]: !isExpanded }))
   }
 
   const results = useMemo(() => {
-    const q = query.trim().toLowerCase()
-    if (!q) return []
-    return flatModules.filter(({ sub, section }) =>
-      sub.title.toLowerCase().includes(q) ||
-      section.title.toLowerCase().includes(q) ||
-      sub.tags?.some(t => t.toLowerCase().includes(q))
-    )
+    if (!query.trim()) return []
+    return flatModules.filter(({ sub, section }) => matchesSearch(query, [
+      sub.title,
+      section.title,
+      sub.description,
+      sub.complexity,
+      ...(sub.tags ?? []),
+    ]))
   }, [query])
 
   return (
@@ -150,28 +170,38 @@ export default function Sidebar({ collapsed, onToggle, mobile = false }: Sidebar
                 )}
                 {registry.filter(s => s.group === group.id).map(section => {
                   const isSectionActive = isUnder(location.pathname, section.path)
-                  const isExpanded = isSectionActive || manuallyExpanded.includes(section.id)
+                  const isExpanded = expansionOverrides[section.id] ?? isSectionActive
 
                   return (
                     <div key={section.id}>
-                      <button
-                        onClick={() => !collapsed && toggleSection(section.id)}
-                        title={collapsed ? section.title : undefined}
-                        className={`flex items-center gap-3 px-3 py-2 mx-2 rounded-lg text-sm transition-colors ${
+                      <div
+                        className={`flex items-center mx-2 rounded-lg text-sm transition-colors ${
                           isSectionActive
                             ? 'text-slate-900 dark:text-white font-medium bg-slate-50 dark:bg-slate-800/50'
                             : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-800/50'
                         }`}
                         style={{ width: 'calc(100% - 16px)' }}
                       >
-                        <span className="text-base flex-shrink-0">{section.icon}</span>
+                        <NavLink
+                          to={section.path}
+                          title={collapsed ? section.title : `Open ${section.title} overview`}
+                          className={`flex min-w-0 flex-1 items-center gap-3 px-3 py-2 ${collapsed ? 'justify-center' : ''}`}
+                        >
+                          <span className="text-base flex-shrink-0">{section.icon}</span>
+                          {!collapsed && <span className="flex-1 text-left truncate">{section.title}</span>}
+                        </NavLink>
                         {!collapsed && (
-                          <>
-                            <span className="flex-1 text-left truncate">{section.title}</span>
+                          <button
+                            type="button"
+                            onClick={() => toggleSection(section.id, isExpanded)}
+                            aria-label={`${isExpanded ? 'Collapse' : 'Expand'} ${section.title}`}
+                            aria-expanded={isExpanded}
+                            className="mr-1 rounded-md p-2 text-slate-400 transition-colors hover:bg-slate-200/70 hover:text-slate-700 dark:hover:bg-slate-700 dark:hover:text-slate-200"
+                          >
                             {isExpanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
-                          </>
+                          </button>
                         )}
-                      </button>
+                      </div>
 
                       {!collapsed && isExpanded && (
                         <div className="ml-8 mr-2 mt-1 space-y-0.5">
