@@ -76,6 +76,7 @@ const VideoProcessingViz = lazy(() => import('@/modules/system-design/video-proc
 const GamingSystemViz = lazy(() => import('@/modules/system-design/gaming-system'))
 const LoadBalancingViz = lazy(() => import('@/modules/system-design/load-balancing'))
 const DistributedDatabasesViz = lazy(() => import('@/modules/system-design/distributed-databases'))
+const DatabaseIndexesViz = lazy(() => import('@/modules/system-design/database-indexes'))
 const CachingViz = lazy(() => import('@/modules/system-design/caching'))
 const MessageQueuesViz = lazy(() => import('@/modules/system-design/message-queues'))
 const PubSubViz = lazy(() => import('@/modules/system-design/pub-sub'))
@@ -88,6 +89,7 @@ const APIDesignViz = lazy(() => import('@/modules/system-design/api-design'))
 const OSIModelViz = lazy(() => import('@/modules/networking/osi-model'))
 const TCPViz = lazy(() => import('@/modules/networking/tcp'))
 const UDPViz = lazy(() => import('@/modules/networking/udp'))
+const ConnectionsViz = lazy(() => import('@/modules/networking/connections'))
 const WebSocketViz = lazy(() => import('@/modules/networking/websocket'))
 
 function Loading() {
@@ -200,6 +202,7 @@ export const appRoutes = [
       { path: 'system-design/gaming-system', element: S(GamingSystemViz) },
       { path: 'system-design/load-balancing', element: S(LoadBalancingViz) },
       { path: 'system-design/distributed-databases', element: S(DistributedDatabasesViz) },
+      { path: 'system-design/database-indexes', element: S(DatabaseIndexesViz) },
       { path: 'system-design/caching', element: S(CachingViz) },
       { path: 'system-design/message-queues', element: S(MessageQueuesViz) },
       { path: 'system-design/pub-sub', element: S(PubSubViz) },
@@ -212,6 +215,7 @@ export const appRoutes = [
       { path: 'networking/osi-model', element: S(OSIModelViz) },
       { path: 'networking/tcp', element: S(TCPViz) },
       { path: 'networking/udp', element: S(UDPViz) },
+      { path: 'networking/connections', element: S(ConnectionsViz) },
       { path: 'networking/websocket', element: S(WebSocketViz) },
 
       // Catch-all

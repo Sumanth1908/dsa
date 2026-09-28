@@ -3,6 +3,7 @@ import MemoryTip from '@/components/shared/MemoryTip'
 import { useSteps } from '@/hooks/useSteps'
 import StepControls from '@/components/shared/StepControls'
 import CodeTabs from '@/components/shared/CodeTabs'
+import { Link } from 'react-router-dom'
 
 interface Step {
   messages: { from: 'client' | 'server'; type: string; content: string; color: string }[]
@@ -13,7 +14,7 @@ interface Step {
 }
 
 function wsSteps(): Step[] {
-  const steps: Step[] = [{ messages: [], clientState: 'CLOSED', serverState: 'LISTENING', message: 'WebSocket connection lifecycle. Client and server start on HTTP.', active: null }]
+  const steps: Step[] = [{ messages: [], clientState: 'CLOSED', serverState: 'LISTENING', message: 'Classic HTTP/1.1 WebSocket lifecycle. Before the upgrade below, the browser resolves the server name, connects TCP, and uses TLS for wss://.', active: null }]
   const msgs: { from: 'client' | 'server'; type: string; content: string; color: string }[] = []
 
   const push = (from: 'client' | 'server', type: string, content: string, color: string, cState: string, sState: string, msg: string) => {
@@ -32,7 +33,7 @@ function wsSteps(): Step[] {
   push('server', 'WS Frame', 'TEXT: {"type":"message","from":"Alice"}', '#f59e0b',
     'OPEN', 'OPEN', 'Server pushes a message to client without waiting for a request.')
   push('client', 'WS Frame', 'PING (heartbeat)', '#8b5cf6',
-    'OPEN', 'OPEN', 'Client sends PING to keep connection alive.')
+    'OPEN', 'OPEN', 'A protocol-level client sends PING to check liveness. Browser JavaScript cannot send these control frames directly; it can send an application heartbeat message.')
   push('server', 'WS Frame', 'PONG', '#8b5cf6',
     'OPEN', 'OPEN', 'Server responds with PONG. Connection alive!')
   push('client', 'WS Frame', 'BINARY: [frame data, 1024 bytes]', '#6366f1',
@@ -62,11 +63,11 @@ const STATE_COLORS: Record<string, string> = {
 const DOUBTS = [
   {
     q: 'Why not just poll with HTTP every second?',
-    a: 'Polling with HTTP means every check — whether new data exists or not — costs a full request/response cycle: TCP handshake, headers, TLS in production, response parsing. If you poll every second, you spend ~99 messages learning "nothing changed." Meanwhile, you still average 500 ms latency to learn about new data (half your polling interval). A WebSocket keeps ONE persistent connection open instead — when data arrives, either side sends it instantly, just a few bytes of frame overhead. Example: a chat app polling every second sends 86,400 requests per user per day; with WebSocket, you send only actual messages. **Rule of thumb:** WebSocket is worth it whenever you need latency under your polling interval.',
+    a: 'Each poll costs an HTTP request and response, including when no new data exists. It does not necessarily cost a new TCP or TLS handshake: HTTP clients can reuse persistent connections. With a one-second short-poll interval, an update arriving at a random time waits about half a second on average before the next check, plus network and processing time. A WebSocket lets the server send updates as they occur over its existing connection. At one poll per second, a continuously connected user makes 86,400 polls per day; how many are empty depends on the application. WebSocket avoids those repeated checks, although heartbeats may still use traffic.',
   },
   {
     q: 'How does a WebSocket start out as HTTP?',
-    a: 'The WebSocket handshake is cleverly designed for firewall compatibility. The client sends a standard HTTP GET request with two special headers: `Upgrade: websocket` (requests protocol switch) and `Sec-WebSocket-Key` (a random Base64 string). The server checks these headers and, if willing, responds with `101 Switching Protocols` and echoes a computed hash of the key. From that moment, both sides stop speaking HTTP entirely — the same TCP socket now carries compact binary frames (2–10 bytes overhead) instead of HTTP headers. This design lets WebSocket traverse proxies and firewalls that would block raw TCP on port 8080: port 80 (HTTP) is nearly always open. Many real-world deployments add wss:// (WebSocket Secure) on port 443, riding alongside HTTPS. **Common mistake:** forgetting to send the special Upgrade headers — the server won\'t acknowledge the switch.',
+    a: 'In the classic HTTP/1.1 handshake, the browser sends a GET with Upgrade, Connection, Sec-WebSocket-Key, and version headers. The server validates the request and, if accepting, responds with 101 Switching Protocols and Sec-WebSocket-Accept. The same connection now carries WebSocket frames. The key checks the protocol handshake, not user identity. Browser code supplies the URL to new WebSocket(); the browser handles these headers. Secure wss:// adds TLS. Proxies must support the handshake and suitable timeouts. WebSocket over HTTP/2 uses extended CONNECT instead of this HTTP/1.1 upgrade.',
   },
   {
     q: 'WebSocket vs Server-Sent Events?',
@@ -74,7 +75,7 @@ const DOUBTS = [
   },
   {
     q: 'What is hard about scaling WebSockets?',
-    a: 'WebSocket\'s strength (persistent connections) becomes a scaling problem. Unlike HTTP, where each request is stateless and can route to any server, every WebSocket connection is STATEFUL: the client stays pinned to one specific server instance until close. This means load balancers must support connection affinity (also called sticky sessions), and each server process holds hundreds or thousands of open sockets in memory — a heavy resource cost compared to stateless HTTP. When you need to broadcast a message to users scattered across 10 servers, you can\'t just route one request and be done. Instead, you need a pub-sub backbone like Redis: Server A publishes the message to Redis; Redis delivers it to all subscribed servers; each server then pushes it to its local clients. Example: scaling a chat room from 1 server (1,000 users) to 10 servers requires adding Redis pub-sub, otherwise users on different servers won\'t see each other\'s messages. **Common mistake:** deploying WebSocket without session affinity, causing clients to reconnect mid-conversation.',
+    a: 'An established WebSocket stays associated with the backend that accepted it. A load balancer must support long-lived WebSocket traffic, but separate sticky-session configuration is not inherently required for an already-open connection. On reconnect, the client may reach another backend, so shared session state or application-specific affinity may be needed. Each connection consumes server resources. To deliver a chat message to users connected to different servers, a pub-sub backbone such as Redis can distribute the event, and each server forwards it to its local clients. Restoring room subscriptions and recovering missed messages after reconnect are application responsibilities.',
   },
 ]
 
@@ -88,26 +89,32 @@ export default function WebSocketVisualizer() {
       <div>
         <h1 className="text-2xl font-bold text-slate-900 dark:text-white">WebSocket</h1>
         <p className="text-slate-500 dark:text-slate-400 mt-1">
-          Full-duplex persistent connection over a single TCP socket — starts as HTTP
+          Two-way messaging over a persistent connection — explore the classic HTTP/1.1 upgrade
         </p>
       </div>
 
       <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-xl p-4">
         <h3 className="font-medium text-amber-800 dark:text-amber-300 mb-1">The Story</h3>
         <p className="text-sm text-amber-700 dark:text-amber-400">
-          Ordinary HTTP is writing letters: every question needs a new envelope, a new trip to the postbox — and
-          the other side can never write to you first. A WebSocket is switching to a phone call: you make one
-          connection, keep it open, and now either side can speak the instant something happens. That's how a
-          chat message reaches you the moment it's sent, instead of your app mailing "anything new?" letters
-          every second.
+          Think of ordinary HTTP requests as questions at a shop counter: you ask, the assistant answers,
+          and you can ask again without leaving. The connection can stay open between questions.
+          WebSocket is an ongoing conversation where either person can speak when something happens.
+          A chat update can arrive immediately, without repeatedly asking “anything new?”
         </p>
       </div>
 
-      <MemoryTip>HTTP asks and answers; WebSocket keeps talking both ways.</MemoryTip>
+      <MemoryTip>HTTP and WebSocket can both keep a connection open. WebSocket lets either side send the next message.</MemoryTip>
+
+      <aside className="rounded-xl border border-slate-200 p-4 text-sm text-slate-600 dark:border-slate-700 dark:text-slate-400 space-y-2">
+        <p>HTTP and WebSocket can both reuse connections. Connection setup, connection lifetime, and application state are separate ideas.</p>
+        <Link to="/networking/connections" className="inline-block font-medium text-violet-700 dark:text-violet-300 underline underline-offset-4">
+          Learn Connections &amp; Channels →
+        </Link>
+      </aside>
 
       <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-xl p-4 text-sm text-amber-800 dark:text-amber-300 space-y-2">
-        <p>HTTP is request-response: the client always has to ask before the server can answer. For a chat app, this means polling ("any new messages yet?") every second — 99% of requests return nothing. WebSocket solves this by upgrading an existing HTTP connection to a persistent full-duplex channel where the <strong>server can push data to the client at any time</strong> without being asked.</p>
-        <p>The handshake is a regular HTTP GET with special <code className="font-mono bg-amber-100 dark:bg-amber-900 px-1 rounded">Upgrade: websocket</code> headers. The server's <code className="font-mono bg-amber-100 dark:bg-amber-900 px-1 rounded">101 Switching Protocols</code> response signals the protocol switch. After that, the same TCP socket carries lightweight binary frames instead of HTTP headers — frames are as small as 2 bytes overhead vs. hundreds of bytes per HTTP request.</p>
+        <p>Ordinary HTTP polling repeatedly asks “any new messages yet?”, even when nothing has changed. These requests can reuse a connection. WebSocket establishes a persistent two-way conversation where the <strong>server can send a message without a new client request</strong>. HTTP streaming, such as SSE, can also deliver updates inside a response kept open.</p>
+        <p>In the HTTP/1.1 flow shown here, the handshake is an HTTP GET with special <code className="font-mono bg-amber-100 dark:bg-amber-900 px-1 rounded">Upgrade: websocket</code> headers. The server's <code className="font-mono bg-amber-100 dark:bg-amber-900 px-1 rounded">101 Switching Protocols</code> response signals the switch. The same TCP connection then carries WebSocket frames containing text or binary data. Frame headers use 2–10 bytes, plus 4 masking bytes on client frames; TLS and network overhead are additional.</p>
         <p><strong>When to use WebSocket vs alternatives:</strong> Use WebSocket for true bidirectional real-time (chat, live collaboration, multiplayer games). Use <strong>SSE (Server-Sent Events)</strong> for one-way server push (live dashboards, news feeds) — simpler, HTTP-native, auto-reconnects. Use HTTP polling when real-time isn't critical and simplicity matters.</p>
       </div>
 
@@ -115,7 +122,7 @@ export default function WebSocketVisualizer() {
         {[
           { icon: '🔄', title: 'Full-duplex', desc: 'Client and server can send messages simultaneously — no polling' },
           { icon: '⚡', title: 'Low latency', desc: 'No HTTP overhead after handshake — just lightweight frames' },
-          { icon: '🔗', title: 'Persistent', desc: 'Connection stays open until explicitly closed by either side' },
+          { icon: '🔗', title: 'Persistent', desc: 'Reused for messages until closure, timeout, or network failure' },
         ].map(f => (
           <div key={f.title} className="bg-cyan-50 dark:bg-cyan-950/30 border border-cyan-200 dark:border-cyan-800 rounded-xl p-4">
             <div className="text-2xl mb-2">{f.icon}</div>
@@ -169,7 +176,7 @@ export default function WebSocketVisualizer() {
                     </span>
                     {isClient ? <span className="text-xs text-violet-500">→</span> : <span className="text-xs text-amber-500">←</span>}
                   </div>
-                  <pre className="text-xs font-mono text-slate-600 dark:text-slate-400 whitespace-pre-wrap leading-4">
+                  <pre className="text-xs font-mono text-slate-600 dark:text-slate-400 whitespace-pre-wrap overflow-x-auto leading-4">
                     {msg.content}
                   </pre>
                 </div>
@@ -194,23 +201,25 @@ export default function WebSocketVisualizer() {
             <ul className="space-y-1 text-slate-600 dark:text-slate-400">
               <li>✓ Single persistent connection</li>
               <li>✓ Server can push anytime</li>
-              <li>✓ Minimal frame overhead (2–10 bytes)</li>
+              <li>✓ Small frame headers (plus client masking)</li>
               <li>✓ True real-time</li>
               <li>✗ Not HTTP cache-able</li>
             </ul>
           </div>
           <div>
-            <div className="font-medium text-slate-600 dark:text-slate-400 mb-1">HTTP Long Polling</div>
+            <div className="font-medium text-slate-600 dark:text-slate-400 mb-1">HTTP Polling</div>
             <ul className="space-y-1 text-slate-500 dark:text-slate-500">
-              <li>✗ New connection per request</li>
+              <li>✓ Can reuse persistent HTTP connections</li>
               <li>✗ Client must always initiate</li>
               <li>✗ Large HTTP header overhead</li>
-              <li>✗ Latency = polling interval</li>
-              <li>✓ Works through all proxies</li>
+              <li>✗ Short polling waits until the next check</li>
+              <li>✓ Uses ordinary HTTP infrastructure</li>
             </ul>
           </div>
         </div>
       </div>
+
+      <p className="text-xs text-slate-500 dark:text-slate-400">Long polling holds a request open until data arrives or a timeout occurs, then issues another request. It reduces the waiting gap of short polling and can also reuse connections.</p>
 
       <CodeTabs doubts={DOUBTS} examples={[
         {

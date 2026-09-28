@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import MemoryTip from '@/components/shared/MemoryTip'
 import CodeTabs from '@/components/shared/CodeTabs'
+import { Link } from 'react-router-dom'
 
 type Operation = 'get-product' | 'create-order' | 'authenticate'
 
@@ -196,12 +197,20 @@ export default function APIDesignVisualizer() {
         <p className="text-sm text-amber-700 dark:text-amber-400">
           You're designing an e-commerce platform API. <strong>REST</strong> models everything as resources (products, orders, users)
           with standard CRUD verbs (GET/POST/PUT/DELETE). <strong>RPC</strong> models everything as function calls
-          (getProduct, placeOrder, authenticateUser) — one endpoint, action in the body.
+          (getProduct, placeOrder, authenticateUser). The JSON-RPC-style examples below use one endpoint and an action in the body;
+          native gRPC uses a service/method path and typically Protobuf messages over HTTP/2.
           Most real systems use a hybrid: REST for CRUD, RPC-style for complex operations.
         </p>
       </div>
 
       <MemoryTip>REST exposes nouns with HTTP verbs; RPC exposes verbs as operations.</MemoryTip>
+
+      <aside className="rounded-xl border border-slate-200 p-4 text-sm text-slate-600 dark:border-slate-700 dark:text-slate-400 space-y-2">
+        <p>REST being stateless describes request context. It can still use a persistent connection, just as gRPC can reuse connections through a channel.</p>
+        <Link to="/networking/connections" className="inline-block font-medium text-violet-700 dark:text-violet-300 underline underline-offset-4">
+          Learn Connections &amp; Channels →
+        </Link>
+      </aside>
 
       <div className="bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800 rounded-xl p-4">
         <h3 className="font-medium text-emerald-800 dark:text-emerald-300 mb-2">When to use which</h3>
@@ -231,7 +240,7 @@ export default function APIDesignVisualizer() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <RequestPanel req={ex.rest} label="REST" color="border-emerald-200 dark:border-emerald-800" />
-        <RequestPanel req={ex.rpc} label="RPC (JSON-RPC / gRPC)" color="border-blue-200 dark:border-blue-800" />
+        <RequestPanel req={ex.rpc} label="RPC (JSON-RPC-style example)" color="border-blue-200 dark:border-blue-800" />
       </div>
 
       {/* Key differences summary */}
@@ -246,7 +255,7 @@ export default function APIDesignVisualizer() {
           </thead>
           <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
             {[
-              ['URL design', 'Resource nouns: /products/123', 'Single endpoint: /rpc or /service.Method'],
+              ['URL design', 'Resource nouns: /products/123', 'JSON-RPC: /rpc; gRPC: /package.Service/Method'],
               ['HTTP verbs', 'GET, POST, PUT, PATCH, DELETE', 'Usually POST only'],
               ['Caching', 'GET is cacheable by default (CDN!)', 'POST not cacheable — custom headers needed'],
               ['Complex operations', 'Awkward: POST /orders/123/cancel', 'Natural: cancelOrder({id: 123})'],
