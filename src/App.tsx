@@ -69,6 +69,13 @@ const CPUThreadsViz = lazy(() => import('@/modules/programming-concepts/cpu-thre
 const MemoryModelViz = lazy(() => import('@/modules/programming-concepts/memory'))
 const JWTViz = lazy(() => import('@/modules/programming-concepts/jwt'))
 
+// ── Identity & Access ─────────────────────────────────────────────────────
+const IdentityFundamentalsViz = lazy(() => import('@/modules/identity/fundamentals'))
+const OAuth2Viz = lazy(() => import('@/modules/identity/oauth2'))
+const OIDCViz = lazy(() => import('@/modules/identity/oidc'))
+const SAMLViz = lazy(() => import('@/modules/identity/saml'))
+const PasskeysViz = lazy(() => import('@/modules/identity/passkeys'))
+
 // ── System Design ─────────────────────────────────────────────────────────
 const SystemDesignApproachViz = lazy(() => import('@/modules/system-design/system-design-approach'))
 const EventBookingViz = lazy(() => import('@/modules/system-design/event-booking'))
@@ -194,6 +201,13 @@ export const appRoutes = [
       { path: 'essentials/cpu-threads', element: S(CPUThreadsViz) },
       { path: 'essentials/memory', element: S(MemoryModelViz) },
       { path: 'essentials/jwt', element: S(JWTViz) },
+
+      // Identity & Access
+      { path: 'identity/fundamentals', element: S(IdentityFundamentalsViz) },
+      { path: 'identity/oauth2', element: S(OAuth2Viz) },
+      { path: 'identity/oidc', element: S(OIDCViz) },
+      { path: 'identity/saml', element: S(SAMLViz) },
+      { path: 'identity/passkeys', element: S(PasskeysViz) },
 
       // System Design
       { path: 'system-design/approach', element: S(SystemDesignApproachViz) },

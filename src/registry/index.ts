@@ -205,6 +205,26 @@ export const registry: ModuleSection[] = [
     ],
   },
 
+  {
+    id: 'identity',
+    title: 'Identity & Access',
+    path: '/identity',
+    icon: '🪪',
+    color: 'text-teal-600 dark:text-teal-400',
+    bgColor: 'bg-teal-50 dark:bg-teal-950/30',
+    borderColor: 'border-teal-200 dark:border-teal-800',
+    description: 'Who are you, and what are you allowed to do? — OAuth 2.0, OpenID Connect, SAML and passkeys, flow by flow',
+    story: 'Every "Sign in with Google", every "Allow this app to see your photos", every corporate login that magically works across twenty tools is the same handful of standards doing a carefully choreographed dance of redirects, codes and signed tokens. Learn the cast first — user, client, identity provider, API — then watch OAuth 2.0 hand out keys without sharing passwords, OpenID Connect add "who" on top of "what", SAML carry enterprise SSO in signed XML, and passkeys replace the password entirely with a key that only fits the real door.',
+    group: 'design',
+    subcategories: [
+      { id: 'identity-fundamentals', title: 'Identity Fundamentals', path: '/identity/fundamentals', description: 'AuthN vs AuthZ, sessions vs tokens, identity providers, federation and SSO — the vocabulary every standard builds on', difficulty: 'beginner', tags: ['authentication', 'authorization', 'sessions', 'cookies', 'tokens', 'SSO', 'federation', 'IdP', 'SCIM', 'MFA'] },
+      { id: 'oauth2', title: 'OAuth 2.0', path: '/identity/oauth2', description: 'Delegated access without sharing passwords — authorization code + PKCE, client credentials, device flow and refresh tokens', difficulty: 'intermediate', tags: ['OAuth', 'PKCE', 'access token', 'refresh token', 'scopes', 'client credentials', 'device flow', 'RFC 6749'] },
+      { id: 'oidc', title: 'OpenID Connect', path: '/identity/oidc', description: 'An identity layer on OAuth 2.0 — ID tokens, nonce, discovery, JWKS and the checks every app must run before trusting a login', difficulty: 'intermediate', tags: ['OIDC', 'ID token', 'Sign in with Google', 'nonce', 'discovery', 'JWKS', 'userinfo', 'JWT'] },
+      { id: 'saml', title: 'SAML 2.0', path: '/identity/saml', description: 'Enterprise SSO in signed XML — AuthnRequest, browser POST binding, assertions, and SAML vs OIDC', difficulty: 'intermediate', tags: ['SAML', 'SSO', 'assertion', 'IdP', 'SP', 'XML signature', 'Okta', 'enterprise'] },
+      { id: 'passkeys', title: 'Passkeys & WebAuthn', path: '/identity/passkeys', description: 'Passwordless, phishing-resistant login — public-key registration and sign-in ceremonies with FIDO2', difficulty: 'intermediate', tags: ['passkeys', 'WebAuthn', 'FIDO2', 'passwordless', 'phishing-resistant', 'public key', 'MFA'] },
+    ],
+  },
+
   // ══ SYSTEMS & SCALE ═══════════════════════════════════════════════════════
 
   {
